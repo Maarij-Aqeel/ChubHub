@@ -4,7 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Request Event - Club Hub</title>
-  <link rel="stylesheet" href="/css/profile.css"> <!-- optional -->
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .form-container {
+      max-width: 720px;
+      margin: 40px auto;
+      background: var(--bg);
+      border: 1px solid #e5e7eb;
+      border-radius: var(--radius);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      padding: 24px;
+    }
+    h1 { color: var(--dark); margin-bottom: 12px; }
+    label { color: var(--dark); font-weight: 600; }
+    input, textarea { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 10px; margin-top: 6px; }
+    button { background: var(--primary); color: #fff; border:none; padding: 10px 16px; border-radius: 10px; cursor: pointer; }
+    a { color: var(--accent); text-decoration: none; }
+  </style>
 </head>
 <body>
   <div class="form-container">
@@ -38,6 +54,11 @@
       <div>
         <label for="endsAt">End Date & Time:</label><br>
         <input type="datetime-local" id="endsAt" name="endsAt">
+      </div>
+
+      <div>
+        <label for="capacity">Capacity (optional):</label><br>
+        <input type="number" id="capacity" name="capacity" min="1" placeholder="e.g., 100">
       </div>
 
       <br>

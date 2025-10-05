@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Pending Posts</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+    <style>
+        /* ===== Reset & Base ===== */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body { 
+            background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+            color: #111827;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== Navbar ===== */
+        .navbar {
+            width: 100%;
+            background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
+        }
+        
+        .navbar-left {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .navbar-brand {
+            color: #FFFFFF;
+            font-size: 1.3rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        
+        .navbar-brand i {
+            font-size: 1.5rem;
+        }
+        
+        .navbar a:not(.navbar-brand) {
+            color: #FFFFFF;
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .navbar a:not(.navbar-brand)::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: left 0.3s ease;
+        }
+        
+        .navbar a:not(.navbar-brand):hover::before {
+            left: 0;
+        }
+        
+        .navbar a:not(.navbar-brand):hover { 
+            transform: translateY(-2px);
+        }
+        
+        .navbar a i { 
+            font-size: 1.5rem;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: #FFFFFF;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* ===== Container ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 3rem;
+        }
+
+        /* ===== Page Header ===== */
+        .page-header {
+            background: #FFFFFF;
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .page-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .page-title i {
+            font-size: 2.5rem;
+            color: #F59E0B;
+        }
+        
+        .page-title h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1E3A8A;
+        }
+
+        .pending-count {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            color: #FFFFFF;
+            padding: 0.75rem 1.5rem;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        /* ===== Posts List ===== */
+        .posts-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .post-item {
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border-left: 4px solid #F59E0B;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .post-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%);
+        }
+        
+        .post-item:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            transform: translateY(-4px);
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #F3F4F6;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .club-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .club-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-weight: 700;
+            font-size: 1.2rem;
+            border: 2px solid #E5E7EB;
+        }
+
+        .club-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .club-details h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1E3A8A;
+            margin-bottom: 2px;
+        }
+
+        .club-details span {
+            font-size: 0.85rem;
+            color: #6B7280;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .club-details span i {
+            color: #9CA3AF;
+        }
+
+        .post-status {
+            background: #FEF3C7;
+            color: #92400E;
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 2px solid #FDE68A;
+        }
+
+        .post-content {
+            margin-bottom: 1.5rem;
+        }
+
+        .post-text {
+            color: #374151;
+            line-height: 1.7;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            white-space: pre-wrap;
+        }
+
+        .post-media {
+            margin-top: 1rem;
+        }
+
+        .post-media img,
+        .post-media video {
+            width: 100%;
+            max-height: 500px;
+            border-radius: 12px;
+            object-fit: cover;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* ===== Action Buttons ===== */
+        .post-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .action-form {
+            display: inline-block;
+        }
+
+        .btn {
+            border: none;
+            padding: 0.875rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.3s ease;
+        }
+
+        .btn:hover::before {
+            left: 0;
+        }
+
+        .btn-approve {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-approve:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-reject {
+            background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+            color: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+        }
+
+        .btn-reject:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+        }
+
+        .btn i {
+            font-size: 1.1rem;
+        }
+
+        /* ===== Empty State ===== */
+        .empty-state {
+            text-align: center;
+            padding: 5rem 2rem;
+            background: #FFFFFF;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .empty-state i {
+            font-size: 5rem;
+            color: #D1D5DB;
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-state h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1E3A8A;
+            margin-bottom: 0.75rem;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            color: #6B7280;
+            margin-bottom: 2rem;
+        }
+
+        .empty-state .btn-back {
+            background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%);
+            color: #FFFFFF;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        .empty-state .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .navbar-left {
+                flex-direction: column;
+                gap: 0.5rem;
+                width: 100%;
+                align-items: center;
+            }
+            
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+            
+            .navbar a:not(.navbar-brand) {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8rem;
+            }
+
+            .page-header {
+                padding: 1.5rem;
+            }
+
+            .page-title {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .page-title i {
+                font-size: 2rem;
+            }
+
+            .page-title h1 {
+                font-size: 1.5rem;
+            }
+
+            .pending-count {
+                align-self: flex-start;
+            }
+
+            .post-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .post-actions {
+                width: 100%;
+            }
+
+            .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .empty-state {
+                padding: 3rem 1.5rem;
+            }
+
+            .empty-state i {
+                font-size: 3.5rem;
+            }
+
+            .empty-state h2 {
+                font-size: 1.4rem;
+            }
+
+            .empty-state p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== Navbar ===== -->
+    <div class="navbar">
+        <div class="navbar-left">
+            <a href="/admin/dashboard" class="navbar-brand">
+                <i class="fas fa-shield-halved"></i>
+                <span>Admin Portal</span>
+            </a>
+            <a href="/admin/dashboard">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/admin/club-requests">
+                <i class="fas fa-user-clock"></i>
+                <span>Club Requests</span>
+            </a>
+            <a href="/admin/events">
+                <i class="fas fa-calendar-check"></i>
+                <span>Events</span>
+            </a>
+        </div>
+        <a href="/admin/dashboard" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Dashboard</span>
+        </a>
+    </div>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-title">
+                <i class="fas fa-file-circle-question"></i>
+                <h1>Pending Posts</h1>
+            </div>
+            <% if (posts.length > 0) { %>
+                <div class="pending-count">
+                    <%= posts.length %> Post<%= posts.length !== 1 ? 's' : '' %> Awaiting Review
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Posts List -->
+        <% if (posts.length > 0) { %>
+            <ul class="posts-list">
+                <% posts.forEach(post => { %>
+                    <li class="post-item">
+                        <div class="post-header">
+                            <div class="post-meta">
+                                <div class="club-info">
+                                    <div class="club-avatar">
+                                        <% if (post.clubProfilePic) { %>
+                                            <img src="<%= post.clubProfilePic %>" alt="Club Avatar">
+                                        <% } else { %>
+                                            🏛️
+                                        <% } %>
+                                    </div>
+                                    <div class="club-details">
+                                        <h3><%= post.clubName || 'Unknown Club' %></h3>
+                                        <span>
+                                            <i class="far fa-clock"></i>
+                                            <%= new Date(post.createdAt || Date.now()).toLocaleString() %>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="post-status">
+                                <i class="fas fa-hourglass-half"></i> Pending
+                            </div>
+                        </div>
+
+                        <div class="post-content">
+                            <% if (post.text) { %>
+                                <p class="post-text"><%= post.text %></p>
+                            <% } %>
+                            
+                            <div class="post-media">
+                                <% if (post.image) { %>
+                                    <img src="<%= post.image %>" alt="Post image">
+                                <% } %>
+                                <% if (post.video) { %>
+                                    <video src="<%= post.video %>" controls></video>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <div class="post-actions">
+                            <form class="action-form" action="/admin/posts/<%= post.id %>/approve" method="POST">
+                                <button type="submit" class="btn btn-approve">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Approve</span>
+                                </button>
+                            </form>
+                            <form class="action-form" action="/admin/posts/<%= post.id %>/reject" method="POST">
+                                <button type="submit" class="btn btn-reject">
+                                    <i class="fas fa-times-circle"></i>
+                                    <span>Reject</span>
+                                </button>
+                            </form>
+                        </div>
+                    </li>
+                <% }); %>
+            </ul>
+        <% } else { %>
+            <div class="empty-state">
+                <i class="fas fa-check-double"></i>
+                <h2>All Caught Up!</h2>
+                <p>There are no pending posts to review at this time.</p>
+                <a href="/admin/dashboard" class="btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Dashboard</span>
+                </a>
+            </div>
+        <% } %>
+    </div>
+
+</body>
+</html>

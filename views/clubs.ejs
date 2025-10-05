@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browse Clubs - UC Hub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <style>
+    /* ===== Reset & Base ===== */
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body { 
+      background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+      color: #111827;
+      min-height: 100vh;
+    }
+
+    /* ===== Navbar ===== */
+    .navbar {
+      width: 100%;
+      background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 3rem;
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
+      margin-bottom: 2rem;
+    }
+    
+    .navbar a {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      padding: 0.5rem 1.5rem;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .navbar a::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      transition: left 0.3s ease;
+    }
+    
+    .navbar a:hover::before {
+      left: 0;
+    }
+    
+    .navbar a:hover { 
+      transform: translateY(-2px);
+    }
+    
+    .navbar i { 
+      font-size: 1.5rem;
+    }
+
+    /* ===== Container ===== */
+    .container { 
+      max-width: 1200px; 
+      margin: 0 auto 3rem; 
+      padding: 0 1.5rem; 
+    }
+
+    /* ===== Header Section ===== */
+    .header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+
+    .header-content h2 {
+      font-size: 2rem;
+      color: #1E3A8A;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .header-content p {
+      color: #6B7280;
+      font-size: 1rem;
+    }
+
+    /* ===== Search Box ===== */
+    .search-wrapper {
+      position: relative;
+      flex: 1;
+      max-width: 400px;
+    }
+
+    .search-wrapper i {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #6B7280;
+      font-size: 1.1rem;
+    }
+
+    .search { 
+      width: 100%;
+      padding: 1rem 1rem 1rem 3rem;
+      border-radius: 12px;
+      border: 2px solid #E5E7EB;
+      font-size: 0.95rem;
+      background: #FFFFFF;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .search:focus {
+      outline: none;
+      border-color: #2563EB;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.15);
+    }
+
+    /* ===== Stats Bar ===== */
+    .stats-bar {
+      background: #FFFFFF;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-item .number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #2563EB;
+      display: block;
+    }
+
+    .stat-item .label {
+      font-size: 0.9rem;
+      color: #6B7280;
+      margin-top: 0.25rem;
+    }
+
+    /* ===== Grid ===== */
+    .grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+      gap: 1.5rem;
+    }
+
+    /* ===== Club Card ===== */
+    .card { 
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 0;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      transition: all 0.3s ease;
+      border: 1px solid #E5E7EB;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #2563EB 0%, #1E3A8A 100%);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      transform: translateY(-6px);
+    }
+
+    .card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+      padding: 1.5rem;
+      position: relative;
+    }
+
+    .card-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .card-icon i {
+      font-size: 1.8rem;
+      color: #FFFFFF;
+    }
+
+    .card-body {
+      padding: 1.5rem;
+    }
+
+    .card h3 { 
+      font-size: 1.3rem;
+      color: #1E3A8A;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .card .meta { 
+      font-size: 0.85rem;
+      color: #6B7280;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .card .meta i {
+      color: #2563EB;
+    }
+
+    .card p { 
+      color: #374151;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      min-height: 72px;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-footer {
+      padding: 0 1.5rem 1.5rem;
+    }
+
+    /* ===== Buttons ===== */
+    .btn { 
+      width: 100%;
+      background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%);
+      color: #FFFFFF;
+      border: none;
+      padding: 0.9rem 1.5rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn.secondary { 
+      background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+    }
+
+    .btn.secondary:hover {
+      box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+    }
+
+    .btn i {
+      font-size: 1rem;
+    }
+
+    /* ===== Badge ===== */
+    .badge {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: #10B981;
+      color: #FFFFFF;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    /* ===== Empty State ===== */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      grid-column: 1 / -1;
+    }
+    
+    .empty-state i {
+      font-size: 4rem;
+      color: #D1D5DB;
+      margin-bottom: 1rem;
+    }
+    
+    .empty-state h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+    
+    .empty-state p {
+      font-size: 1rem;
+      color: #6B7280;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      .navbar {
+        gap: 1rem;
+        padding: 1rem;
+      }
+      
+      .navbar a {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+      }
+      
+      .navbar i {
+        font-size: 1.2rem;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .header-content h2 {
+        font-size: 1.5rem;
+      }
+
+      .search-wrapper {
+        max-width: 100%;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-bar {
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== Navbar ===== -->
+  <div class="navbar">
+    <a href="/student/<%= user.id %>/home">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </a>
+    <a href="/student/<%= user.id %>/clubs">
+      <i class="fas fa-layer-group"></i>
+      <span>Clubs</span>
+    </a>
+    <a href="/student/<%= user.id %>">
+      <i class="fas fa-user"></i>
+      <span>Profile</span>
+    </a>
+  </div>
+
+  <div class="container">
+    <!-- ===== Header ===== -->
+    <div class="header">
+      <div class="header-content">
+        <h2>Discover Clubs</h2>
+        <p>Find and join clubs that match your interests</p>
+      </div>
+      <div class="search-wrapper">
+        <form method="GET" action="/student/<%= user.id %>/clubs">
+          <i class="fas fa-search"></i>
+          <input class="search" type="text" name="q" placeholder="Search clubs by name or interest..." value="<%= q || '' %>">
+        </form>
+      </div>
+    </div>
+
+    <!-- ===== Stats Bar ===== -->
+    <% if (clubs && clubs.length) { %>
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="number"><%= clubs.length %></span>
+        <span class="label">Total Clubs</span>
+      </div>
+      <div class="stat-item">
+        <span class="number"><%= clubs.filter(c => c.isSubscribed).length %></span>
+        <span class="label">Your Subscriptions</span>
+      </div>
+      <div class="stat-item">
+        <span class="number"><%= clubs.length - clubs.filter(c => c.isSubscribed).length %></span>
+        <span class="label">Available to Join</span>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- ===== Clubs Grid ===== -->
+    <div class="grid">
+      <% if (clubs && clubs.length) { %>
+        <% clubs.forEach(c => { %>
+          <div class="card">
+            <div class="card-header">
+              <% if (c.isSubscribed) { %>
+                <span class="badge"><i class="fas fa-check"></i> Subscribed</span>
+              <% } %>
+              <div class="card-icon">
+                <i class="fas fa-users"></i>
+              </div>
+              <h3><%= c.username %></h3>
+              <div class="meta">
+                <i class="fas fa-envelope"></i>
+                <%= c.email %>
+              </div>
+            </div>
+            <div class="card-body">
+              <p><%= (c.profile_data && c.profile_data.clubDescription) || 'No description yet.' %></p>
+            </div>
+            <div class="card-footer">
+              <% if (c.isSubscribed) { %>
+                <form method="POST" action="/student/<%= user.id %>/clubs/<%= c.id %>/unsubscribe">
+                  <button class="btn secondary" type="submit">
+                    <i class="fas fa-times-circle"></i>
+                    Unsubscribe
+                  </button>
+                </form>
+              <% } else { %>
+                <form method="POST" action="/student/<%= user.id %>/clubs/<%= c.id %>/subscribe">
+                  <button class="btn" type="submit">
+                    <i class="fas fa-plus-circle"></i>
+                    Subscribe
+                  </button>
+                </form>
+              <% } %>
+            </div>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="empty-state">
+          <i class="fas fa-search"></i>
+          <h3>No Clubs Found</h3>
+          <p>Try adjusting your search criteria to find clubs.</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+</body>
+</html>

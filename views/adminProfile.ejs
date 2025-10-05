@@ -3,229 +3,699 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Profile - Club Hub</title>
+  <title>Admin Dashboard - Club Hub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
+    /* ===== Reset & Base ===== */
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-
-    body {
-      background: #f4f6f9;
-      color: #333;
+    
+    body { 
+      background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+      color: #111827;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
+    /* ===== Navbar ===== */
+    .navbar {
+      width: 100%;
+      background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
+    }
+    
+    .navbar-left {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+    
+    .navbar-brand {
+      color: #FFFFFF;
+      font-size: 1.3rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .navbar-brand i {
+      font-size: 1.5rem;
+    }
+    
+    .navbar a {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      padding: 0.5rem 1.5rem;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .navbar a::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      transition: left 0.3s ease;
+    }
+    
+    .navbar a:hover::before {
+      left: 0;
+    }
+    
+    .navbar a:hover { 
+      transform: translateY(-2px);
+    }
+    
+    .navbar a i { 
+      font-size: 1.5rem;
+    }
+
+    .logout-btn-nav {
+      background: rgba(220, 38, 38, 0.9);
+      color: #FFFFFF;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .logout-btn-nav:hover {
+      background: #DC2626;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    }
+
+    /* ===== Profile Container ===== */
     .profile-container {
-      max-width: 1000px;
-      margin: auto;
-      background: #fff;
-      border-radius: 12px;
-      padding-bottom: 2rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      min-height: 100vh;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem 3rem;
+    }
+
+    /* ===== Banner Section ===== */
+    .banner-section {
+      position: relative;
+      margin-top: 2rem;
+      margin-bottom: 6rem;
     }
 
     .banner {
       width: 100%;
-      height: 180px;
-      background: linear-gradient(135deg, #f39c12, #f1c40f);
-      border-radius: 12px 12px 0 0;
+      height: 250px;
+      background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+      border-radius: 16px 16px 0 0;
       position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
+    }
+    
+    .banner::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+      border-radius: 50%;
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .banner::after {
+      content: '';
+      position: absolute;
+      bottom: -50%;
+      left: -10%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      border-radius: 50%;
+      animation: float 8s ease-in-out infinite reverse;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0) translateX(0); }
+      50% { transform: translateY(-20px) translateX(20px); }
     }
 
+    /* ===== Profile Picture ===== */
     .profile-pic {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      border: 4px solid #fff;
       position: absolute;
-      bottom: -60px;
-      left: 2rem;
-      background: #eee;
+      bottom: -80px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2rem;
-      font-weight: bold;
-      color: #555;
+      font-size: 5rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      border: 6px solid #FFFFFF;
+      z-index: 10;
+      color: #FFFFFF;
     }
 
-    .logout-btn {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      background: #ff4d4d;
-      border: none;
-      padding: 0.6rem 1rem;
-      border-radius: 8px;
-      color: #fff;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: background 0.3s;
-    }
-
-    .logout-btn:hover {
-      background: #e63939;
-    }
-
+    /* ===== Admin Details ===== */
     .admin-details {
-      margin-top: 80px;
-      padding: 0 1.5rem;
-    }
-
-    .admin-details h2 {
-      font-size: 1.8rem;
-      margin-bottom: 0.5rem;
-      color: #333;
-    }
-
-    .admin-details p {
-      font-size: 1rem;
-      color: #555;
-      margin-bottom: 1rem;
-    }
-
-    .stats {
-      display: flex;
-      gap: 20px;
+      background: #FFFFFF;
+      padding: 6rem 2rem 2rem;
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      text-align: center;
       margin-bottom: 2rem;
-      flex-wrap: wrap;
+    }
+    
+    .admin-details h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1E3A8A;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .admin-badge {
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+      color: #FFFFFF;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .admin-details > p {
+      color: #6B7280;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .admin-details > p i {
+      color: #2563EB;
+    }
+
+    /* ===== Stats Grid ===== */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
     }
 
     .stat-card {
-      flex: 1 1 200px;
-      background: #f9fafc;
-      padding: 1rem;
-      border-radius: 8px;
+      background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
+      padding: 1.5rem;
+      border-radius: 12px;
       text-align: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      border: 2px solid #E5E7EB;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #2563EB 0%, #1E3A8A 100%);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      border-color: #2563EB;
+    }
+    
+    .stat-card:hover::before {
+      transform: scaleX(1);
+    }
+    
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 1rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+    }
+    
+    .stat-card:nth-child(1) .stat-icon {
+      background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+      color: #1E40AF;
+    }
+    
+    .stat-card:nth-child(2) .stat-icon {
+      background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+      color: #047857;
+    }
+    
+    .stat-card:nth-child(3) .stat-icon {
+      background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+      color: #B45309;
     }
 
     .stat-card h3 {
-      font-size: 1.2rem;
-      color: #f39c12;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1E3A8A;
       margin-bottom: 0.5rem;
     }
 
     .stat-card p {
-      font-size: 0.9rem;
-      color: #555;
+      font-size: 0.95rem;
+      color: #6B7280;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
+    /* ===== Section Headers ===== */
+    .section-header {
+      background: #FFFFFF;
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .section-header h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1E3A8A;
+      margin: 0;
+    }
+    
+    .section-header i {
+      color: #2563EB;
+      font-size: 1.5rem;
+    }
+
+    /* ===== Management Section ===== */
     .management {
-      padding: 0 1.5rem;
-    }
-
-    .management h3 {
-      margin-bottom: 1rem;
-      color: #333;
+      margin-bottom: 2rem;
     }
 
     .manage-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+
+    .manage-buttons a {
+      text-decoration: none;
     }
 
     .manage-buttons button {
-      flex: 1 1 150px;
-      padding: 10px;
+      width: 100%;
+      padding: 1.25rem 1.5rem;
       border: none;
-      border-radius: 8px;
-      background: #f39c12;
-      color: #fff;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%);
+      color: #FFFFFF;
       cursor: pointer;
-      font-size: 0.95rem;
-      transition: background 0.3s;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .manage-buttons button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      transition: left 0.3s ease;
+    }
+    
+    .manage-buttons button:hover::before {
+      left: 0;
     }
 
     .manage-buttons button:hover {
-      background: #d68910;
+      transform: translateY(-4px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+    }
+    
+    .manage-buttons button i {
+      font-size: 1.2rem;
     }
 
+    .manage-buttons button.warning {
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    }
+    
+    .manage-buttons button.warning:hover {
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    }
+
+    /* ===== Recent Actions ===== */
     .recent-actions {
-      margin-top: 2rem;
-      padding: 0 1.5rem;
-    }
-
-    .recent-actions h3 {
-      margin-bottom: 1rem;
-      color: #333;
+      margin-bottom: 2rem;
     }
 
     .action-card {
-      background: #f9fafc;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      background: #FFFFFF;
+      padding: 1.25rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border-left: 4px solid #2563EB;
+      transition: all 0.3s ease;
+    }
+    
+    .action-card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      transform: translateX(4px);
     }
 
-    .action-card p {
+    .action-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .action-type {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      color: #1E3A8A;
+      font-size: 0.95rem;
+    }
+    
+    .action-type i {
+      color: #2563EB;
+    }
+
+    .action-time {
+      font-size: 0.85rem;
+      color: #6B7280;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .action-time i {
+      color: #9CA3AF;
+    }
+
+    .action-details {
+      color: #374151;
       font-size: 0.9rem;
-      color: #555;
+      line-height: 1.5;
     }
 
+    /* ===== Empty State ===== */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #6B7280;
+      background: #FFFFFF;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    
+    .empty-state i {
+      font-size: 4rem;
+      color: #D1D5DB;
+      margin-bottom: 1rem;
+    }
+    
+    .empty-state h3 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+    
+    .empty-state p {
+      font-size: 1rem;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+      }
+      
+      .navbar-left {
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+      }
+      
+      .navbar-brand {
+        font-size: 1.1rem;
+      }
+      
+      .navbar a {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+      }
+      
+      .navbar a i {
+        font-size: 1.2rem;
+      }
+      
+      .banner {
+        height: 180px;
+      }
+      
+      .profile-pic {
+        width: 120px;
+        height: 120px;
+        font-size: 3.5rem;
+        bottom: -60px;
+      }
+      
+      .admin-details {
+        padding: 4.5rem 1.5rem 1.5rem;
+      }
+      
+      .admin-details h2 {
+        font-size: 1.5rem;
+        flex-direction: column;
+      }
+      
+      .stats {
+        grid-template-columns: 1fr;
+      }
+      
+      .manage-buttons {
+        grid-template-columns: 1fr;
+      }
+      
+      .section-header h3 {
+        font-size: 1.2rem;
+      }
+      
+      .action-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
   </style>
 </head>
 <body>
+
+  <!-- ===== Navbar ===== -->
+  <div class="navbar">
+    <div class="navbar-left">
+      <div class="navbar-brand">
+        <i class="fas fa-shield-halved"></i>
+        <span>Admin Portal</span>
+      </div>
+      <a href="/admin/dashboard">
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="/admin/reports">
+        <i class="fas fa-chart-line"></i>
+        <span>Reports</span>
+      </a>
+      <a href="/admin/settings">
+        <i class="fas fa-cog"></i>
+        <span>Settings</span>
+      </a>
+    </div>
+    <a href="/logout">
+      <button class="logout-btn-nav">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Log Out</span>
+      </button>
+    </a>
+  </div>
+
   <div class="profile-container">
-    <!-- Banner + Profile Pic + Logout -->
-    <div class="banner">
-      <button class="logout-btn">Log Out</button>
-      <div class="profile-pic">👩‍💼</div>
+    <!-- Banner & Profile Picture -->
+    <div class="banner-section">
+      <div class="banner"></div>
+      <div class="profile-pic">
+        <i class="fas fa-user-shield"></i>
+      </div>
     </div>
 
     <!-- Admin Details -->
     <div class="admin-details">
-      <h2>Admin Name</h2>
-      <p>Role: Platform Administrator</p>
+      <h2>
+        <%= user.username %>
+        <span class="admin-badge">Administrator</span>
+      </h2>
+      <p>
+        <i class="fas fa-envelope"></i>
+        <%= user.email %>
+      </p>
 
       <!-- Stats -->
       <div class="stats">
         <div class="stat-card">
-          <h3>120</h3>
+          <div class="stat-icon">
+            <i class="fas fa-user-graduate"></i>
+          </div>
+          <h3><%= stats.students %></h3>
           <p>Students</p>
         </div>
         <div class="stat-card">
-          <h3>15</h3>
+          <div class="stat-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <h3><%= stats.clubs %></h3>
           <p>Clubs</p>
         </div>
         <div class="stat-card">
-          <h3>50</h3>
-          <p>Events</p>
-        </div>
-      </div>
-
-      <!-- Management Buttons -->
-      <div class="management">
-        <h3>Quick Management</h3>
-        <div class="manage-buttons">
-          <button>Manage Students</button>
-          <button>Manage Clubs</button>
-          <button>Manage Events</button>
-          <button>View Reports</button>
-          <button>Send Announcements</button>
-        </div>
-      </div>
-
-      <!-- Recent Actions -->
-      <div class="recent-actions">
-        <h3>Recent Actions</h3>
-        <div class="action-card">
-          <p>Added new club: AI & Robotics Club</p>
-        </div>
-        <div class="action-card">
-          <p>Approved student subscription: Coding Club</p>
-        </div>
-        <div class="action-card">
-          <p>Created new event: Hackathon 2025</p>
+          <div class="stat-icon">
+            <i class="fas fa-newspaper"></i>
+          </div>
+          <h3><%= stats.posts %></h3>
+          <p>Posts</p>
         </div>
       </div>
     </div>
+
+    <!-- Management Section -->
+    <div class="management">
+      <div class="section-header">
+        <i class="fas fa-tasks"></i>
+        <h3>Quick Management</h3>
+      </div>
+      <div class="manage-buttons">
+        <a href="/admin/club-requests">
+          <button class="warning">
+            <i class="fas fa-user-clock"></i>
+            <span>Pending Club Requests</span>
+          </button>
+        </a>
+        <a href="/admin/posts">
+          <button class="warning">
+            <i class="fas fa-file-circle-check"></i>
+            <span>Pending Posts</span>
+          </button>
+        </a>
+        <a href="/admin/events">
+          <button class="warning">
+            <i class="fas fa-calendar-check"></i>
+            <span>Pending Events</span>
+          </button>
+        </a>
+      </div>
+    </div>
+
+    <!-- Recent Actions -->
+    <div class="recent-actions">
+      <div class="section-header">
+        <i class="fas fa-history"></i>
+        <h3>Recent Actions</h3>
+      </div>
+      <% if (recentLogs && recentLogs.length) { %>
+        <% recentLogs.forEach(log => { %>
+          <div class="action-card">
+            <div class="action-header">
+              <div class="action-type">
+                <i class="fas fa-circle-check"></i>
+                <span><%= log.action %> <%= log.targetType %> #<%= log.targetId %></span>
+              </div>
+              <div class="action-time">
+                <i class="far fa-clock"></i>
+                <%= new Date(log.createdAt).toLocaleString() %>
+              </div>
+            </div>
+            <% if (log.details) { %>
+              <div class="action-details"><%= log.details %></div>
+            <% } %>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="empty-state">
+          <i class="fas fa-inbox"></i>
+          <h3>No Recent Actions</h3>
+          <p>Your activity log will appear here.</p>
+        </div>
+      <% } %>
+    </div>
   </div>
+
 </body>
 </html>

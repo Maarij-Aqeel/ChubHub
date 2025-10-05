@@ -1,19 +1,36 @@
 :root {
-  --primary: #4a90e2;
-  --secondary: #50c9c3;
-  --danger: #ff4d4d;
-  --gray: #f8f9fb;
-  --dark: #333;
-  --text: #555;
+  --primary: #1E3A8A; /* Navy */
+  --accent: #2563EB;  /* Royal Blue */
+  --secondary: #F3F4F6; /* Light Gray */
+  --danger: #DC2626; /* Red */
+  --success: #10B981; /* Green */
+  --warning: #F59E0B; /* Amber */
+  --bg: #FFFFFF; /* White */
+  --dark: #111827; /* Charcoal */
+  --text: #111827;
   --radius: 12px;
+  --shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
 }
 
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, sans-serif;
-  background: var(--gray);
-  color: var(--dark);
+  background: var(--bg);
+  color: var(--text);
 }
+
+/* ===== Utilities ===== */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+.fade-in { animation: fadeIn .4s ease both; }
+.hover-lift { transition: transform .2s ease, box-shadow .2s ease; }
+.hover-lift:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.badge { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; display:inline-block; }
+.badge.success { background: #ecfdf5; color: var(--success); border: 1px solid #bbf7d0; }
+.badge.warning { background: #fffbeb; color: var(--warning); border: 1px solid #fde68a; }
+.badge.error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+@keyframes floatOrb { 0% { transform: translateY(0);} 50% { transform: translateY(-10px);} 100% { transform: translateY(0);} }
 
 /* ===== Navbar ===== */
 .navbar {
@@ -52,7 +69,7 @@ body {
 /* ===== Banner ===== */
 .banner {
   height: 180px;
-  background: linear-gradient(135deg, var(--secondary), var(--primary));
+  background: linear-gradient(135deg, var(--accent), var(--primary));
   display: flex;
   justify-content: flex-end;
   align-items: flex-start;
@@ -163,17 +180,17 @@ body {
 .file-btn input { display:none; }
 .modal-actions { display:flex; justify-content:flex-end; gap:10px; }
 .modal-actions .btn { padding:0.6rem 1.2rem; border:none; }
-.save-btn { background:#4CAF50; }
-.cancel-btn { background:#f44336; }
+.save-btn { background: var(--success); }
+.cancel-btn { background: var(--danger); }
 
 /* ===== Add Post ===== */
 .add-post {
   max-width: 900px;
   margin: 20px auto;
   padding: 15px;
-  border: 1px solid #ddd;
+  border: 1px solid #e5e7eb;
   border-radius: var(--radius);
-  background: #fafafa;
+  background: var(--secondary);
   text-align: center;
 }
 .add-post textarea {
@@ -204,7 +221,7 @@ body {
 }
 .posts-feed .post {
   background: #fff;
-  border: 1px solid #ddd;
+  border: 1px solid #e5e7eb;
   border-radius: var(--radius);
   padding: 15px;
   margin-bottom: 15px;

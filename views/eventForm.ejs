@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Request Event - Club Hub</title>
+  <link rel="stylesheet" href="/css/profile.css"> <!-- optional -->
+</head>
+<body>
+  <div class="form-container">
+    <h1>Request a New Event</h1>
+
+    <% if (error) { %>
+      <p style="color:red;"><%= error %></p>
+    <% } %>
+
+    <form action="/club/<%= clubId %>/event/new" method="POST">
+      <div>
+        <label for="title">Event Title:</label><br>
+        <input type="text" id="title" name="title" required>
+      </div>
+
+      <div>
+        <label for="description">Description:</label><br>
+        <textarea id="description" name="description" rows="4"></textarea>
+      </div>
+
+      <div>
+        <label for="location">Location:</label><br>
+        <input type="text" id="location" name="location">
+      </div>
+
+      <div>
+        <label for="startsAt">Start Date & Time:</label><br>
+        <input type="datetime-local" id="startsAt" name="startsAt">
+      </div>
+
+      <div>
+        <label for="endsAt">End Date & Time:</label><br>
+        <input type="datetime-local" id="endsAt" name="endsAt">
+      </div>
+
+      <br>
+      <button type="submit">Submit Event Request</button>
+    </form>
+
+    <br>
+    <a href="/club/<%= clubId %>">Back to Profile</a>
+  </div>
+</body>
+</html>

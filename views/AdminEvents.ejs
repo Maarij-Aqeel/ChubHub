@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Pending Events</title>
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <h1>Pending Events</h1>
+  <% if (pendingEvents && pendingEvents.length > 0) { %>
+    <% pendingEvents.forEach(event => { %>
+      <div class="event-card">
+        <h2><%= event.title %></h2>
+        <p><strong>Club:</strong> <%= event.club?.username || 'Unknown' %></p>
+        <% if (event.description) { %>
+          <p><strong>Description:</strong> <%= event.description %></p>
+        <% } %>
+        <% if (event.location) { %>
+          <p><strong>Location:</strong> <%= event.location %></p>
+        <% } %>
+        <% if (event.startsAt) { %>
+          <p><strong>Starts:</strong> <%= new Date(event.startsAt).toLocaleString() %></p>
+        <% } %>
+        <% if (event.endsAt) { %>
+          <p><strong>Ends:</strong> <%= new Date(event.endsAt).toLocaleString() %></p>
+        <% } %>
+
+        <!-- Approve Form -->
+        <form action="/admin/events/<%= event.id %>/approve" method="POST" style="display:inline-block;">
+          <button type="submit" class="btn-approve">Approve</button>
+        </form>
+
+        <!-- Reject Form -->
+        <form action="/admin/events/<%= event.id %>/reject" method="POST" style="display:inline-block;">
+          <textarea name="adminNotes" placeholder="Reason for rejection"></textarea>
+          <button type="submit" class="btn-reject">Reject</button>
+        </form>
+      </div>
+      <hr>
+    <% }) %>
+  <% } else { %>
+    <p>No pending events at the moment.</p>
+  <% } %>
+</body>
+</html>

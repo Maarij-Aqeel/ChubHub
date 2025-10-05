@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Apply to <%= club.username %></title>
+</head>
+<body>
+  <h1>Apply to Join <%= club.username %></h1>
+
+  <% if (error) { %>
+    <p style="color:red"><%= error %></p>
+  <% } %>
+
+  <form action="/student/<%= user.id %>/apply/<%= club.id %>" method="POST">
+    <label for="message">Message to the club (optional):</label><br>
+    <textarea name="message" id="message" rows="5" cols="50"></textarea><br><br>
+
+    <button type="submit">Submit Application</button>
+  </form>
+
+  <a href="/student/<%= user.id %>/home">Back to Home</a>
+</body>
+</html>

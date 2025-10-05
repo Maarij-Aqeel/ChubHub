@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Home - Club Hub</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <style>
+    /* ===== Reset ===== */
+    * { margin:0; padding:0; box-sizing:border-box; font-family: Arial,sans-serif; }
+    body { background:#f4f6f9; color:#333; min-height:100vh; }
+
+    /* ===== Navbar ===== */
+    .navbar {
+      width: 100%;
+      background: #4a90e2;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0.8rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+    }
+    .navbar a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+    .navbar a:hover { opacity: 0.8; }
+    .navbar i { font-size: 1.3rem; margin-bottom: 3px; }
+
+    /* ===== Container ===== */
+    .home-container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    /* ===== Banner ===== */
+    .banner {
+      background: linear-gradient(135deg,#50c9c3,#4a90e2);
+      color: #fff;
+      padding: 20px;
+      font-size: 1.5rem;
+      text-align: center;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    /* ===== Tabs ===== */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      flex: 1;
+      padding: 10px 0;
+      text-align: center;
+      background: #e0e0e0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s, color 0.3s;
+    }
+    .tab.active {
+      background: #4a90e2;
+      color: #fff;
+    }
+
+    /* ===== Posts Sections ===== */
+    .posts-section { display: none; flex-direction: column; gap: 20px; }
+    .posts-section.active { display: flex; }
+
+    /* ===== Post Card ===== */
+    .post-card {
+      background: #fff;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .post-header img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .post-header h4 {
+      font-size: 1rem;
+      font-weight: bold;
+    }
+    .post-header span {
+      font-size: 0.8rem;
+      color: #777;
+      margin-left: auto;
+    }
+
+    .post-content p { margin-bottom: 10px; }
+    .post-content img,
+    .post-content video {
+      width: 100%;
+      max-height: 400px;
+      border-radius: 10px;
+      object-fit: cover;
+      margin-top: 5px;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 600px) {
+      .post-header h4 { font-size: 0.9rem; }
+      .post-header span { font-size: 0.7rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== Navbar ===== -->
+  <div class="navbar">
+    <a href="/student/<%= user.id %>/home"><i class="fas fa-home"></i>Home</a>
+    <a href="/student/<%= user.id %>"><i class="fas fa-user"></i>Profile</a>
+  </div>
+
+  <div class="home-container">
+    <div class="banner">Welcome to Club Hub</div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" data-tab="all">All Clubs Posts</div>
+      <div class="tab" data-tab="subscribed">Subscribed Clubs Posts</div>
+    </div>
+
+    <!-- All Clubs Posts -->
+    <div class="posts-section active" id="all">
+      <% if (allPosts.length > 0) { %>
+        <% allPosts.forEach(post => { %>
+        <div class="post-card">
+          <div class="post-header">
+            <img src="<%= post.clubProfilePic || '/images/default-club.png' %>" alt="Club Profile">
+            <h4><%= post.clubName %></h4>
+            <span><%= post.timeAgo %></span>
+          </div>
+          <div class="post-content">
+            <% if(post.text) { %><p><%= post.text %></p><% } %>
+            <% if(post.image) { %><img src="<%= post.image %>" alt="Post Image"><% } %>
+            <% if(post.video) { %>
+              <video controls>
+                <source src="<%= post.video %>" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            <% } %>
+          </div>
+        </div>
+        <% }) %>
+      <% } else { %>
+        <p>No posts yet.</p>
+      <% } %>
+    </div>
+
+    <!-- Subscribed Clubs Posts -->
+    <div class="posts-section" id="subscribed">
+      <p>Subscribed clubs posts will appear here once you subscribe to clubs.</p>
+    </div>
+  </div>
+
+  <script>
+    const tabs = document.querySelectorAll('.tab');
+    const sections = document.querySelectorAll('.posts-section');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.getAttribute('data-tab');
+        sections.forEach(sec => {
+          if(sec.id === target) sec.classList.add('active');
+          else sec.classList.remove('active');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

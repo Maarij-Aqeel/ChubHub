@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Club Hub — Login</title>
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+  <div class="auth-card">
+    <h2>Club Hub</h2>
+
+    <% if (error) { %>
+      <div class="form-error"><%= error %></div>
+    <% } %>
+
+    <form action="/login" method="POST">
+      <input type="email" name="email" placeholder="Email" required autocomplete="email" />
+      <input type="password" name="password" placeholder="Password" required autocomplete="current-password" />
+      <button type="submit">Login</button>
+    </form>
+
+    <p>Don’t have an account? <a href="/signup">Sign up</a></p>
+  </div>
+</body>
+</html>

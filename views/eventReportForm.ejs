@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Submit Event Report - <%= event.title %></title>
+</head>
+<body>
+  <h1>Submit Report for: <%= event.title %></h1>
+  <p><strong>Location:</strong> <%= event.location || 'N/A' %></p>
+  <p><strong>Starts:</strong> <%= event.startsAt ? new Date(event.startsAt).toLocaleString() : 'N/A' %></p>
+  <p><strong>Ends:</strong> <%= event.endsAt ? new Date(event.endsAt).toLocaleString() : 'N/A' %></p>
+
+  <% if (error) { %>
+    <p style="color:red"><%= error %></p>
+  <% } %>
+
+  <form action="/club/<%= event.clubId %>/event/<%= event.id %>/report" method="POST" enctype="multipart/form-data">
+    <div>
+      <label for="summary">Event Summary:</label><br>
+      <textarea name="summary" id="summary" rows="5" cols="50" required></textarea>
+    </div>
+
+    <div>
+      <label for="attendeesCount">Number of Attendees:</label><br>
+      <input type="number" name="attendeesCount" id="attendeesCount" min="0" required>
+    </div>
+
+    <div>
+      <label for="attachments">Attachments (images/videos, optional):</label><br>
+      <input type="file" name="attachments" id="attachments" multiple accept="image/*,video/*">
+    </div>
+
+    <div>
+      <button type="submit">Submit Report</button>
+    </div>
+  </form>
+
+  <a href="/club/<%= event.clubId %>">Back to Club Profile</a>
+</body>
+</html>

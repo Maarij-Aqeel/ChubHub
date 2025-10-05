@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Club Profile - Club Hub</title>
+  <link rel="stylesheet" href="/css/profile.css">
+</head>
+<body>
+  <div class="profile-container">
+    <!-- Banner -->
+    <div class="banner"></div>
+
+    <!-- Profile Picture -->
+    <div class="profile-pic">
+      <% if (user.profile_data?.profilePic) { %>
+        <img src="<%= user.profile_data.profilePic %>" alt="Club Picture">
+      <% } else { %>
+        🏛️
+      <% } %>
+    </div>
+
+    <!-- Logout Button -->
+    <button class="logout-btn" onclick="window.location='/logout'">Log Out</button>
+
+    <!-- Club Info -->
+    <div class="student-details">
+      <h2><%= user.profile_data?.clubName || user.username %></h2>
+      <p><%= user.profile_data?.clubDescription || 'Club | New club profile' %></p>
+      <p><strong>Representative:</strong> <%= user.profile_data?.representativeName || 'N/A' %></p>
+      <% if (user.profile_data?.email) { %>
+        <p><strong>Email:</strong> <%= user.profile_data.email %></p>
+      <% } %>
+      <% if (user.profile_data?.phone) { %>
+        <p><strong>Phone:</strong> <%= user.profile_data.phone %></p>
+      <% } %>
+      <% if (user.profile_data?.linkedin) { %>
+        <p><a href="<%= user.profile_data.linkedin %>" target="_blank" class="btn-link">🔗 LinkedIn</a></p>
+      <% } %>
+      <% if (user.profile_data?.instagram) { %>
+        <p><a href="<%= user.profile_data.instagram %>" target="_blank" class="btn-link">📸 Instagram</a></p>
+      <% } %>
+      <% if (user.profile_data?.tiktok) { %>
+        <p><a href="<%= user.profile_data.tiktok %>" target="_blank" class="btn-link">🎵 TikTok</a></p>
+      <% } %>
+      <% if (user.profile_data?.x) { %>
+        <p><a href="<%= user.profile_data.x %>" target="_blank" class="btn-link">🐦 X</a></p>
+      <% } %>
+      <button class="btn" onclick="openEditModal()">Edit Profile</button>
+      <button class="btn" onclick="openPostModal()">Add Post</button>
+    </div>
+
+    <!-- ===== Posts Feed ===== -->
+    <div class="posts-feed">
+      <% if (posts && posts.length > 0) { %>
+        <% posts.forEach(post => { %>
+          <div class="post">
+            <% if (post.text) { %>
+              <p><%= post.text %></p>
+            <% } %>
+
+            <% if (post.image) { %>
+              <img src="<%= post.image %>" alt="Post Image">
+            <% } %>
+            <% if (post.video) { %>
+              <video controls>
+                <source src="<%= post.video %>">
+                Your browser does not support the video tag.
+              </video>
+            <% } %>
+            <small>Posted at <%= new Date(post.createdAt).toLocaleString() %></small>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <p>No posts yet. Start by adding one!</p>
+      <% } %>
+    </div>
+  </div>
+<!-- ===== Approved Events ===== -->
+<div class="events-feed">
+  <h2>Upcoming Events</h2>
+  <% if (events && events.length > 0) { %>
+    <% events.forEach(event => { %>
+      <div class="event">
+        <h3><%= event.title %></h3>
+        <% if (event.description) { %>
+          <p><%= event.description %></p>
+        <% } %>
+        <% if (event.location) { %>
+          <p><strong>Location:</strong> <%= event.location %></p>
+        <% } %>
+        <% if (event.startsAt) { %>
+          <p><strong>Starts:</strong> <%= new Date(event.startsAt).toLocaleString() %></p>
+        <% } %>
+        <% if (event.endsAt) { %>
+          <p><strong>Ends:</strong> <%= new Date(event.endsAt).toLocaleString() %></p>
+        <% } %>
+      </div>
+    <% }) %>
+  <% } else { %>
+    <p>No upcoming events yet.</p>
+  <% } %>
+</div>
+
+  <!-- ===== Edit Profile Modal ===== -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <h3>Edit Club Profile</h3>
+      <form action="/updateProfile" method="POST" enctype="multipart/form-data">
+        <div class="edit-row">
+          <div class="profile-pic-edit">
+            <% if (user.profile_data?.profilePic) { %>
+              <img src="<%= user.profile_data.profilePic %>" alt="Club Picture">
+            <% } else { %>
+              🏛️
+            <% } %>
+            <label class="file-btn">
+              Change Photo
+              <input type="file" name="profilePic" accept="image/*">
+            </label>
+          </div>
+          <div class="edit-fields">
+            <input type="text" name="clubName" placeholder="Club Name" value="<%= user.profile_data?.clubName || '' %>">
+            <textarea name="clubDescription" placeholder="Description"><%= user.profile_data?.clubDescription || '' %></textarea>
+            <input type="text" name="representativeName" placeholder="Representative Name" value="<%= user.profile_data?.representativeName || '' %>">
+            <input type="text" name="email" placeholder="Email" value="<%= user.profile_data?.email || '' %>">
+            <input type="text" name="phone" placeholder="Phone Number" value="<%= user.profile_data?.phone || '' %>">
+            <input type="text" name="linkedin" placeholder="LinkedIn" value="<%= user.profile_data?.linkedin || '' %>">
+            <input type="text" name="instagram" placeholder="Instagram" value="<%= user.profile_data?.instagram || '' %>">
+            <input type="text" name="tiktok" placeholder="TikTok" value="<%= user.profile_data?.tiktok || '' %>">
+            <input type="text" name="x" placeholder="X / Twitter" value="<%= user.profile_data?.x || '' %>">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="btn save-btn">Save</button>
+          <button type="button" class="btn cancel-btn" onclick="closeEditModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Add Post Modal ===== -->
+  <div class="modal" id="postModal">
+    <div class="modal-content post-modal-content">
+      <h3>Add a Post</h3>
+      <form action="/club/<%= user.id %>/addPost" method="POST" enctype="multipart/form-data">
+        <textarea name="content" placeholder="Write something..." required></textarea>
+        <input type="file" name="media" accept="image/*,video/*">
+        <div class="modal-actions">
+          <button type="submit" class="btn save-btn">Post</button>
+          <button type="button" class="btn cancel-btn" onclick="closePostModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const editModal = document.getElementById('editModal');
+    const postModal = document.getElementById('postModal');
+
+    function openEditModal() { editModal.style.display = 'flex'; }
+    function closeEditModal() { editModal.style.display = 'none'; }
+
+    function openPostModal() { postModal.style.display = 'flex'; }
+    function closePostModal() { postModal.style.display = 'none'; }
+
+    window.onclick = function(event) {
+      if (event.target === editModal) closeEditModal();
+      if (event.target === postModal) closePostModal();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Club Hub — Sign Up</title>
+  <link rel="stylesheet" href="/css/auth.css">
+  <style>
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23333' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E") no-repeat right 0.75rem center;
+      padding: 0.85rem 2rem 0.85rem 0.85rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      width: 100%;
+      margin: 0.55rem 0;
+      font-size: 0.98rem;
+      cursor: pointer;
+    }
+    select:focus {
+      border-color: #4a90e2;
+      box-shadow: 0 0 0 3px rgba(74,144,226,0.12);
+      outline: none;
+    }
+    .role-fields { display: none; }
+  </style>
+</head>
+<body>
+<div class="auth-card">
+  <h2>Create an account</h2>
+
+  <% if (error) { %>
+    <div class="form-error"><%= error %></div>
+  <% } %>
+
+  <form action="/signup" method="POST" id="signupForm">
+    <select name="role" id="roleSelect" required>
+      <option value="" disabled selected>Select role</option>
+      <option value="student">Student</option>
+      <option value="club">Club</option>
+    </select>
+
+    <!-- Student Fields -->
+    <div class="role-fields" id="studentFields">
+      <input type="text" name="fullName" placeholder="Full Name" />
+      <input type="email" name="studentEmail" placeholder="University Email (9 digits @psu.edu.sa)" pattern="[0-9]{9}@psu\.edu\.sa" />
+      <input type="password" name="studentPassword" placeholder="Password (min 8 chars)" minlength="8" />
+      <input type="password" name="studentConfirmPassword" placeholder="Confirm Password" minlength="8" />
+    </div>
+
+    <!-- Club Fields -->
+    <div class="role-fields" id="clubFields">
+      <input type="text" name="clubName" placeholder="Club Name" />
+      <input type="email" name="clubEmail" placeholder="Email" />
+      <textarea name="clubDescription" placeholder="Club Description" rows="4"></textarea>
+      <input type="text" name="representativeName" placeholder="Representative Full Name" />
+      <input type="password" name="clubPassword" placeholder="Password (min 8 chars)" minlength="8" />
+      <input type="password" name="clubConfirmPassword" placeholder="Confirm Password" minlength="8" />
+    </div>
+
+    <button type="submit">Sign Up</button>
+  </form>
+
+  <p>Already have an account? <a href="/login">Login</a></p>
+</div>
+
+<script>
+const roleSelect = document.getElementById('roleSelect');
+const studentFields = document.getElementById('studentFields');
+const clubFields = document.getElementById('clubFields');
+const form = document.getElementById('signupForm');
+
+function showFields(role) {
+  if (role === 'student') {
+    studentFields.style.display = 'block';
+    clubFields.style.display = 'none';
+    studentFields.querySelectorAll('input').forEach(i => i.required = true);
+    clubFields.querySelectorAll('input,textarea').forEach(i => i.required = false);
+  } else if (role === 'club') {
+    clubFields.style.display = 'block';
+    studentFields.style.display = 'none';
+    clubFields.querySelectorAll('input,textarea').forEach(i => i.required = true);
+    studentFields.querySelectorAll('input').forEach(i => i.required = false);
+  } else {
+    studentFields.style.display = 'none';
+    clubFields.style.display = 'none';
+  }
+}
+
+roleSelect.addEventListener('change', () => showFields(roleSelect.value));
+showFields(''); // hide all initially
+
+// Password match check
+form.addEventListener('submit', function(e) {
+  const role = roleSelect.value;
+  let password, confirmPassword;
+
+  if (role === 'student') {
+    password = studentFields.querySelector('[name="studentPassword"]').value;
+    confirmPassword = studentFields.querySelector('[name="studentConfirmPassword"]').value;
+  } else if (role === 'club') {
+    password = clubFields.querySelector('[name="clubPassword"]').value;
+    confirmPassword = clubFields.querySelector('[name="clubConfirmPassword"]').value;
+  }
+
+  if (password !== confirmPassword) {
+    e.preventDefault();
+    alert("Passwords do not match!");
+  }
+});
+</script>
+</body>
+</html>

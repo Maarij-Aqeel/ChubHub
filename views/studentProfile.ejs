@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Profile - Club Hub</title>
+  <style>
+    :root {
+      --primary: #4a90e2;
+      --secondary: #50c9c3;
+      --danger: #ff4d4d;
+      --gray: #f8f9fb;
+      --dark: #333;
+      --text: #555;
+      --radius: 12px;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: var(--gray);
+      color: var(--dark);
+    }
+
+    /* ===== Navbar ===== */
+    .navbar {
+      width: 100%;
+      background: var(--primary);
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      padding: 1.2rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .navbar a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.1rem;
+      transition: opacity 0.3s;
+    }
+    .navbar i {
+      font-size: 1.3rem;
+    }
+    .navbar a:hover { opacity: 0.85; }
+
+    /* ===== Profile Container ===== */
+    .profile-container {
+      max-width: 900px;
+      margin: 2rem auto;
+      background: #fff;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+
+    /* ===== Banner ===== */
+    .banner {
+      height: 200px;
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      position: relative;
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-start;
+      padding: 1rem;
+    }
+
+    /* ===== Logout Button ===== */
+    .logout-btn {
+      background: var(--danger);
+      padding: 0.7rem 1.3rem;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 1rem;
+      border: none;
+      transition: background 0.3s;
+    }
+    .logout-btn:hover { background:#e63939; }
+
+    /* ===== Profile Header ===== */
+    .profile-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 1.5rem 2rem;
+  margin-top: -70px; /* pull pic slightly */
+  position: relative;
+  z-index: 2; /* ensures profile pic stays above banner */
+}
+
+.profile-pic {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 5px solid #fff;
+  background: #eee;
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  font-size: 2.4rem; 
+  font-weight: bold; 
+  color: #555;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 3; /* ensures image always on top */
+}
+
+    .profile-pic img {
+      width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+    }
+
+    /* ===== Student Details ===== */
+    .student-details {
+      padding: 1.5rem 2rem 2rem 2rem;
+    }
+    .student-details h2 { font-size:2rem; margin-bottom:0.5rem; color:var(--dark); }
+    .student-details p { font-size:1rem; color:var(--text); margin-bottom:0.8rem; }
+    .student-details .btn {
+      display: inline-block;
+      margin-top:1rem;
+      background: var(--primary); 
+      color:#fff; 
+      padding:0.7rem 1.4rem; 
+      border-radius:8px;
+      border: none;
+      cursor:pointer; 
+      transition: background 0.3s;
+    }
+    .student-details .btn:hover { background:#357ABD; }
+    .btn-link {
+      display:inline-block; 
+      margin-top:0.5rem;
+      color:var(--primary); 
+      font-weight: 500;
+      text-decoration:none;
+    }
+    .btn-link:hover { text-decoration: underline; }
+
+    /* ===== Stats (clubs counters) ===== */
+    .stats {
+      display: flex;
+      gap: 2rem;
+      margin: 1rem 0;
+    }
+    .stats div {
+      cursor: pointer;
+      text-align: center;
+    }
+    .stats strong {
+      display: block;
+      font-size: 1.2rem;
+      color: var(--dark);
+    }
+    .stats span {
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    /* ===== Modal ===== */
+    .modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background: rgba(0,0,0,0.5); justify-content:center; align-items:center; }
+    .modal-content { 
+      background:#fff; 
+      padding:2rem; 
+      border-radius:var(--radius); 
+      width:420px; 
+      max-width:90%; 
+      box-shadow:0 6px 20px rgba(0,0,0,0.2); 
+    }
+    .modal-content h3 {
+      margin-top:0; 
+      margin-bottom:1rem;
+      font-size:1.4rem; 
+      color:var(--dark);
+    }
+    .club-list { list-style:none; padding:0; margin:0; }
+    .club-list li {
+      padding:0.6rem 0;
+      border-bottom:1px solid #eee;
+    }
+    .modal-content input, .modal-content textarea {
+      width:100%; 
+      padding:0.7rem; 
+      margin-bottom:1rem; 
+      border-radius:8px; 
+      border:1px solid #ccc; 
+      font-size:0.95rem;
+    }
+    .file-btn { 
+      display:inline-block; 
+      padding:6px 12px; 
+      background:var(--primary); 
+      color:#fff; 
+      border-radius:6px; 
+      cursor:pointer; 
+      font-size:0.85rem;
+    }
+    .file-btn input { display:none; }
+    .modal-actions { display:flex; justify-content:flex-end; gap:10px; }
+    .modal-actions .btn { padding:0.6rem 1.2rem; border:none; }
+    .save-btn { background:#4CAF50; }
+    .cancel-btn { background:#f44336; }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+</head>
+<body>
+
+  <!-- ===== Navbar ===== -->
+  <div class="navbar">
+    <a href="/student/<%= user.id %>/home"><i class="fas fa-home"></i> Home</a>
+    <a href="/student/<%= user.id %>"><i class="fas fa-user"></i> Profile</a>
+  </div>
+
+  <!-- ===== Profile Card ===== -->
+  <div class="profile-container">
+    <div class="banner">
+      <button class="logout-btn" onclick="window.location='/logout'">Log Out</button>
+    </div>
+
+    <!-- Profile Picture + Name -->
+    <div class="profile-header">
+      <div class="profile-pic">
+        <% if (user.profile_data && user.profile_data.profilePic) { %>
+          <img src="<%= user.profile_data.profilePic %>" alt="Profile Picture">
+        <% } else { %>
+          <span><%= user.username.charAt(0).toUpperCase() %></span>
+        <% } %>
+      </div>
+      <div>
+        <h2><%= (user.profile_data && user.profile_data.fullName) || user.username %></h2>
+        <p><%= (user.profile_data && user.profile_data.bio) || "No bio yet." %></p>
+      </div>
+    </div>
+
+    <!-- Student Info -->
+    <div class="student-details">
+      <!-- Stats -->
+      <div class="stats">
+        <div onclick="openClubModal('subscribed')">
+          <strong>5</strong>
+          <span>Subscribed Clubs</span>
+        </div>
+        <div onclick="openClubModal('joined')">
+          <strong>3</strong>
+          <span>Joined Clubs</span>
+        </div>
+      </div>
+
+      <p><strong>Email:</strong> <%= user.email %></p>
+      <% if (user.profile_data && user.profile_data.phone) { %>
+        <p><strong>Phone:</strong> <%= user.profile_data.phone %></p>
+      <% } %>
+      <% if (user.profile_data && user.profile_data.linkedin) { %>
+        <p><a href="<%= user.profile_data.linkedin %>" target="_blank" class="btn-link">🔗 LinkedIn</a></p>
+      <% } %>
+      <% if (user.profile_data && user.profile_data.cv) { %>
+        <p><a href="<%= user.profile_data.cv %>" target="_blank" class="btn-link">📄 View CV</a></p>
+      <% } %>
+      <button class="btn" onclick="openEditModal()">Edit Profile</button>
+    </div>
+  </div>
+
+  <!-- ===== Edit Profile Modal ===== -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <h3>Edit Profile</h3>
+      <form action="/updateProfile" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="redirect" value="profile">
+        <input type="text" name="fullName" placeholder="Full Name" value="<%= user.profile_data ? user.profile_data.fullName : '' %>">
+        <textarea name="bio" placeholder="Bio"><%= user.profile_data ? user.profile_data.bio : '' %></textarea>
+        <input type="text" name="phone" placeholder="Phone Number" value="<%= user.profile_data ? user.profile_data.phone : '' %>">
+        <input type="text" name="linkedin" placeholder="LinkedIn URL" value="<%= user.profile_data ? user.profile_data.linkedin : '' %>">
+        <label class="file-btn">
+          Upload Profile Picture
+          <input type="file" name="profilePic" accept="image/*">
+        </label>
+        <br><br>
+        <label class="file-btn">
+          Upload CV
+          <input type="file" name="cv" accept=".pdf,.doc,.docx">
+        </label>
+        <div class="modal-actions">
+          <button type="submit" class="btn save-btn">Save</button>
+          <button type="button" class="btn cancel-btn" onclick="closeEditModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Clubs Modal ===== -->
+  <div class="modal" id="clubsModal">
+    <div class="modal-content">
+      <h3 id="clubsTitle">Clubs</h3>
+      <ul class="club-list" id="clubsList">
+        <!-- Filled dynamically -->
+      </ul>
+      <div class="modal-actions">
+        <button type="button" class="btn cancel-btn" onclick="closeClubsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const editModal = document.getElementById('editModal');
+    function openEditModal() { editModal.style.display = 'flex'; }
+    function closeEditModal() { editModal.style.display = 'none'; }
+
+    const clubsModal = document.getElementById('clubsModal');
+    const clubsList = document.getElementById('clubsList');
+    const clubsTitle = document.getElementById('clubsTitle');
+
+    function openClubModal(type) {
+      clubsModal.style.display = 'flex';
+      clubsList.innerHTML = '';
+      if (type === 'subscribed') {
+        clubsTitle.textContent = 'Subscribed Clubs';
+        clubsList.innerHTML = '<li>AI Club</li><li>Sports Club</li><li>Music Club</li>';
+      } else {
+        clubsTitle.textContent = 'Joined Clubs';
+        clubsList.innerHTML = '<li>Coding Club</li><li>Debate Club</li><li>Art Club</li>';
+      }
+    }
+    function closeClubsModal() { clubsModal.style.display = 'none'; }
+
+    window.onclick = function(event) { 
+      if (event.target === editModal) closeEditModal();
+      if (event.target === clubsModal) closeClubsModal();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<h2>Pending Club Requests</h2>
+<ul>
+  <% requests.forEach(r => { %>
+    <li>
+      <strong><%= r.clubName %></strong> (<%= r.clubEmail %>) <br>
+      <em><%= r.clubDescription %></em>
+      <form action="/admin/club-requests/<%= r.id %>/approve" method="POST" style="display:inline;">
+        <button type="submit">Approve</button>
+      </form>
+      <form action="/admin/club-requests/<%= r.id %>/reject" method="POST" style="display:inline;">
+        <button type="submit">Reject</button>
+      </form>
+    </li>
+  <% }) %>
+</ul>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Applications for <%= user.username %></title>
+</head>
+<body>
+  <h1>Pending Applications</h1>
+
+  <% if (applications.length === 0) { %>
+    <p>No pending applications.</p>
+  <% } else { %>
+    <table border="1" cellpadding="5">
+      <tr>
+        <th>Student Name</th>
+        <th>Email</th>
+        <th>Message</th>
+        <th>Actions</th>
+      </tr>
+      <% applications.forEach(app => { %>
+        <tr>
+          <td><%= app.student.username %></td>
+          <td><%= app.student.email %></td>
+          <td><%= app.message || "N/A" %></td>
+          <td>
+            <form action="/club/<%= user.id %>/applications/<%= app.id %>/approve" method="POST" style="display:inline">
+              <button type="submit">Approve</button>
+            </form>
+
+            <form action="/club/<%= user.id %>/applications/<%= app.id %>/reject" method="POST" style="display:inline">
+              <input type="text" name="clubNotes" placeholder="Optional note">
+              <button type="submit">Reject</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </table>
+  <% } %>
+
+  <a href="/club/<%= user.id %>">Back to Profile</a>
+</body>
+</html>

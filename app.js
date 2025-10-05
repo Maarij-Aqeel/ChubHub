@@ -12,6 +12,9 @@ const { ClubRequest } = require("./models/clubRequest");
 const { Event } = require("./models/event");
 const { EventReport } = require("./models/eventReport");
 const { Application } = require("./models/application");
+const { sendVerificationEmail } = require("./config/mailer");
+const crypto = require("crypto");
+require("dotenv").config();
 const app = express();
 
 // ===== Middleware =====
@@ -89,7 +92,7 @@ app.post("/signup", async (req, res) => {
         cv: "",
       };
 
-      if (!/^\d{9}@psu\.edu\.sa$/.test(email))
+      if (!email)
         return res.render("signup", { error: "Invalid PSU email format!", message: null });
 
       if (password.length < 8)
@@ -99,23 +102,22 @@ app.post("/signup", async (req, res) => {
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
+      const verificationToken = crypto.randomBytes(20).toString("hex");
       const newUser = await User.create({
         username,
         email,
         password: hashedPassword,
         role: "student",
         profile_data: profileData,
+        verificationToken,
       });
 
-      req.session.user = {
-        id: newUser.id,
-        username: newUser.username,
-        email: newUser.email,
-        role: newUser.role,
-        profile_data: newUser.profile_data,
-      };
+      await sendVerificationEmail(newUser.email, verificationToken);
 
-      return res.redirect(`/student/${newUser.id}/home`);
+      return res.render("signup", {
+        error: null,
+        message: "A verification email has been sent to your email address. Please verify your email to login.",
+      });
     }
 
     else if (role === "club") {
@@ -163,6 +165,26 @@ app.post("/signup", async (req, res) => {
 
 
 
+// ===== Email Verification =====
+app.get("/verify-email", async (req, res) => {
+  const { token } = req.query;
+  if (!token) return res.render("login", { error: "Invalid verification link." });
+
+  try {
+    const user = await User.findOne({ where: { verificationToken: token } });
+    if (!user) return res.render("login", { error: "Invalid verification link." });
+
+    user.isVerified = true;
+    user.verificationToken = null;
+    await user.save();
+
+    res.render("login", { error: null, message: "Email verified successfully. You can now login." });
+  } catch (err) {
+    console.error(err);
+    res.render("login", { error: "Something went wrong!" });
+  }
+});
+
 // ===== Login =====
 app.get("/login", (req, res) => res.render("login", { error: null }));
 
@@ -173,6 +195,11 @@ app.post("/login", async (req, res) => {
   try {
     const user = await User.findOne({ where: { email } });
     if (!user) return res.render("login", { error: "User not found!" });
+    console.log(user)
+
+    if (!user.isVerified) {
+      return res.render("login", { error: "Please verify your email before logging in." });
+    }
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.render("login", { error: "Invalid credentials!" });
@@ -556,16 +583,18 @@ app.post("/club/:clubId/applications/:appId/reject", requireLogin, async (req, r
     console.log("All models synced!");
 
     // Seed default admin
-    const adminEmail = "admin@clubhub.com";
+    const adminEmail = process.env.ADMIN_EMAIL;
     let admin = await User.findOne({ where: { email: adminEmail } });
 
     if (!admin) {
-      const hashedPassword = await bcrypt.hash("Admin1234!", 10);
+      const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASS, 10);
       admin = await User.create({
         username: "Super Admin",
         email: adminEmail,
         password: hashedPassword,
+        verificationToken: crypto.randomBytes(20).toString("hex"),
         role: "admin",
+        isVerified:true,
         profile_data: { fullName: "Super Admin" },
       });
       console.log("Default admin created!");

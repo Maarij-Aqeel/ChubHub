@@ -32,4 +32,4 @@ const Post = sequelize.define(
   }
 );
 
-module.exports = { Post };
+module.exports =  Post ;

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Club Hub – PSU Clubs & Events</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+  <link rel="stylesheet" href="/css/landing.css">
+
+  </head>
+  <body>
+    <nav id="navbar">
+      <div class="logo"><i class="fas fa-layer-group"></i>Club Hub</div>
+      <button class="mobile-menu-btn" id="mobileMenuBtn">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="nav-links" id="navLinks">
+        <a href="#about">About</a>
+        <a href="#features">Features</a>
+        <a href="#testimonials">Testimonials</a>
+        <div class="auth-buttons">
+          <a href="/login" class="btn-login">Login</a>
+          <a href="/signup" class="btn-signup">Sign Up</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Your Gateway to PSU Clubs & Events</h1>
+        <p class="hero-tagline">
+          Connect, engage, and thrive in your university community
+        </p>
+        <a href="/login" class="hero-cta">
+          <i class="fas fa-sign-in-alt"></i> Login with @psu.edu
+        </a>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section class="about" id="about">
+      <h2 class="section-title">About Club Hub</h2>
+      <p class="section-subtitle">
+        Empowering students to discover and engage with campus life
+      </p>
+      <div class="about-content">
+        <div class="about-text">
+          <h3>Your Campus Community, Unified</h3>
+          <p>
+            Club Hub is the exclusive platform for Penn State students to
+            explore, join, and actively participate in campus clubs and
+            organizations. We bridge the gap between students and opportunities,
+            making it easier than ever to find your place on campus.
+          </p>
+          <p>
+            Whether you’re passionate about technology, sports, arts, or
+            community service, Club Hub connects you with like-minded students
+            and events that match your interests.
+          </p>
+        </div>
+        <div class="about-image">
+          <img
+            src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800"
+            alt="Students collaborating"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features" id="features">
+      <h2 class="section-title">Powerful Features</h2>
+      <p class="section-subtitle">
+        Everything you need to stay connected with campus life
+      </p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h3>Discover Clubs</h3>
+          <p>
+            Browse through hundreds of student organizations and find the
+            perfect clubs that match your interests and goals.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-calendar-check"></i>
+          </div>
+          <h3>Event Management</h3>
+          <p>
+            Stay updated with upcoming events, RSVP instantly, and never miss
+            out on exciting campus activities.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-bell"></i>
+          </div>
+          <h3>Real-time Updates</h3>
+          <p>
+            Get instant notifications about club announcements, event changes,
+            and important updates from your subscribed clubs.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <h3>Community Building</h3>
+          <p>
+            Connect with fellow students who share your passions and build
+            meaningful relationships that last beyond graduation.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-star"></i>
+          </div>
+          <h3>Personalized Feed</h3>
+          <p>
+            Enjoy a customized experience with content tailored to your
+            interests and club subscriptions.
+          </p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3>Secure & Private</h3>
+          <p>
+            Your data is protected with enterprise-grade security. Only verified
+            PSU students can access the platform.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="cta-section">
+      <h2>Ready to Get Started?</h2>
+      <p>
+        Join the Club Hub community today and unlock your full campus potential
+      </p>
+      <div class="cta-buttons">
+        <a href="/signup" class="btn-signup"
+          ><i class="fas fa-user-plus"></i>Create Account</a
+        >
+        <a href="/login" class="btn-login"
+          ><i class="fas fa-sign-in-alt"></i>Login</a
+        >
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-content">
+        <div class="social-icons">
+          <a href="#"><i class="fab fa-facebook-f"></i></a>
+          <a href="#"><i class="fab fa-twitter"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+        <p class="copyright">
+          © 2025 Club Hub. All rights reserved. Penn State University.
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      /* navbar scroll*/
+      const navbar = document.getElementById("navbar");
+      window.addEventListener("scroll", () =>
+        navbar.classList.toggle("scrolled", window.scrollY > 50)
+      );
+
+      /* mobile menu*/
+      const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+      const navLinks = document.getElementById("navLinks");
+      mobileMenuBtn.addEventListener("click", () => {
+        navLinks.classList.toggle("active");
+        mobileMenuBtn.querySelector("i").classList.toggle("fa-bars");
+        mobileMenuBtn.querySelector("i").classList.toggle("fa-times");
+      });
+      document.querySelectorAll(".nav-links a").forEach((link) => {
+        link.addEventListener("click", () => {
+          navLinks.classList.remove("active");
+          mobileMenuBtn.querySelector("i").classList.add("fa-bars");
+          mobileMenuBtn.querySelector("i").classList.remove("fa-times");
+        });
+      });
+
+      /* smooth scroll*/
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          const href = this.getAttribute("href");
+          if (href !== "#" && href.startsWith("#")) {
+            e.preventDefault();
+            document
+              .querySelector(href)
+              ?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        });
+      });
+
+      /* reveal on scroll*/
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(
+            (e) =>
+              e.isIntersecting &&
+              ((e.target.style.opacity = "1"),
+              (e.target.style.transform = "translateY(0)"))
+          );
+        },
+        { threshold: 0.1 }
+      );
+      document
+        .querySelectorAll(".feature-card,.testimonial-card")
+        .forEach((el) => {
+          el.style.opacity = "0";
+          el.style.transform = "translateY(20px)";
+          el.style.transition = "opacity .6s,transform .6s";
+          obs.observe(el);
+        });
+    </script>
+  </body>
+</html>

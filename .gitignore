@@ -1,1 +1,60 @@
+# --- Environment & Secrets ---
 .env
+.env.*
+!.env.example
+*.key
+*.pem
+*.crt
+*.cert
+secrets.json
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+venv/
+env/
+.venv/
+.env/
+*.log
+
+# --- Node.js ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- IDE & Editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+
+# --- OS Files ---
+.DS_Store
+Thumbs.db
+
+# --- Build / Output ---
+dist/
+build/
+.cache/
+coverage/
+*.egg-info/
+*.spec
+
+# --- Django / Flask / FastAPI ---
+*.sqlite3
+media/
+staticfiles/
+__pycache__/
+local_settings.py
+
+# --- Misc ---
+*.bak
+*.tmp
+*.temp

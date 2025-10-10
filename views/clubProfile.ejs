@@ -737,6 +737,35 @@
       box-shadow: 0 4px 16px rgba(107, 114, 128, 0.4);
     }
 
+    /* ===== Toast Notifications ===== */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #FFFFFF;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      z-index: 10000;
+      transform: translateX(400px);
+      transition: transform 0.3s ease;
+      border-left: 4px solid #10B981;
+      max-width: 400px;
+      font-weight: 500;
+    }
+    
+    .toast.show {
+      transform: translateX(0);
+    }
+    
+    .toast-error {
+      border-left-color: #EF4444;
+    }
+    
+    .toast-success {
+      border-left-color: #10B981;
+    }
+
     /* ===== Responsive ===== */
     @media (max-width: 768px) {
       .navbar {
@@ -892,6 +921,24 @@
       </div>
       <% } %>
 
+      <% if (pendingReportsCount > 0) { %>
+        <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border: 1px solid #F59E0B; border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; text-align: center;">
+          <h3 style="color: #92400E; margin: 0 0 1rem 0; font-size: 1.2rem;">
+            <i class="fas fa-exclamation-triangle"></i> Pending Reports Required
+          </h3>
+          <p style="color: #92400E; margin: 0 0 1rem 0;">
+            You have <strong><%= pendingReportsCount %></strong> completed event(s) that require report submission before creating new events.
+          </p>
+          <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <% eventsNeedingReports.forEach(event => { %>
+              <a href="/club/<%= user.id %>/event/<%= event.id %>/report" class="btn" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);">
+                <i class="fas fa-file-alt"></i> Report for <%= event.title %>
+              </a>
+            <% }) %>
+          </div>
+        </div>
+      <% } %>
+
       <div class="action-buttons">
         <button class="btn" onclick="openEditModal()">
           <i class="fas fa-edit"></i> Edit Profile
@@ -899,9 +946,18 @@
         <button class="btn btn-success" onclick="openPostModal()">
           <i class="fas fa-plus-circle"></i> Add Post
         </button>
-        <a class="btn btn-success" href="/club/<%= user.id %>/event/new">
-          <i class="fas fa-calendar-plus"></i> Create Event
+        <a class="btn" href="/club/<%= user.id %>/applications" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);">
+          <i class="fas fa-users"></i> Applications
         </a>
+        <% if (pendingReportsCount > 0) { %>
+          <button class="btn" onclick="showReportNotification()" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);">
+            <i class="fas fa-calendar-plus"></i> Create Event (Reports Required)
+          </button>
+        <% } else { %>
+          <a class="btn btn-success" href="/club/<%= user.id %>/event/new">
+            <i class="fas fa-calendar-plus"></i> Create Event
+          </a>
+        <% } %>
       </div>
     </div>
 
@@ -1064,6 +1120,10 @@
 
     function openPostModal() { postModal.style.display = 'flex'; }
     function closePostModal() { postModal.style.display = 'none'; }
+
+    function showReportNotification() {
+      showToast('You must submit reports for completed events before creating new events. Please complete the pending reports first.', 'error');
+    }
 
     window.onclick = function(event) {
       if (event.target === editModal) closeEditModal();

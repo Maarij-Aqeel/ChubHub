@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Reports - Club Hub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <style>
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body { 
+      background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+      color: #111827;
+      min-height: 100vh;
+    }
+
+    .navbar {
+      width: 100%;
+      background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
+    }
+    
+    .navbar a {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .navbar a:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .page-header {
+      background: #FFFFFF;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .page-header h1 {
+      color: #1E3A8A;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+      color: #6B7280;
+      font-size: 1.1rem;
+    }
+
+    .reports-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .report-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border: 1px solid #E5E7EB;
+      transition: all 0.3s ease;
+    }
+
+    .report-card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      transform: translateY(-4px);
+    }
+
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #F3F4F6;
+    }
+
+    .report-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1E3A8A;
+    }
+
+    .report-date {
+      color: #6B7280;
+      font-size: 0.9rem;
+    }
+
+    .report-info {
+      margin-bottom: 1rem;
+    }
+
+    .report-info-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+
+    .report-info-item i {
+      color: #2563EB;
+      width: 20px;
+      text-align: center;
+    }
+
+    .report-info-item strong {
+      color: #1E3A8A;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    .report-summary {
+      background: #F3F4F6;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .report-summary h4 {
+      color: #1E3A8A;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .report-summary p {
+      color: #374151;
+      line-height: 1.5;
+      font-size: 0.9rem;
+    }
+
+    .attachments {
+      margin-top: 1rem;
+    }
+
+    .attachments h4 {
+      color: #1E3A8A;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .attachment-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .attachment-item {
+      background: #E5E7EB;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: #374151;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .attachment-item:hover {
+      background: #D1D5DB;
+      color: #1E3A8A;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #6B7280;
+      background: #FFFFFF;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    
+    .empty-state i {
+      font-size: 4rem;
+      color: #D1D5DB;
+      margin-bottom: 1rem;
+    }
+    
+    .empty-state h3 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .reports-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .page-header h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <a href="/admin/dashboard">
+      <i class="fas fa-tachometer-alt"></i>
+      Dashboard
+    </a>
+    <a href="/admin/events">
+      <i class="fas fa-calendar-alt"></i>
+      Events
+    </a>
+    <a href="/admin/posts">
+      <i class="fas fa-newspaper"></i>
+      Posts
+    </a>
+    <a href="/admin/club-requests">
+      <i class="fas fa-users"></i>
+      Club Requests
+    </a>
+    <a href="/admin/reports" style="background: rgba(255, 255, 255, 0.1);">
+      <i class="fas fa-file-alt"></i>
+      Reports
+    </a>
+    <a href="/logout">
+      <i class="fas fa-sign-out-alt"></i>
+      Logout
+    </a>
+  </div>
+
+  <div class="container">
+    <div class="page-header">
+      <h1><i class="fas fa-file-alt"></i> Event Reports</h1>
+      <p>View all submitted event reports from clubs</p>
+    </div>
+
+    <% if (reports && reports.length > 0) { %>
+      <div class="reports-grid">
+        <% reports.forEach(report => { %>
+          <div class="report-card">
+            <div class="report-header">
+              <div class="report-title">
+                <i class="fas fa-calendar-check"></i>
+                <%= report.activityTitle || report.event?.title || 'Event Report' %>
+              </div>
+              <div class="report-date">
+                <%= new Date(report.createdAt).toLocaleDateString() %>
+              </div>
+            </div>
+
+            <div class="report-info">
+              <div class="report-info-item">
+                <i class="fas fa-building"></i>
+                <strong>Club:</strong> <%= report.clubName || report.club?.username || 'N/A' %>
+              </div>
+              <div class="report-info-item">
+                <i class="fas fa-user-tie"></i>
+                <strong>Faculty Adviser:</strong> <%= report.facultyAdviserName || 'N/A' %>
+              </div>
+              <div class="report-info-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <strong>Location:</strong> <%= report.activityLocation || 'N/A' %>
+              </div>
+              <div class="report-info-item">
+                <i class="fas fa-users"></i>
+                <strong>Attendance:</strong> <%= report.numberOfAttendance || report.attendeesCount || 0 %> people
+              </div>
+            </div>
+
+            <% if (report.purposeOfActivity) { %>
+              <div class="report-summary">
+                <h4><i class="fas fa-bullseye"></i> Purpose</h4>
+                <p><%= report.purposeOfActivity %></p>
+              </div>
+            <% } %>
+
+            <% if (report.activityDescription) { %>
+              <div class="report-summary">
+                <h4><i class="fas fa-info-circle"></i> Description</h4>
+                <p><%= report.activityDescription %></p>
+              </div>
+            <% } %>
+
+            <% if (report.evaluationResults) { %>
+              <div class="report-summary">
+                <h4><i class="fas fa-chart-line"></i> Evaluation Results</h4>
+                <p><%= report.evaluationResults %></p>
+              </div>
+            <% } %>
+
+            <% if (report.recommendations) { %>
+              <div class="report-summary">
+                <h4><i class="fas fa-lightbulb"></i> Recommendations</h4>
+                <p><%= report.recommendations %></p>
+              </div>
+            <% } %>
+
+            <% const allAttachments = [
+              ...(report.photos || []),
+              ...(report.attendanceSheet || []),
+              ...(report.receiptsAndLiquidation || []),
+              ...(report.activityProposal || []),
+              ...(report.supportingDocuments || []),
+              ...(report.attachments || [])
+            ]; %>
+            
+            <% if (allAttachments.length > 0) { %>
+              <div class="attachments">
+                <h4><i class="fas fa-paperclip"></i> Attachments</h4>
+                <div class="attachment-list">
+                  <% allAttachments.forEach(attachment => { %>
+                    <a href="<%= attachment %>" target="_blank" class="attachment-item">
+                      <i class="fas fa-file"></i> <%= attachment.split('/').pop() %>
+                    </a>
+                  <% }) %>
+                </div>
+              </div>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h3>No Reports Yet</h3>
+        <p>Event reports will appear here once clubs submit them.</p>
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>

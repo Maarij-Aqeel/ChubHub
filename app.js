@@ -22,6 +22,29 @@ try {
 } catch (e) {
   console.warn("Association setup warning (Event→User):", e?.message || e);
 }
+
+// EventReport → Event
+try {
+  EventReport.belongsTo(Event, { as: "event", foreignKey: "eventId" });
+  Event.hasOne(EventReport, { as: "report", foreignKey: "eventId" });
+} catch (e) {
+  console.warn("Association setup warning (EventReport→Event):", e?.message || e);
+}
+
+// EventReport → Club(User)
+try {
+  EventReport.belongsTo(User, { as: "club", foreignKey: "clubId" });
+} catch (e) {
+  console.warn("Association setup warning (EventReport→User):", e?.message || e);
+}
+
+// Application → Student(User) and Club(User)
+try {
+  Application.belongsTo(User, { as: "student", foreignKey: "studentId" });
+  Application.belongsTo(User, { as: "club", foreignKey: "clubId" });
+} catch (e) {
+  console.warn("Association setup warning (Application→User):", e?.message || e);
+}
 const {
   sendVerificationEmail,
   sendPasswordResetEmail,
@@ -113,7 +136,7 @@ app.get("/", (req, res) => {
     else if (req.session.user.role === "club")
       return res.redirect(`/club/${req.session.user.id}`);
     else if (req.session.user.role === "admin")
-      return res.redirect(`/admin/${req.session.user.id}`);
+      return res.redirect(`/admin/${req.session.user.id}/dashboard`);
   }
   res.redirect("/landing");
 });
@@ -331,7 +354,7 @@ app.post("/login", async (req, res) => {
     setFlash(req, "message", "Logged in successfully!");
     if (user.role === "student") return res.redirect(`/student/${user.id}/home`);
     else if (user.role === "club") return res.redirect(`/club/${user.id}`);
-    else if (user.role === "admin") return res.redirect(`/admin/${user.id}`);
+    else if (user.role === "admin") return res.redirect(`/admin/${user.id}/dashboard`);
   } catch (err) {
     console.error(err);
     setFlash(req, "error", "Something went wrong!");
@@ -589,7 +612,32 @@ app.get("/club/:id", requireLogin, async (req, res) => {
     order: [["startsAt", "ASC"]],
   });
 
-  res.render("clubProfile", { user, posts, events });
+  // Check for events that need reports (completed events without reports)
+  const completedEventsWithoutReports = await Event.findAll({
+    where: {
+      clubId: user.id,
+      status: 'approved',
+      endsAt: {
+        [require('sequelize').Op.lt]: new Date() // Events that have ended
+      }
+    },
+    include: [{
+      model: EventReport,
+      required: false,
+      as: 'report'
+    }]
+  });
+
+  // Filter events that don't have reports
+  const eventsNeedingReports = completedEventsWithoutReports.filter(event => !event.report);
+
+  res.render("clubProfile", { 
+    user, 
+    posts, 
+    events, 
+    eventsNeedingReports,
+    pendingReportsCount: eventsNeedingReports.length
+  });
 });
 // Browse clubs
 app.get("/student/:id/clubs", requireLogin, async (req, res) => {
@@ -604,18 +652,37 @@ app.get("/student/:id/clubs", requireLogin, async (req, res) => {
     where: { role: "club" },
     order: [["username", "ASC"]],
   });
-  const subs = await Subscription.findAll({ where: { studentId: user.id } });
-  const subSet = new Set(subs.map((s) => s.clubId));
+  
+  // Get applications for this student
+  const applications = await Application.findAll({ 
+    where: { studentId: user.id }
+  });
+  
+  const applicationMap = new Map();
+  applications.forEach(app => {
+    applicationMap.set(app.clubId, {
+      status: app.status,
+      hasApplied: true,
+      isAccepted: app.status === 'accepted',
+      isPending: app.status === 'pending'
+    });
+  });
+
   const filtered = clubs.filter(
     (c) =>
       !q ||
       c.username.toLowerCase().includes(q) ||
       (c.profile_data?.clubDescription || "").toLowerCase().includes(q)
   );
-  const decorated = filtered.map((c) => ({
-    ...c.toJSON(),
-    isSubscribed: subSet.has(c.id),
-  }));
+  
+  const decorated = filtered.map((c) => {
+    const appInfo = applicationMap.get(c.id) || { hasApplied: false, isAccepted: false, isPending: false };
+    return {
+      ...c.toJSON(),
+      ...appInfo
+    };
+  });
+  
   res.render("clubs", { user, clubs: decorated, q });
 });
 
@@ -776,6 +843,30 @@ app.get("/club/:id/event/new", requireLogin, async (req, res) => {
   const club = await User.findByPk(req.params.id);
   if (!club) return res.status(404).send("Club not found");
 
+  // Check if there are any completed events without reports
+  const completedEventsWithoutReports = await Event.findAll({
+    where: {
+      clubId: club.id,
+      status: 'approved',
+      endsAt: {
+        [require('sequelize').Op.lt]: new Date() // Events that have ended
+      }
+    },
+    include: [{
+      model: EventReport,
+      required: false,
+      as: 'report'
+    }]
+  });
+
+  // Filter events that don't have reports
+  const eventsNeedingReports = completedEventsWithoutReports.filter(event => !event.report);
+
+  if (eventsNeedingReports.length > 0) {
+    setFlash(req, "error", `You must submit reports for ${eventsNeedingReports.length} completed event(s) before creating a new event. Please complete the pending reports first.`);
+    return res.redirect(`/club/${club.id}`);
+  }
+
   res.render("eventForm", {        // file is now eventForm.ejs
     clubId: club.id,
     clubName: club.username,
@@ -810,6 +901,28 @@ app.post(
     if (req.session.user.role !== "club" || req.session.user.id != req.params.id) {
       setFlash(req, "error", "Unauthorized access.");
       return res.status(403).redirect(`/club/${req.params.id}`);
+    }
+
+    // 2. Check for pending reports before allowing new event creation
+    const completedEventsWithoutReports = await Event.findAll({
+      where: {
+        clubId: req.session.user.id,
+        status: 'approved',
+        endsAt: {
+          [require('sequelize').Op.lt]: new Date() // Events that have ended
+        }
+      },
+      include: [{
+        model: EventReport,
+        required: false,
+        as: 'report'
+      }]
+    });
+
+    const eventsNeedingReports = completedEventsWithoutReports.filter(event => !event.report);
+    if (eventsNeedingReports.length > 0) {
+      setFlash(req, "error", `You must submit reports for ${eventsNeedingReports.length} completed event(s) before creating a new event. Please complete the pending reports first.`);
+      return res.redirect(`/club/${req.session.user.id}`);
     }
 
     try {
@@ -1044,25 +1157,78 @@ app.get("/club/:id/event/:eventId/report", requireLogin, async (req, res) => {
 app.post(
   "/club/:id/event/:eventId/report",
   requireLogin,
-  upload.array("attachments", 5),
+  upload.fields([
+    { name: "photos", maxCount: 10 },
+    { name: "attendanceSheet", maxCount: 5 },
+    { name: "receiptsAndLiquidation", maxCount: 5 },
+    { name: "activityProposal", maxCount: 5 },
+    { name: "supportingDocuments", maxCount: 10 }
+  ]),
   async (req, res) => {
     if (
       req.session.user.role !== "club" ||
       req.session.user.id != req.params.id
     )
       return res.status(403).send("Forbidden");
-    const { summary, attendeesCount } = req.body;
-    const attachments = (req.files || []).map((f) =>
-      f.path.replace(/\\/g, "/")
-    );
-    await EventReport.create({
-      eventId: req.params.eventId,
-      clubId: req.session.user.id,
-      summary,
-      attendeesCount: parseInt(attendeesCount) || 0,
-      attachments,
-    });
-    res.redirect(`/club/${req.session.user.id}`);
+
+    try {
+      const {
+        clubName,
+        facultyAdviserName,
+        activityTitle,
+        activityDate,
+        activityLocation,
+        purposeOfActivity,
+        activityDescription,
+        managingStudents,
+        participatingStudents,
+        numberOfAttendance,
+        evaluationResults,
+        recommendations
+      } = req.body;
+
+      // Process uploaded files
+      const files = req.files;
+      const photos = files['photos'] ? files['photos'].map(f => '/uploads/' + f.filename) : [];
+      const attendanceSheet = files['attendanceSheet'] ? files['attendanceSheet'].map(f => '/uploads/' + f.filename) : [];
+      const receiptsAndLiquidation = files['receiptsAndLiquidation'] ? files['receiptsAndLiquidation'].map(f => '/uploads/' + f.filename) : [];
+      const activityProposal = files['activityProposal'] ? files['activityProposal'].map(f => '/uploads/' + f.filename) : [];
+      const supportingDocuments = files['supportingDocuments'] ? files['supportingDocuments'].map(f => '/uploads/' + f.filename) : [];
+
+      // Create the report
+      await EventReport.create({
+        eventId: req.params.eventId,
+        clubId: req.session.user.id,
+        clubName,
+        facultyAdviserName,
+        activityTitle,
+        activityDate: new Date(activityDate),
+        activityLocation,
+        purposeOfActivity,
+        activityDescription,
+        managingStudents,
+        participatingStudents,
+        numberOfAttendance: parseInt(numberOfAttendance) || 0,
+        evaluationResults,
+        recommendations,
+        photos,
+        attendanceSheet,
+        receiptsAndLiquidation,
+        activityProposal,
+        supportingDocuments,
+        // Legacy fields for backward compatibility
+        summary: activityDescription,
+        attendeesCount: parseInt(numberOfAttendance) || 0,
+        attachments: [...photos, ...attendanceSheet, ...receiptsAndLiquidation, ...activityProposal, ...supportingDocuments]
+      });
+
+      setFlash(req, "message", "Event report submitted successfully!");
+      res.redirect(`/club/${req.session.user.id}`);
+    } catch (err) {
+      console.error("Error submitting report:", err);
+      setFlash(req, "error", "Failed to submit report. Please try again.");
+      res.redirect(`/club/${req.params.id}/event/${req.params.eventId}/report`);
+    }
   }
 );
 // ===== Update Profile =====
@@ -1202,7 +1368,7 @@ app.post(
 );
 
 // ===== Admin Profile =====
-app.get("/admin/:id", requireLogin, async (req, res) => {
+app.get("/admin/:id/dashboard", requireLogin, async (req, res) => {
   const user = await User.findByPk(req.params.id);
   if (!user || user.role !== "admin")
     return res.status(404).send("Admin not found");
@@ -1224,6 +1390,28 @@ app.get("/admin/:id", requireLogin, async (req, res) => {
     },
     recentLogs,
   });
+});
+
+// Admin Reports Page
+app.get("/admin/reports", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "admin")
+    return res.status(403).send("Forbidden");
+  const reports = await EventReport.findAll({
+    include: [
+      { model: Event, as: 'event' },
+      { model: User, as: 'club', attributes: ['id', 'username', 'email'] }
+    ],
+    order: [["createdAt", "DESC"]],
+  });
+  res.render("adminReports", { reports });
+});
+
+// Admin Profile Settings Page
+app.get("/admin/:id/settings", requireLogin, async (req, res) => {
+  const user = await User.findByPk(req.params.id);
+  if (!user || user.role !== "admin")
+    return res.status(404).send("Admin not found");
+  res.render("adminProfileSettings", { user });
 });
 
 // Show application form
@@ -1256,16 +1444,43 @@ app.post(
     if (!club || club.role !== "club")
       return res.status(404).send("Club not found");
 
-    const { message } = req.body;
+    const { 
+      studentName, 
+      gender, 
+      major, 
+      academicYear, 
+      skills, 
+      motivation 
+    } = req.body;
+
+    // Check if student already applied to this club
+    const existingApplication = await Application.findOne({
+      where: { 
+        studentId: req.session.user.id, 
+        clubId: club.id 
+      }
+    });
+
+    if (existingApplication) {
+      setFlash(req, "error", "You have already applied to this club.");
+      return res.redirect(`/student/${req.session.user.id}/clubs`);
+    }
 
     await Application.create({
       studentId: req.session.user.id,
       clubId: club.id,
-      message,
+      studentName,
+      gender,
+      major,
+      academicYear,
+      skills,
+      motivation,
+      message: motivation, // Keep legacy field for backward compatibility
       status: "pending",
     });
 
-    res.send("Your application has been submitted!"); // or redirect to student home
+    setFlash(req, "message", "Your application has been submitted successfully!");
+    res.redirect(`/student/${req.session.user.id}/clubs`);
   }
 );
 
@@ -1277,14 +1492,15 @@ app.get("/club/:clubId/applications", requireLogin, async (req, res) => {
   )
     return res.status(403).send("Forbidden");
 
+  const user = await User.findByPk(req.params.clubId);
+  if (!user || user.role !== "club")
+    return res.status(404).send("Club not found");
+
   const applications = await Application.findAll({
-    where: { clubId: req.params.clubId, status: "pending" },
-    include: [
-      { model: User, as: "student", attributes: ["id", "username", "email"] },
-    ],
+    where: { clubId: req.params.clubId, status: "pending" }
   });
 
-  res.render("clubApplications", { applications });
+  res.render("clubApplications", { applications, user });
 });
 
 //club approve or reject
@@ -1301,7 +1517,7 @@ app.post(
     const app = await Application.findByPk(req.params.appId);
     if (!app) return res.status(404).send("Application not found");
 
-    app.status = "approved";
+    app.status = "accepted";
     await app.save();
 
     res.redirect(`/club/${req.params.clubId}/applications`);

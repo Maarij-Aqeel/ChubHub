@@ -1,41 +1,473 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Applications for <%= user.username %></title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Club Applications - Club Hub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <style>
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body { 
+      background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+      color: #111827;
+      min-height: 100vh;
+    }
+
+    .navbar {
+      width: 100%;
+      background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
+    }
+    
+    .navbar a {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    .navbar a:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .page-header {
+      background: #FFFFFF;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .page-header h1 {
+      color: #1E3A8A;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+      color: #6B7280;
+      font-size: 1.1rem;
+    }
+
+    .applications-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .application-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border: 1px solid #E5E7EB;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .application-card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      transform: translateY(-4px);
+    }
+
+    .application-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #F3F4F6;
+    }
+
+    .student-name {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1E3A8A;
+    }
+
+    .application-date {
+      color: #6B7280;
+      font-size: 0.9rem;
+    }
+
+    .application-info {
+      margin-bottom: 1.5rem;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+
+    .info-item i {
+      color: #2563EB;
+      width: 20px;
+      text-align: center;
+    }
+
+    .info-item strong {
+      color: #1E3A8A;
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    .application-details {
+      background: #F3F4F6;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+
+    .application-details h4 {
+      color: #1E3A8A;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+    .application-details p {
+      color: #374151;
+      line-height: 1.5;
+      font-size: 0.9rem;
+    }
+
+    .application-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      border: none;
+    }
+
+    .btn-approve {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-approve:hover {
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .btn-reject {
+      background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-reject:hover {
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #6B7280;
+      background: #FFFFFF;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      grid-column: 1 / -1;
+    }
+    
+    .empty-state i {
+      font-size: 4rem;
+      color: #D1D5DB;
+      margin-bottom: 1rem;
+    }
+    
+    .empty-state h3 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: #FFFFFF;
+      border-radius: 16px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: slideUp 0.3s ease;
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .modal-content h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1E3A8A;
+      padding: 2rem 2rem 1rem;
+      border-bottom: 2px solid #F3F4F6;
+    }
+    
+    .modal-content form {
+      padding: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      color: #1E3A8A;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .form-group textarea {
+      width: 100%;
+      padding: 0.875rem;
+      border: 2px solid #E5E7EB;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      resize: vertical;
+      min-height: 100px;
+    }
+    
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #2563EB;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      padding-top: 1.5rem;
+      border-top: 2px solid #F3F4F6;
+    }
+    
+    .cancel-btn {
+      background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);
+      box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
+    }
+    
+    .cancel-btn:hover {
+      box-shadow: 0 4px 16px rgba(107, 114, 128, 0.4);
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .applications-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .page-header h1 {
+        font-size: 2rem;
+      }
+
+      .application-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Pending Applications</h1>
+  <div class="navbar">
+    <a href="/club/<%= user.id %>">
+      <i class="fas fa-arrow-left"></i>
+      Back to Profile
+    </a>
+    <a href="/club/<%= user.id %>/applications" style="background: rgba(255, 255, 255, 0.1);">
+      <i class="fas fa-users"></i>
+      Applications
+    </a>
+    <a href="/logout">
+      <i class="fas fa-sign-out-alt"></i>
+      Logout
+    </a>
+  </div>
 
-  <% if (applications.length === 0) { %>
-    <p>No pending applications.</p>
-  <% } else { %>
-    <table border="1" cellpadding="5">
-      <tr>
-        <th>Student Name</th>
-        <th>Email</th>
-        <th>Message</th>
-        <th>Actions</th>
-      </tr>
-      <% applications.forEach(app => { %>
-        <tr>
-          <td><%= app.student.username %></td>
-          <td><%= app.student.email %></td>
-          <td><%= app.message || "N/A" %></td>
-          <td>
-            <form action="/club/<%= user.id %>/applications/<%= app.id %>/approve" method="POST" style="display:inline">
-              <button type="submit">Approve</button>
-            </form>
+  <div class="container">
+    <div class="page-header">
+      <h1><i class="fas fa-users"></i> Club Applications</h1>
+      <p>Review and manage student applications to your club</p>
+    </div>
 
-            <form action="/club/<%= user.id %>/applications/<%= app.id %>/reject" method="POST" style="display:inline">
-              <input type="text" name="clubNotes" placeholder="Optional note">
-              <button type="submit">Reject</button>
-            </form>
-          </td>
-        </tr>
-      <% }) %>
-    </table>
-  <% } %>
+    <% if (applications && applications.length > 0) { %>
+      <div class="applications-grid">
+        <% applications.forEach(app => { %>
+          <div class="application-card">
+            <div class="application-header">
+              <div class="student-name">
+                <i class="fas fa-user"></i>
+                <%= app.studentName || app.student?.username || 'Unknown Student' %>
+              </div>
+              <div class="application-date">
+                <%= new Date(app.createdAt).toLocaleDateString() %>
+              </div>
+            </div>
 
-  <a href="/club/<%= user.id %>">Back to Profile</a>
+            <div class="application-info">
+              <div class="info-item">
+                <i class="fas fa-envelope"></i>
+                <strong>Email:</strong> <%= app.student?.email || 'N/A' %>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-venus-mars"></i>
+                <strong>Gender:</strong> <%= app.gender || 'N/A' %>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-graduation-cap"></i>
+                <strong>Major:</strong> <%= app.major || 'N/A' %>
+              </div>
+              <div class="info-item">
+                <i class="fas fa-calendar"></i>
+                <strong>Academic Year:</strong> <%= app.academicYear || 'N/A' %>
+              </div>
+            </div>
+
+            <% if (app.skills) { %>
+              <div class="application-details">
+                <h4><i class="fas fa-tools"></i> Skills & Experience</h4>
+                <p><%= app.skills %></p>
+              </div>
+            <% } %>
+
+            <% if (app.motivation) { %>
+              <div class="application-details">
+                <h4><i class="fas fa-heart"></i> Motivation</h4>
+                <p><%= app.motivation %></p>
+              </div>
+            <% } %>
+
+            <div class="application-actions">
+              <form action="/club/<%= user.id %>/applications/<%= app.id %>/approve" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-approve">
+                  <i class="fas fa-check"></i>
+                  Approve
+                </button>
+              </form>
+              <button class="btn btn-reject" onclick="openRejectModal('<%= app.id %>')">
+                <i class="fas fa-times"></i>
+                Reject
+              </button>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h3>No Applications Yet</h3>
+        <p>Student applications will appear here once they apply to your club.</p>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- ===== Reject Modal ===== -->
+  <div class="modal" id="rejectModal">
+    <div class="modal-content">
+      <h3><i class="fas fa-times-circle"></i> Reject Application</h3>
+      <form id="rejectForm" method="POST">
+        <div class="form-group">
+          <label for="clubNotes">Reason for rejection (optional)</label>
+          <textarea id="clubNotes" name="clubNotes" placeholder="Provide feedback to the student..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn cancel-btn" onclick="closeRejectModal()">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+          <button type="submit" class="btn btn-reject">
+            <i class="fas fa-times"></i> Reject Application
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const rejectModal = document.getElementById('rejectModal');
+    const rejectForm = document.getElementById('rejectForm');
+
+    function openRejectModal(applicationId) {
+      rejectForm.action = `/club/<%= user.id %>/applications/${applicationId}/reject`;
+      rejectModal.style.display = 'flex';
+    }
+
+    function closeRejectModal() {
+      rejectModal.style.display = 'none';
+      rejectForm.reset();
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      if (event.target === rejectModal) {
+        closeRejectModal();
+      }
+    }
+  </script>
 </body>
 </html>

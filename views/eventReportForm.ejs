@@ -1,39 +1,399 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Submit Event Report - <%= event.title %></title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Report Form - <%= event.title %></title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --dark: #333333;
+      --light-text: #666666;
+      --primary: #007bff;
+      --accent: #007bff;
+      --border-color: #e0e0e0;
+      --radius: 8px;
+      --shadow: 0 4px 12px rgba(0,0,0,0.05);
+      --input-bg: #f9f9f9;
+      --focus-border: #88bfff;
+      --error-color: #dc3545;
+      --success-color: #28a745;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7f6;
+      margin: 0;
+      padding: 0;
+      color: var(--dark);
+    }
+
+    .form-container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: var(--bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 30px;
+    }
+
+    h1 {
+      color: var(--dark);
+      margin-bottom: 25px;
+      text-align: center;
+      font-size: 2.2em;
+      font-weight: 700;
+    }
+
+    h2 {
+      color: var(--dark);
+      margin-top: 30px;
+      margin-bottom: 15px;
+      font-size: 1.5em;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      color: var(--dark);
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.95em;
+    }
+
+    .required {
+      color: var(--error-color);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="datetime-local"],
+    input[type="email"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      margin-top: 6px;
+      font-size: 1em;
+      color: var(--dark);
+      background-color: var(--input-bg);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      box-sizing: border-box;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="date"]:focus,
+    input[type="datetime-local"]:focus,
+    input[type="email"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--focus-border);
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .file-input-group {
+      margin-bottom: 15px;
+    }
+
+    .file-input-group label {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .file-input-group input[type="file"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      background-color: var(--input-bg);
+    }
+
+    .file-note {
+      font-size: 0.85em;
+      color: var(--light-text);
+      margin-top: 5px;
+      margin-left: 5px;
+    }
+
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 12px 25px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 1.1em;
+      font-weight: 600;
+      transition: background-color 0.2s ease, box-shadow 0.2s ease;
+      display: block;
+      width: auto;
+      margin: 30px auto 0;
+      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+    }
+
+    button:hover {
+      background-color: #0056b3;
+      box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    a:hover {
+      color: #0056b3;
+      text-decoration: underline;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 25px;
+      font-size: 1em;
+    }
+
+    .section-note {
+      font-size: 0.9em;
+      color: var(--light-text);
+      margin-top: -10px;
+      margin-bottom: 15px;
+      padding-left: 5px;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .error-message {
+      color: var(--error-color);
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+
+    .success-message {
+      color: var(--success-color);
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+
+    .event-info {
+      background-color: #f8f9fa;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .event-info h3 {
+      margin-top: 0;
+      color: var(--dark);
+    }
+
+    .event-info p {
+      margin: 5px 0;
+      color: var(--light-text);
+    }
+  </style>
 </head>
 <body>
-  <h1>Submit Report for: <%= event.title %></h1>
-  <p><strong>Location:</strong> <%= event.location || 'N/A' %></p>
-  <p><strong>Starts:</strong> <%= event.startsAt ? new Date(event.startsAt).toLocaleString() : 'N/A' %></p>
-  <p><strong>Ends:</strong> <%= event.endsAt ? new Date(event.endsAt).toLocaleString() : 'N/A' %></p>
+  <div class="form-container">
+    <h1>Event Report Form</h1>
 
-  <% if (error) { %>
-    <p style="color:red"><%= error %></p>
-  <% } %>
-
-  <form action="/club/<%= event.clubId %>/event/<%= event.id %>/report" method="POST" enctype="multipart/form-data">
-    <div>
-      <label for="summary">Event Summary:</label><br>
-      <textarea name="summary" id="summary" rows="5" cols="50" required></textarea>
+    <div class="event-info">
+      <h3>Event Information</h3>
+      <p><strong>Event Title:</strong> <%= event.title %></p>
+      <p><strong>Location:</strong> <%= event.location || 'N/A' %></p>
+      <p><strong>Date:</strong> <%= event.startsAt ? new Date(event.startsAt).toLocaleDateString() : 'N/A' %></p>
+      <p><strong>Time:</strong> <%= event.startsAt ? new Date(event.startsAt).toLocaleTimeString() : 'N/A' %></p>
     </div>
 
-    <div>
-      <label for="attendeesCount">Number of Attendees:</label><br>
-      <input type="number" name="attendeesCount" id="attendeesCount" min="0" required>
-    </div>
+    <% if (error) { %>
+      <div class="error-message" style="text-align: center; margin-bottom: 20px; padding: 10px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: var(--radius);">
+        <%= error %>
+      </div>
+    <% } %>
 
-    <div>
-      <label for="attachments">Attachments (images/videos, optional):</label><br>
-      <input type="file" name="attachments" id="attachments" multiple accept="image/*,video/*">
-    </div>
+    <% if (message) { %>
+      <div class="success-message" style="text-align: center; margin-bottom: 20px; padding: 10px; background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: var(--radius);">
+        <%= message %>
+      </div>
+    <% } %>
 
-    <div>
+    <form action="/club/<%= event.clubId %>/event/<%= event.id %>/report" method="POST" enctype="multipart/form-data" id="reportForm">
+      
+      <h2>Basic Information</h2>
+      
+      <div class="form-group">
+        <label for="clubName">Name of the Club <span class="required">*</span></label>
+        <input type="text" id="clubName" name="clubName" required>
+      </div>
+
+      <div class="form-group">
+        <label for="facultyAdviserName">Name of the Faculty Adviser <span class="required">*</span></label>
+        <input type="text" id="facultyAdviserName" name="facultyAdviserName" required>
+      </div>
+
+      <div class="form-group">
+        <label for="activityTitle">Activity # - "Title of the Activity" <span class="required">*</span></label>
+        <input type="text" id="activityTitle" name="activityTitle" value="<%= event.title %>" required>
+      </div>
+
+      <div class="grid-container">
+        <div class="form-group">
+          <label for="activityDate">Date and Location <span class="required">*</span></label>
+          <input type="date" id="activityDate" name="activityDate" value="<%= event.startsAt ? new Date(event.startsAt).toISOString().split('T')[0] : '' %>" required>
+        </div>
+        <div class="form-group">
+          <label for="activityLocation">Location <span class="required">*</span></label>
+          <input type="text" id="activityLocation" name="activityLocation" value="<%= event.location || '' %>" required>
+        </div>
+      </div>
+
+      <h2>Activity Details</h2>
+
+      <div class="form-group">
+        <label for="purposeOfActivity">Purpose of the Activity (Overview of the activity and how is the activity related to the academic program) <span class="required">*</span></label>
+        <textarea id="purposeOfActivity" name="purposeOfActivity" rows="4" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="activityDescription">Description of the activity (Summary of the activity, target audience, duration and total cost of the activity if applicable) <span class="required">*</span></label>
+        <textarea id="activityDescription" name="activityDescription" rows="4" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="managingStudents">Name of students involved in managing the activity stating their roles and responsibility (Volunteering hours if it is a community service) <span class="required">*</span></label>
+        <textarea id="managingStudents" name="managingStudents" rows="3" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="participatingStudents">Name of students who are the actual participants of the activity <span class="required">*</span></label>
+        <textarea id="participatingStudents" name="participatingStudents" rows="3" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="numberOfAttendance">Number of Attendance <span class="required">*</span></label>
+        <input type="number" id="numberOfAttendance" name="numberOfAttendance" min="0" required>
+      </div>
+
+      <div class="form-group">
+        <label for="evaluationResults">Results of the evaluation of the activity <span class="required">*</span></label>
+        <textarea id="evaluationResults" name="evaluationResults" rows="4" required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="recommendations">Recommendations on how to improve the activity in the future <span class="required">*</span></label>
+        <textarea id="recommendations" name="recommendations" rows="4" required></textarea>
+      </div>
+
+      <h2>APPENDICES</h2>
+
+      <div class="file-input-group">
+        <label for="photos">Photos <span class="required">*</span></label>
+        <input type="file" id="photos" name="photos" multiple accept="image/*" required>
+        <div class="file-note">Upload photos from the event</div>
+      </div>
+
+      <div class="file-input-group">
+        <label for="attendanceSheet">Attendance sheet (with signature for face-to-face to increase the authenticity of the report and video recording if online activity)</label>
+        <input type="file" id="attendanceSheet" name="attendanceSheet" multiple accept=".pdf,.jpg,.png,.jpeg,.mp4,.mov">
+        <div class="file-note">Upload attendance sheet with signatures or video recording for online activities</div>
+      </div>
+
+      <div class="file-input-group">
+        <label for="receiptsAndLiquidation">Copies of the official receipt and liquidation report – if applicable</label>
+        <input type="file" id="receiptsAndLiquidation" name="receiptsAndLiquidation" multiple accept=".pdf,.jpg,.png,.jpeg">
+        <div class="file-note">Upload receipts and liquidation reports if applicable</div>
+      </div>
+
+      <div class="file-input-group">
+        <label for="activityProposal">Copy of the proposal for the activity</label>
+        <input type="file" id="activityProposal" name="activityProposal" multiple accept=".pdf,.doc,.docx">
+        <div class="file-note">Upload the original activity proposal</div>
+      </div>
+
+      <div class="file-input-group">
+        <label for="supportingDocuments">Other supporting documents (i.e. poster of the event, social media announcements, etc.)</label>
+        <input type="file" id="supportingDocuments" name="supportingDocuments" multiple accept=".pdf,.jpg,.png,.jpeg,.doc,.docx">
+        <div class="file-note">Upload posters, social media announcements, and other supporting materials</div>
+      </div>
+
       <button type="submit">Submit Report</button>
-    </div>
-  </form>
+    </form>
 
-  <a href="/club/<%= event.clubId %>">Back to Club Profile</a>
+    <a href="/club/<%= event.clubId %>" class="back-link">Back to Club Profile</a>
+  </div>
+
+  <script>
+    // Form validation
+    document.getElementById('reportForm').addEventListener('submit', function(e) {
+      const requiredFields = [
+        'clubName', 'facultyAdviserName', 'activityTitle', 'activityDate', 
+        'activityLocation', 'purposeOfActivity', 'activityDescription', 
+        'managingStudents', 'participatingStudents', 'numberOfAttendance', 
+        'evaluationResults', 'recommendations', 'photos'
+      ];
+
+      let isValid = true;
+      let firstErrorField = null;
+
+      requiredFields.forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        if (field && !field.value.trim()) {
+          field.style.borderColor = 'var(--error-color)';
+          if (!firstErrorField) firstErrorField = field;
+          isValid = false;
+        } else if (field) {
+          field.style.borderColor = 'var(--border-color)';
+        }
+      });
+
+      if (!isValid) {
+        e.preventDefault();
+        alert('Please fill in all required fields.');
+        if (firstErrorField) {
+          firstErrorField.focus();
+        }
+      }
+    });
+
+    // Real-time validation
+    const requiredFields = document.querySelectorAll('input[required], textarea[required]');
+    requiredFields.forEach(field => {
+      field.addEventListener('blur', function() {
+        if (!this.value.trim()) {
+          this.style.borderColor = 'var(--error-color)';
+        } else {
+          this.style.borderColor = 'var(--border-color)';
+        }
+      });
+    });
+  </script>
 </body>
 </html>

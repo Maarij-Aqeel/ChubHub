@@ -3,70 +3,579 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Request Event - Club Hub</title>
+  <title>Activity Request Form - Student Clubs</title>
   <link rel="stylesheet" href="/css/styles.css">
   <style>
+    :root {
+      --bg: #ffffff;
+      --dark: #333333;
+      --light-text: #666666;
+      --primary: #007bff; /* A nice blue for primary actions */
+      --accent: #007bff; /* Keeping accent consistent for links */
+      --border-color: #e0e0e0;
+      --radius: 8px;
+      --shadow: 0 4px 12px rgba(0,0,0,0.05);
+      --input-bg: #f9f9f9;
+      --focus-border: #88bfff;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7f6;
+      margin: 0;
+      padding: 0;
+      color: var(--dark);
+    }
+
     .form-container {
-      max-width: 720px;
+      max-width: 800px;
       margin: 40px auto;
       background: var(--bg);
-      border: 1px solid #e5e7eb;
+      border: 1px solid var(--border-color);
       border-radius: var(--radius);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-      padding: 24px;
+      box-shadow: var(--shadow);
+      padding: 30px;
     }
-    h1 { color: var(--dark); margin-bottom: 12px; }
-    label { color: var(--dark); font-weight: 600; }
-    input, textarea { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 10px; margin-top: 6px; }
-    button { background: var(--primary); color: #fff; border:none; padding: 10px 16px; border-radius: 10px; cursor: pointer; }
-    a { color: var(--accent); text-decoration: none; }
+
+    h1 {
+      color: var(--dark);
+      margin-bottom: 25px;
+      text-align: center;
+      font-size: 2.2em;
+      font-weight: 700;
+    }
+
+    h2 {
+      color: var(--dark);
+      margin-top: 30px;
+      margin-bottom: 15px;
+      font-size: 1.5em;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      color: var(--dark);
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.95em;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="datetime-local"],
+    input[type="email"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      margin-top: 6px;
+      font-size: 1em;
+      color: var(--dark);
+      background-color: var(--input-bg);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      box-sizing: border-box; /* Ensures padding doesn't expand the element beyond its width */
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="datetime-local"]:focus,
+    input[type="email"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--focus-border);
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .radio-group label {
+      display: inline-flex;
+      align-items: center;
+      margin-right: 20px;
+      font-weight: normal;
+      cursor: pointer;
+    }
+
+    .radio-group input[type="radio"] {
+      width: auto;
+      margin-right: 8px;
+      cursor: pointer;
+    }
+
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      font-weight: normal;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+      margin-right: 8px;
+      cursor: pointer;
+    }
+
+    .attachments-note {
+      font-size: 0.85em;
+      color: var(--light-text);
+      margin-top: 5px;
+      margin-left: 5px;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 12px 25px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 1.1em;
+      font-weight: 600;
+      transition: background-color 0.2s ease, box-shadow 0.2s ease;
+      display: block;
+      width: auto; /* Adjusted for better appearance */
+      margin: 30px auto 0; /* Centering the button */
+      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+    }
+
+    button:hover {
+      background-color: #0056b3;
+      box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    a:hover {
+      color: #0056b3;
+      text-decoration: underline;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 25px;
+      font-size: 1em;
+    }
+
+    .section-note {
+      font-size: 0.9em;
+      color: var(--light-text);
+      margin-top: -10px;
+      margin-bottom: 15px;
+      padding-left: 5px;
+    }
+
+    .approval-section {
+      background-color: #f8f8f8;
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-top: 30px;
+      border: 1px dashed var(--border-color);
+    }
+
+    .approval-section h2 {
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+    }
+
+    table th, table td {
+      border: 1px solid var(--border-color);
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    table th {
+      background-color: #e9ecef;
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    table td input[type="text"], table td input[type="number"] {
+      border: none;
+      padding: 5px 0;
+      background-color: transparent;
+      margin: 0;
+    }
+
+    table td input[type="text"]:focus, table td input[type="number"]:focus {
+      border-color: var(--focus-border);
+      box-shadow: none;
+    }
+
   </style>
 </head>
 <body>
   <div class="form-container">
-    <h1>Request a New Event</h1>
+    <h1>Activity Request Form (Student Clubs)</h1>
 
     <% if (error) { %>
-      <p style="color:red;"><%= error %></p>
+      <p style="color:red; text-align: center; margin-bottom: 20px;"><%= error %></p>
     <% } %>
 
-    <form action="/club/<%= clubId %>/event/new" method="POST">
-      <div>
-        <label for="title">Event Title:</label><br>
-        <input type="text" id="title" name="title" required>
+    <form action="/club/<%= clubId %>/event/new" method="POST" enctype="multipart/form-data">
+
+      <div class="form-group">
+        <label for="clubName">Club Name:</label>
+        <input type="text" id="clubName" name="clubName" value="<%= clubName || '' %>" required readonly>
       </div>
 
-      <div>
-        <label for="description">Description:</label><br>
-        <textarea id="description" name="description" rows="4"></textarea>
+      <div class="form-group">
+        <label for="activityName">Activity Name:</label>
+        <input type="text" id="activityName" name="activityName" required>
       </div>
 
-      <div>
-        <label for="location">Location:</label><br>
-        <input type="text" id="location" name="location">
+      <div class="form-group">
+        <label>Activity Type:</label>
+        <div class="grid-container">
+          <div class="radio-group">
+            <label><input type="radio" name="activityType" value="Workshop" required> Workshop</label>
+            <label><input type="radio" name="activityType" value="Discussion Session"> Discussion Session</label>
+            <label><input type="radio" name="activityType" value="Lecture"> Lecture</label>
+            <label><input type="radio" name="activityType" value="Expo"> Expo</label>
+            <label><input type="radio" name="activityType" value="Conference"> Conference</label>
+          </div>
+          <div class="radio-group">
+            <label><input type="radio" name="activityType" value="Entertainment/Social"> Entertainment/Social</label>
+            <label><input type="radio" name="activityType" value="Awareness"> Awareness</label>
+            <label><input type="radio" name="activityType" value="Volunteering"> Volunteering</label>
+            <label><input type="radio" name="activityType" value="Visit"> Visit *</label>
+            <label><input type="radio" name="activityType" value="Other"> Other <input type="text" name="activityTypeOther" placeholder="Specify if other"></label>
+          </div>
+        </div>
+        <p class="attachments-note">* For 'Visit', a separate external visit request form must be completed.</p>
       </div>
 
-      <div>
-        <label for="startsAt">Start Date & Time:</label><br>
-        <input type="datetime-local" id="startsAt" name="startsAt">
+      <div class="grid-container">
+        <div class="form-group">
+          <label for="activityDate">Date:</label>
+          <input type="date" id="activityDate" name="activityDate" required>
+        </div>
+        <div class="form-group">
+          <label for="activityTime">Time:</label>
+          <input type="time" id="activityTime" name="activityTime" required>
+        </div>
       </div>
 
-      <div>
-        <label for="endsAt">End Date & Time:</label><br>
-        <input type="datetime-local" id="endsAt" name="endsAt">
+      <div class="form-group">
+        <label>Activity Location:</label>
+        <div class="grid-container">
+          <div class="radio-group">
+            <label><input type="radio" name="activityLocation" value="Lobby 105" required> Lobby 105</label>
+            <label><input type="radio" name="activityLocation" value="Aud. 105 ground floor"> Aud. 105 ground floor</label>
+            <label><input type="radio" name="activityLocation" value="Aud. 105 second floor"> Aud. 105 second floor</label>
+            <label><input type="radio" name="activityLocation" value="Riyadh Plaza"> Riyadh Plaza</label>
+          </div>
+          <div class="radio-group">
+            <label><input type="radio" name="activityLocation" value="Lobby 102"> Lobby 102</label>
+            <label><input type="radio" name="activityLocation" value="Classroom"> Classroom</label>
+            <label><input type="radio" name="activityLocation" value="Lab"> Lab</label>
+            <label><input type="radio" name="activityLocation" value="Online"> Online</label>
+            <label><input type="radio" name="activityLocation" value="OtherLocation"> Other <input type="text" name="activityLocationOther" placeholder="Specify if other"></label>
+          </div>
+        </div>
       </div>
 
-      <div>
-        <label for="capacity">Capacity (optional):</label><br>
-        <input type="number" id="capacity" name="capacity" min="1" placeholder="e.g., 100">
+      <div class="form-group">
+        <label>Activity Location Reservation:</label>
+        <div class="radio-group">
+          <label><input type="radio" name="locationReserved" value="No" required> Event location not reserved</label>
+          <label><input type="radio" name="locationReserved" value="Yes"> Event location reserved *</label>
+        </div>
+        <p class="attachments-note">* Please attach reservation confirmation email.</p>
+        <input type="file" name="reservationConfirmation" accept=".pdf,.jpg,.png,.jpeg">
       </div>
 
-      <br>
+      <div class="form-group">
+        <label for="activityGoals">Activity Goals (List up to 3):</label>
+        <input type="text" id="activityGoals1" name="activityGoals[]" placeholder="1. Goal 1">
+        <input type="text" id="activityGoals2" name="activityGoals[]" style="margin-top: 10px;" placeholder="2. Goal 2 (Optional)">
+        <input type="text" id="activityGoals3" name="activityGoals[]" style="margin-top: 10px;" placeholder="3. Goal 3 (Optional)">
+      </div>
+
+      <div class="form-group">
+        <label for="targetAudience">Target Audience:</label>
+        <input type="text" id="targetAudience" name="targetAudience" required>
+      </div>
+
+      <div class="form-group">
+        <label for="expectedAttendees">Expected Attendees:</label>
+        <input type="number" id="expectedAttendees" name="expectedAttendees" min="1" placeholder="e.g., 100" required>
+      </div>
+
+      <div class="form-group">
+        <label for="activityRequests">Activity Requests (List up to 3):</label>
+        <input type="text" id="activityRequests1" name="activityRequests[]" placeholder="1. Request 1">
+        <input type="text" id="activityRequests2" name="activityRequests[]" style="margin-top: 10px;" placeholder="2. Request 2 (Optional)">
+        <input type="text" id="activityRequests3" name="activityRequests[]" style="margin-top: 10px;" placeholder="3. Request 3 (Optional)">
+      </div>
+
+      <div class="form-group full-width">
+        <label for="eventProposalBudget">Event Proposal & Expected Budget:</label>
+        <p class="attachments-note">Kindly attach:</p>
+        <ul class="attachments-note" style="list-style-type: disc; margin-left: 20px;">
+          <li>Detailed Event Proposal</li>
+          <li>Detailed Budget</li>
+        </ul>
+        <input type="file" name="eventProposalBudget" multiple accept=".pdf,.doc,.docx">
+      </div>
+
+      <h2>Speaker Information</h2>
+      <div class="form-group">
+        <label>Is there a speaker?</label>
+        <div class="radio-group">
+          <label><input type="radio" name="hasSpeaker" value="Yes"> Yes</label>
+          <label><input type="radio" name="hasSpeaker" value="No" checked> No</label>
+        </div>
+      </div>
+
+      <div id="speakerDetails" style="display: none;">
+        <div class="form-group">
+          <label>Speaker Type:</label>
+          <div class="radio-group">
+            <label><input type="radio" name="speakerType" value="PSU Members"> PSU Members</label>
+            <label><input type="radio" name="speakerType" value="Outside PSU"> Outside PSU *</label>
+          </div>
+          <p class="attachments-note">* Please attach the speaker's C.V.</p>
+          <input type="file" name="speakerCV" accept=".pdf,.doc,.docx">
+        </div>
+
+        <div class="form-group">
+          <label for="speakerNamePosition">Speaker's Name and Position:</label>
+          <input type="text" id="speakerNamePosition" name="speakerNamePosition">
+        </div>
+      </div>
+
+      <h2>Organizing Event for Offices/Centers within PSU</h2>
+      <p class="section-note">If this event is in collaboration with an internal PSU office or center, please provide details.</p>
+      <div class="form-group">
+        <label for="officeCenterName">Office/Center Name:</label>
+        <input type="text" id="officeCenterName" name="officeCenterName">
+      </div>
+
+      <div class="form-group">
+        <label for="representativeName">Representative’s Name:</label>
+        <input type="text" id="representativeName" name="representativeName">
+      </div>
+
+      <div class="form-group">
+        <label for="roleType">Role Type:</label>
+        <input type="text" id="roleType" name="roleType" placeholder="e.g., Collaborator, Sponsor">
+      </div>
+
+      <div class="form-group">
+        <label for="requiredTasks">Required Tasks (List up to 3):</label>
+        <input type="text" id="requiredTasks1" name="requiredTasks[]" placeholder="1. Task 1">
+        <input type="text" id="requiredTasks2" name="requiredTasks[]" style="margin-top: 10px;" placeholder="2. Task 2 (Optional)">
+        <input type="text" id="requiredTasks3" name="requiredTasks[]" style="margin-top: 10px;" placeholder="3. Task 3 (Optional)">
+      </div>
+
+      <h2>Responsible Members for the Activity</h2>
+      <p class="section-note">List the club members organizing this activity.</p>
+      <div class="table-responsive">
+        <table id="responsibleMembersTable">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>ID</th>
+              <th>Mobile Number</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="text" name="memberName[]" placeholder="Full Name"></td>
+              <td><input type="text" name="memberID[]" placeholder="University ID"></td>
+              <td><input type="text" name="memberMobile[]" placeholder="Mobile No."></td>
+            </tr>
+          </tbody>
+        </table>
+        <button type="button" onclick="addResponsibleMember()" style="margin: 10px 0; padding: 8px 15px; font-size: 0.9em; width: auto;">Add Another Member</button>
+      </div>
+
+      <div class="approval-section">
+        <h2>Club Advisor Approval</h2>
+        <div class="form-group">
+          <label for="advisorName">Name:</label>
+          <input type="text" id="advisorName" name="advisorName" readonly value="<%= advisorName || '' %>">
+        </div>
+        <div class="form-group">
+          <label for="advisorSignature">Signature:</label>
+          <input type="text" id="advisorSignature" name="advisorSignature" placeholder="Signed Electronically or Physically">
+        </div>
+        <div class="form-group">
+          <label for="advisorComments">Comments:</label>
+          <textarea id="advisorComments" name="advisorComments" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="approval-section">
+        <h2>College Dean's Approval <span class="section-note">(Academic Clubs only)</span></h2>
+        <div class="form-group">
+          <label for="deanName">Name:</label>
+          <input type="text" id="deanName" name="deanName">
+        </div>
+        <div class="form-group">
+          <label for="deanSignature">Signature:</label>
+          <input type="text" id="deanSignature" name="deanSignature" placeholder="Signed Electronically or Physically">
+        </div>
+        <div class="form-group">
+          <label for="deanComments">Comments:</label>
+          <textarea id="deanComments" name="deanComments" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="approval-section">
+        <h2>DSA Approval</h2>
+        <div class="form-group">
+          <label for="dsaName">Name:</label>
+          <input type="text" id="dsaName" name="dsaName">
+        </div>
+        <div class="form-group">
+          <label for="dsaSignature">Signature:</label>
+          <input type="text" id="dsaSignature" name="dsaSignature" placeholder="Signed Electronically or Physically">
+        </div>
+        <div class="form-group">
+          <label for="dsaComments">Comments:</label>
+          <textarea id="dsaComments" name="dsaComments" rows="3"></textarea>
+        </div>
+      </div>
+
       <button type="submit">Submit Event Request</button>
     </form>
 
-    <br>
-    <a href="/club/<%= clubId %>">Back to Profile</a>
+    <a href="/club/<%= clubId %>" class="back-link">Back to Club Profile</a>
   </div>
+
+  <script>
+    // Show/hide speaker details based on radio button selection
+    document.querySelectorAll('input[name="hasSpeaker"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        const speakerDetails = document.getElementById('speakerDetails');
+        if (this.value === 'Yes') {
+          speakerDetails.style.display = 'block';
+          // Make speaker-related fields required if 'Yes' is selected
+          document.getElementById('speakerCV').required = true;
+          document.getElementById('speakerNamePosition').required = true;
+          document.querySelectorAll('input[name="speakerType"]').forEach(typeRadio => typeRadio.required = true);
+        } else {
+          speakerDetails.style.display = 'none';
+          // Make speaker-related fields not required if 'No' is selected
+          document.getElementById('speakerCV').required = false;
+          document.getElementById('speakerNamePosition').required = false;
+          document.querySelectorAll('input[name="speakerType"]').forEach(typeRadio => typeRadio.required = false);
+        }
+      });
+    });
+
+    // Add row for responsible members table
+    function addResponsibleMember() {
+      const tableBody = document.querySelector('#responsibleMembersTable tbody');
+      const newRow = tableBody.insertRow();
+      newRow.innerHTML = `
+        <td><input type="text" name="memberName[]" placeholder="Full Name"></td>
+        <td><input type="text" name="memberID[]" placeholder="University ID"></td>
+        <td><input type="text" name="memberMobile[]" placeholder="Mobile No."></td>
+      `;
+    }
+
+    // Initial state for speaker details (hide if 'No' is default)
+    document.addEventListener('DOMContentLoaded', () => {
+      const hasSpeakerNo = document.querySelector('input[name="hasSpeaker"][value="No"]');
+      if (hasSpeakerNo && hasSpeakerNo.checked) {
+        document.getElementById('speakerDetails').style.display = 'none';
+      }
+    });
+
+    // Handle "Other" input for Activity Type
+    document.querySelectorAll('input[name="activityType"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        const otherInput = document.querySelector('input[name="activityTypeOther"]');
+        if (this.value === 'Other') {
+          otherInput.style.display = 'block';
+          otherInput.required = true;
+        } else {
+          otherInput.style.display = 'none';
+          otherInput.required = false;
+          otherInput.value = ''; // Clear value if not 'Other'
+        }
+      });
+    });
+
+    // Handle "Other" input for Activity Location
+    document.querySelectorAll('input[name="activityLocation"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        const otherInput = document.querySelector('input[name="activityLocationOther"]');
+        if (this.value === 'OtherLocation') {
+          otherInput.style.display = 'block';
+          otherInput.required = true;
+        } else {
+          otherInput.style.display = 'none';
+          otherInput.required = false;
+          otherInput.value = ''; // Clear value if not 'Other'
+        }
+      });
+    });
+
+    // Initial state for "Other" inputs
+    document.addEventListener('DOMContentLoaded', () => {
+        // Activity Type 'Other'
+        const initialActivityTypeOther = document.querySelector('input[name="activityType"][value="Other"]');
+        const activityTypeOtherInput = document.querySelector('input[name="activityTypeOther"]');
+        if (!initialActivityTypeOther || !initialActivityTypeOther.checked) {
+            activityTypeOtherInput.style.display = 'none';
+            activityTypeOtherInput.required = false;
+        }
+
+        // Activity Location 'Other'
+        const initialActivityLocationOther = document.querySelector('input[name="activityLocation"][value="OtherLocation"]');
+        const activityLocationOtherInput = document.querySelector('input[name="activityLocationOther"]');
+        if (!initialActivityLocationOther || !initialActivityLocationOther.checked) {
+            activityLocationOtherInput.style.display = 'none';
+            activityLocationOtherInput.required = false;
+        }
+    });
+
+  </script>
 </body>
 </html>

@@ -796,6 +796,8 @@
   </style>
 </head>
 <body>
+  <div id="toast-container"></div>
+  <div id="flash-data" data-flash='<%- JSON.stringify(flash || {}) %>' style="display:none"></div>
 
   <!-- ===== Navbar ===== -->
   <div class="navbar">
@@ -1066,6 +1068,24 @@
     window.onclick = function(event) {
       if (event.target === editModal) closeEditModal();
       if (event.target === postModal) closePostModal();
+    }
+    window.addEventListener('DOMContentLoaded', function() {
+      const flash = JSON.parse(document.getElementById('flash-data').dataset.flash || '{}');
+      if (flash && (flash.error || flash.message)) {
+        showToast(flash.error ? flash.error : flash.message, flash.error ? 'error' : 'success');
+      }
+    });
+    function showToast(msg, type) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + (type === 'error' ? 'toast-error' : 'toast-success');
+      toast.innerText = msg;
+      container.appendChild(toast);
+      setTimeout(() => { toast.classList.add('show'); }, 100);
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 500);
+      }, 3400);
     }
   </script>
 </body>

@@ -39,6 +39,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
+// ===== Session & Middleware Inits =====
 app.use(
   session({
     secret: "clubhub-secret",
@@ -50,6 +51,14 @@ app.use(
     },
   })
 );
+
+// Flash middleware makes req.session.flash available as one-time variables and exposes them to res.locals
+app.use((req, res, next) => {
+  res.locals.flash = req.session.flash || {};
+  // clear the flash for next render
+  req.session.flash = {};
+  next();
+});
 
 // 15-minute idle timeout
 app.use((req, res, next) => {
@@ -86,6 +95,12 @@ const upload = multer({ storage });
 function requireLogin(req, res, next) {
   if (!req.session.user) return res.redirect("/login");
   next();
+}
+
+// Utility for setting req.session.flash
+function setFlash(req, type, message) {
+  req.session.flash = req.session.flash || {};
+  req.session.flash[type] = message;
 }
 
 // ===== Routes =====
@@ -139,31 +154,29 @@ app.post("/signup", async (req, res) => {
         cv: "",
       };
 
-      if (!email)
-        return res.render("signup", { error: "Invalid email!", message: null });
+      if (!email) {
+        setFlash(req, "error", "Invalid email!");
+        return res.redirect("/signup");
+      }
 
       const passwordOk = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password);
-      if (!passwordOk)
-        return res.render("signup", {
-          error:
-            "Password must be at least 8 characters and include letters and numbers.",
-          message: null,
-        });
+      if (!passwordOk) {
+        setFlash(req, "error", "Password must be at least 8 characters and include letters and numbers.");
+        return res.redirect("/signup");
+      }
 
       // length covered by regex above; keep confirm check below
-      if (password !== confirmPassword)
-        return res.render("signup", {
-          error: "Passwords do not match!",
-          message: null,
-        });
+      if (password !== confirmPassword) {
+        setFlash(req, "error", "Passwords do not match!");
+        return res.redirect("/signup");
+      }
 
       // ensure email is unique
       const existingByEmail = await User.findOne({ where: { email } });
-      if (existingByEmail)
-        return res.render("signup", {
-          error: "Email already exists!",
-          message: null,
-        });
+      if (existingByEmail) {
+        setFlash(req, "error", "Email already exists!");
+        return res.redirect("/signup");
+      }
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -178,12 +191,8 @@ app.post("/signup", async (req, res) => {
       });
 
       await sendVerificationEmail(newUser.email, verificationToken);
-
-      return res.render("signup", {
-        error: null,
-        message:
-          "A verification email has been sent to your email address. Please verify your email to login.",
-      });
+      setFlash(req, "message", "A verification email has been sent to your email address. Please verify your email to login.");
+      return res.redirect("/signup");
     } else if (role === "club") {
       // === Club signup → save as ClubRequest instead of User ===
       const {
@@ -200,52 +209,45 @@ app.post("/signup", async (req, res) => {
       confirmPassword = clubConfirmPassword;
 
       const passwordOk = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password);
-      if (!passwordOk)
-        return res.render("signup", {
-          error:
-            "Password must be at least 8 characters and include letters and numbers.",
-          message: null,
-        });
-      if (password !== confirmPassword)
-        return res.render("signup", {
-          error: "Passwords do not match!",
-          message: null,
-        });
+      if (!passwordOk) {
+        setFlash(req, "error", "Password must be at least 8 characters and include letters and numbers.");
+        return res.redirect("/signup");
+      }
+      if (password !== confirmPassword) {
+        setFlash(req, "error", "Passwords do not match!");
+        return res.redirect("/signup");
+      }
 
       // uniqueness: email and club name
       const existingClubEmail = await User.findOne({ where: { email } });
-      if (existingClubEmail)
-        return res.render("signup", {
-          error: "Email already exists!",
-          message: null,
-        });
+      if (existingClubEmail) {
+        setFlash(req, "error", "Email already exists!");
+        return res.redirect("/signup");
+      }
       const existingPendingReqEmail = await ClubRequest.findOne({
         where: { clubEmail: email, status: "pending" },
       });
-      if (existingPendingReqEmail)
-        return res.render("signup", {
-          error: "A pending request with this email already exists.",
-          message: null,
-        });
+      if (existingPendingReqEmail) {
+        setFlash(req, "error", "A pending request with this email already exists.");
+        return res.redirect("/signup");
+      }
 
       // unique club name among existing clubs and pending requests
       const normalizedClubName = username.trim();
       const existingClubName = await User.findOne({
         where: { username: normalizedClubName, role: "club" },
       });
-      if (existingClubName)
-        return res.render("signup", {
-          error: "Club name already taken.",
-          message: null,
-        });
+      if (existingClubName) {
+        setFlash(req, "error", "Club name already taken.");
+        return res.redirect("/signup");
+      }
       const existingPendingClubName = await ClubRequest.findOne({
         where: { clubName: normalizedClubName, status: "pending" },
       });
-      if (existingPendingClubName)
-        return res.render("signup", {
-          error: "A pending request with this club name already exists.",
-          message: null,
-        });
+      if (existingPendingClubName) {
+        setFlash(req, "error", "A pending request with this club name already exists.");
+        return res.redirect("/signup");
+      }
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -257,26 +259,15 @@ app.post("/signup", async (req, res) => {
         representativeName,
         status: "pending",
       });
-
-      return res.render("signup", {
-        error: null,
-        message:
-          "Your club request has been submitted. Please wait for admin approval.",
-      });
+      setFlash(req, "message", "Your club request has been submitted. Please wait for admin approval.");
+      return res.redirect("/signup");
     } else {
-      return res.render("signup", {
-        error: "Please select a role",
-        message: null,
-      });
+      setFlash(req, "error", "Please select a role");
+      return res.redirect("/signup");
     }
   } catch (err) {
-    console.error(err);
-    if (err.name === "SequelizeUniqueConstraintError")
-      return res.render("signup", {
-        error: "Email already exists!",
-        message: null,
-      });
-    res.render("signup", { error: "Something went wrong!", message: null });
+    setFlash(req, "error", "Something went wrong!");
+    return res.redirect("/signup");
   }
 });
 
@@ -314,16 +305,21 @@ app.post("/login", async (req, res) => {
 
   try {
     const user = await User.findOne({ where: { email } });
-    if (!user) return res.render("login", { error: "User not found!" });
+    if (!user) {
+      setFlash(req, "error", "User not found!");
+      return res.redirect("/login");
+    }
 
     if (!user.isVerified) {
-      return res.render("login", {
-        error: "Please verify your email before logging in.",
-      });
+      setFlash(req, "error", "Please verify your email before logging in.");
+      return res.redirect("/login");
     }
 
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.render("login", { error: "Invalid credentials!" });
+    if (!match) {
+      setFlash(req, "error", "Invalid credentials!");
+      return res.redirect("/login");
+    }
 
     req.session.user = {
       id: user.id,
@@ -332,13 +328,14 @@ app.post("/login", async (req, res) => {
       role: user.role,
       profile_data: user.profile_data,
     };
-
-    if (user.role === "student") res.redirect(`/student/${user.id}/home`);
-    else if (user.role === "club") res.redirect(`/club/${user.id}`);
-    else if (user.role === "admin") res.redirect(`/admin/${user.id}`);
+    setFlash(req, "message", "Logged in successfully!");
+    if (user.role === "student") return res.redirect(`/student/${user.id}/home`);
+    else if (user.role === "club") return res.redirect(`/club/${user.id}`);
+    else if (user.role === "admin") return res.redirect(`/admin/${user.id}`);
   } catch (err) {
     console.error(err);
-    res.render("login", { error: "Something went wrong!" });
+    setFlash(req, "error", "Something went wrong!");
+    return res.redirect("/login");
   }
 });
 
@@ -490,6 +487,14 @@ app.post("/admin/club-requests/:id/reject", requireLogin, async (req, res) => {
   creq.adminNotes = req.body.adminNotes || "";
   await creq.save();
   res.redirect("/admin/club-requests");
+});
+
+// Admin view single club request detail
+app.get("/admin/club-requests/:id", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "admin") return res.status(403).send("Forbidden");
+  const clubRequest = await ClubRequest.findByPk(req.params.id);
+  if (!clubRequest) return res.status(404).send("Club request not found");
+  res.render("admin-club-request-detail", { clubRequest });
 });
 
 // ===== Post Approval =====
@@ -761,12 +766,197 @@ app.post("/club/:id/posts/:postId/delete", requireLogin, async (req, res) => {
   res.redirect(`/club/${req.params.id}`);
 });
 
-// Club: create event form
+
+
+// Club: show event creation form
 app.get("/club/:id/event/new", requireLogin, async (req, res) => {
   if (req.session.user.role !== "club" || req.session.user.id != req.params.id)
     return res.status(403).send("Forbidden");
-  res.render("eventForm", { error: null, clubId: req.params.id });
+
+  const club = await User.findByPk(req.params.id);
+  if (!club) return res.status(404).send("Club not found");
+
+  res.render("eventForm", {        // file is now eventForm.ejs
+    clubId: club.id,
+    clubName: club.username,
+    error: req.session.flash?.error || null,
+
+    // these are the names used inside the value="..." attributes
+    advisorName: '',
+    advisorSignature: '',
+    advisorComments: '',
+    deanName: '',
+    deanSignature: '',
+    deanComments: '',
+    dsaName: '',
+    dsaSignature: '',
+    dsaComments: ''
+  });
 });
+// Club: create event form
+
+
+app.post(
+  "/club/:id/event/new",
+  requireLogin,
+  // === MULTER MIDDLEWARE FOR FILE UPLOADS ===
+  upload.fields([
+    { name: "reservationConfirmation", maxCount: 1 }, // Matches input name="reservationConfirmation"
+    { name: "eventProposalBudget", maxCount: 5 },    // Matches input name="eventProposalBudget"
+    { name: "speakerCV", maxCount: 1 },              // Matches input name="speakerCV"
+  ]),
+  async (req, res) => {
+    // 1. Authorization check
+    if (req.session.user.role !== "club" || req.session.user.id != req.params.id) {
+      setFlash(req, "error", "Unauthorized access.");
+      return res.status(403).redirect(`/club/${req.params.id}`);
+    }
+
+    try {
+      // 2. Destructure fields from req.body (parsed by multer for multipart/form-data)
+      //    Ensure these names EXACTLY match the `name` attributes in your `eventForm.ejs`
+      const {
+        activityName,
+        activityType,
+        activityTypeOther,
+        activityDate,
+        activityTime,
+        activityLocation,
+        activityLocationOther,
+        locationReserved, // radio button value 'Yes' or 'No'
+        activityGoals,    // Array from multiple text inputs
+        targetAudience,
+        expectedAttendees,
+        activityRequests, // Array from multiple text inputs
+        hasSpeaker,       // radio button value 'Yes' or 'No'
+        speakerType,      // radio button value 'PSU Members' or 'Outside PSU'
+        speakerNamePosition,
+        officeCenterName,
+        representativeName, // This is for collaboration rep, not club's main rep
+        roleType,
+        requiredTasks,    // Array from multiple text inputs
+        memberName,       // Array from the dynamic table
+        memberID,         // Array from the dynamic table
+        memberMobile,     // Array from the dynamic table
+        // These approval fields are usually updated by admin/advisor later,
+        // but if you want to store what was submitted in the form:
+        advisorName,
+        advisorSignature,
+        advisorComments,
+        deanName, // For academic clubs
+        deanSignature,
+        deanComments,
+        dsaName,
+        dsaSignature,
+        dsaComments
+      } = req.body;
+
+      // 3. Process Uploaded Files (from req.files)
+      const files = req.files;
+      const reservationConfirmationPath = files['reservationConfirmation'] && files['reservationConfirmation'][0]
+        ? '/uploads/' + files['reservationConfirmation'][0].filename
+        : null;
+
+      const eventProposalBudgetPaths = files['eventProposalBudget']
+        ? files['eventProposalBudget'].map(file => '/uploads/' + file.filename)
+        : [];
+
+      const speakerCVPath = files['speakerCV'] && files['speakerCV'][0]
+        ? '/uploads/' + files['speakerCV'][0].filename
+        : null;
+
+      // 4. Combine/Process Data
+      const finalActivityType = activityType === 'Other' ? activityTypeOther : activityType;
+      const finalActivityLocation = activityLocation === 'OtherLocation' ? activityLocationOther : activityLocation;
+
+      const startsAtDateTime = activityDate && activityTime
+        ? new Date(`${activityDate}T${activityTime}`)
+        : null;
+
+      // Prepare responsible members data (array of objects)
+      const responsibleMembers = (memberName && memberID && memberMobile)
+        ? memberName.map((name, index) => ({
+            name: name,
+            id: memberID[index],
+            mobile: memberMobile[index]
+          }))
+        : [];
+
+      // Combine description from various fields (if you still want a single description field)
+      const combinedDescription = `
+        **Activity Type:** ${finalActivityType}
+        **Target Audience:** ${targetAudience}
+        **Expected Attendees:** ${expectedAttendees}
+
+        **Goals:**
+        ${Array.isArray(activityGoals) && activityGoals.some(g => g.trim() !== '')
+          ? activityGoals.filter(g => g.trim() !== '').map((g, i) => `  - ${g}`).join('\n')
+          : '  - None specified'}
+
+        **Requests:**
+        ${Array.isArray(activityRequests) && activityRequests.some(r => r.trim() !== '')
+          ? activityRequests.filter(r => r.trim() !== '').map((r, i) => `  - ${r}`).join('\n')
+          : '  - None specified'}
+
+        ${officeCenterName
+          ? `**Organizing with:** ${officeCenterName} (Representative: ${representativeName}, Role: ${roleType})
+           **Required Tasks:**
+           ${Array.isArray(requiredTasks) && requiredTasks.some(t => t.trim() !== '')
+             ? requiredTasks.filter(t => t.trim() !== '').map((t, i) => `  - ${t}`).join('\n')
+             : '  - None specified'}`
+          : ''}
+      `.trim();
+
+
+      // 5. Create the Event in the database
+      await Event.create({
+        clubId: req.session.user.id,
+        title: activityName, 
+        description: combinedDescription, 
+        location: finalActivityLocation,
+        startsAt: startsAtDateTime,
+        endsAt: null,
+        capacity: expectedAttendees ? parseInt(expectedAttendees) : null,
+        status: "pending",
+        activityType: finalActivityType,
+        targetAudience: targetAudience,
+        expectedAttendees: expectedAttendees ? parseInt(expectedAttendees) : null,
+        reservationConfirmationFile: reservationConfirmationPath,
+        eventProposalBudgetFiles: eventProposalBudgetPaths, 
+        hasSpeaker: hasSpeaker === 'Yes',
+        speakerType: hasSpeaker === 'Yes' ? speakerType : null,
+        speakerNamePosition: hasSpeaker === 'Yes' ? speakerNamePosition : null,
+        speakerCVFile: speakerCVPath,
+        officeCenterName: officeCenterName || null,
+        representativeNameOffice: representativeName || null, 
+        roleType: roleType || null,
+        requiredTasks: Array.isArray(requiredTasks) && requiredTasks.some(t => t.trim() !== '')
+          ? requiredTasks.filter(t => t.trim() !== '')
+          : [], 
+        responsibleMembers: responsibleMembers, 
+        // clubAdvisorNameSubmitted: advisorName,
+        // clubAdvisorSignatureSubmitted: advisorSignature,
+        // clubAdvisorCommentsSubmitted: advisorComments,
+        // collegeDeanNameSubmitted: deanName,
+        // collegeDeanSignatureSubmitted: deanSignature,
+        // collegeDeanCommentsSubmitted: deanComments,
+        // dsaNameSubmitted: dsaName,
+        // dsaSignatureSubmitted: dsaSignature,
+        // dsaCommentsSubmitted: dsaComments,
+      });
+
+      setFlash(req, "message", "Event request submitted successfully and is awaiting approval!");
+      res.redirect(`/club/${req.session.user.id}`);
+
+    } catch (err) {
+      console.error("Error creating event:", err);
+      setFlash(req, "error", "Failed to submit event request. Please try again.");
+      // You might want to pass existing form data back to the template if you re-render on error
+      // For now, redirecting to the club profile on error.
+      res.redirect(`/club/${req.session.user.id}`);
+    }
+  }
+);
 
 app.post("/club/:id/event/new", requireLogin, async (req, res) => {
   if (req.session.user.role !== "club" || req.session.user.id != req.params.id)
@@ -1144,7 +1334,7 @@ app.post(
   try {
     await sequelize.authenticate();
     console.log("Database connected!");
-    await sequelize.sync({ force: true });
+    await sequelize.sync();
     console.log("All models synced!");
 
     // Seed default admin

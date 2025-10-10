@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Club Request Detail</title>
+  <style>
+    body { background: #f7f8fa; color: #223049; font-family: 'Segoe UI',Tahoma,Verdana,sans-serif; margin: 0; }
+    .container { max-width: 700px; margin: 2.5rem auto; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px #0001; padding: 2.5rem 2rem; }
+    h2 { margin-bottom: 12px; }
+    .block-label { color: #6077a1; font-size:1.08em; font-weight:600; margin-top:24px; }
+    .value { padding: 0.18em 0; margin-bottom: 2px; }
+    .flex-row { display:flex; gap:2.5em; }
+    .actions { margin: 2.3em 0 1em; display: flex; gap: 2em; }
+    form {display:inline;}
+    .btn {background: #2563eb; color:white; border:none; border-radius:7px; padding:0.5em 2.3em; font-size:1.08em; cursor:pointer; margin-right:1.25em;}
+    .btn-danger { background:#e11d48;}
+    .btn:hover { background:#1e40af; }
+    .btn-danger:hover { background:#b91c1c; }
+    hr {border:0; border-top:1px solid #e5e7eb; margin:1.5em 0;}
+    dl { display:grid; grid-template-columns:170px 1fr; gap:7px 16px; margin:0; }
+    dt { font-weight:600; opacity:0.75; }
+    dd { margin:0 0 6px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Club Request: <%= clubRequest.clubName %></h2>
+    <dl>
+      <dt>Email:</dt><dd><%= clubRequest.clubEmail %></dd>
+      <dt>Status:</dt><dd style="color:#c2780f"><%= clubRequest.status %></dd>
+      <dt>Date Submitted:</dt><dd><%= clubRequest.createdAt.toLocaleString ? clubRequest.createdAt.toLocaleString() : new Date(clubRequest.createdAt).toLocaleString() %></dd>
+      <dt>Description:</dt><dd><%= clubRequest.clubDescription %></dd>
+      <% if (clubRequest.clubKind) { %>
+        <dt>Club Kind:</dt><dd><%= clubRequest.clubKind %></dd>
+      <% } %>
+      <% if (clubRequest.clubStatus) { %>
+        <dt>Club Status:</dt><dd><%= clubRequest.clubStatus %></dd>
+      <% } %>
+      <% if (clubRequest.representativeName) { %>
+        <dt>Representative:</dt><dd><%= clubRequest.representativeName %></dd>
+      <% } %>
+      <% if (clubRequest.presidentName) { %>
+        <dt>President Name:</dt><dd><%= clubRequest.presidentName %></dd>
+        <dt>President ID:</dt><dd><%= clubRequest.presidentStudentID %></dd>
+        <dt>President Phone:</dt><dd><%= clubRequest.presidentPhone %></dd>
+        <dt>President College:</dt><dd><%= clubRequest.presidentCollege %></dd>
+      <% } %>
+      <% if (clubRequest.vpName) { %>
+        <dt>Vice President Name:</dt><dd><%= clubRequest.vpName %></dd>
+        <dt>Vice President ID:</dt><dd><%= clubRequest.vpStudentID %></dd>
+        <dt>Vice President Phone:</dt><dd><%= clubRequest.vpPhone %></dd>
+      <% } %>
+      <% if (clubRequest.member1 || clubRequest.member2 || clubRequest.member3) { %>
+        <dt>Members:</dt>
+        <dd>
+          <% [1,2,3,4,5].forEach(i => { %>
+            <% if (clubRequest['member'+i]) { %>
+              <div><%= clubRequest['member'+i] %></div>
+            <% } %>
+          <% }); %>
+        </dd>
+      <% } %>
+      <% if (clubRequest.advisorName) { %>
+        <dt>Advisor Name:</dt><dd><%= clubRequest.advisorName %></dd>
+      <% } %>
+      <% if (clubRequest.advisorEmail) { %>
+        <dt>Advisor Email:</dt><dd><%= clubRequest.advisorEmail %></dd>
+      <% } %>
+      <% if (clubRequest.clubVision) { %>
+        <dt>Vision/Goals:</dt><dd><%= clubRequest.clubVision %></dd>
+      <% } %>
+      <% if (clubRequest.clubActivities) { %>
+        <dt>Activities:</dt><dd><%= clubRequest.clubActivities %></dd>
+      <% } %>
+      <% if (clubRequest.clubSocials) { %>
+        <dt>Social Media:</dt><dd><%= clubRequest.clubSocials %></dd>
+      <% } %>
+      <% if (clubRequest.clubMembersCount) { %>
+        <dt>Number of Members:</dt><dd><%= clubRequest.clubMembersCount %></dd>
+      <% } %>
+    </dl>
+    <hr />
+    <div class="actions">
+      <form action="/admin/club-requests/<%= clubRequest.id %>/approve" method="POST">
+        <button class="btn" type="submit">Approve</button>
+      </form>
+      <form action="/admin/club-requests/<%= clubRequest.id %>/reject" method="POST">
+        <button class="btn btn-danger" type="submit">Reject</button>
+      </form>
+      <a href="/admin/club-requests" style="margin-left:auto;color:#2563eb;text-decoration:underline;font-size:1.06em;">&larr; Back to list</a>
+    </div>
+  </div>
+</body>
+</html>

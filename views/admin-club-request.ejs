@@ -1,15 +1,48 @@
-<h2>Pending Club Requests</h2>
-<ul>
-  <% requests.forEach(r => { %>
-    <li>
-      <strong><%= r.clubName %></strong> (<%= r.clubEmail %>) <br>
-      <em><%= r.clubDescription %></em>
-      <form action="/admin/club-requests/<%= r.id %>/approve" method="POST" style="display:inline;">
-        <button type="submit">Approve</button>
-      </form>
-      <form action="/admin/club-requests/<%= r.id %>/reject" method="POST" style="display:inline;">
-        <button type="submit">Reject</button>
-      </form>
-    </li>
-  <% }) %>
-</ul>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pending Club Requests</title>
+  <style>
+    .request-list { width:100%; max-width:850px; margin: 2.5rem auto; border-radius:16px; background:#fff; box-shadow:0 4px 28px #0001; padding:2rem; }
+    .request-list table { width:100%; border-collapse:collapse; }
+    .request-list th, .request-list td { padding: 1rem 0.75rem; text-align:left; border-bottom:1px solid #e5e7eb; }
+    .request-list th { color:#233865; font-size:1.07rem; letter-spacing:0.04em; font-weight:700; }
+    .view-btn { color:#fff; background:#2563eb; border:none; padding:0.5em 1.4em; border-radius:6px; font-size:1em; cursor:pointer; text-decoration:none; display:inline-block; transition:background 0.18s; }
+    .view-btn:hover { background:#1e40af; }
+    .empty-msg {padding:2rem; color:#334155;text-align:center;}
+  </style>
+</head>
+<body>
+  <div class="request-list">
+    <h2>Pending Club Requests</h2>
+    <% if (requests.length === 0) { %>
+      <div class="empty-msg">There are no pending club requests.</div>
+    <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th>Club Name</th>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Request Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% requests.forEach(r => { %>
+          <tr>
+            <td><%= r.clubName %></td>
+            <td><%= r.clubEmail %></td>
+            <td style="color:#c2780f"><%= r.status.charAt(0).toUpperCase() + r.status.slice(1) %></td>
+            <td><%= r.createdAt.toLocaleDateString ? r.createdAt.toLocaleDateString() : new Date(r.createdAt).toLocaleDateString() %></td>
+            <td>
+              <a href="/admin/club-requests/<%= r.id %>" class="view-btn">View</a>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% } %>
+  </div>
+</body>
+</html>

@@ -7,20 +7,48 @@
   <link rel="stylesheet" href="/css/auth.css">
 </head>
 <body>
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
   <div class="auth-card">
     <h2>Club Hub</h2>
-
-    <% if (error) { %>
-      <div class="form-error"><%= error %></div>
-    <% } %>
-
+    <!-- Inline error removed: toast handles feedback now -->
     <form action="/login" method="POST">
       <input type="email" name="email" placeholder="Email" required autocomplete="email" />
       <input type="password" name="password" placeholder="Password" required autocomplete="current-password" />
       <button type="submit">Login</button>
     </form>
-
     <p>Don’t have an account? <a href="/signup">Sign up</a></p>
   </div>
+  <script>
+    // Simple Toast notification using flash.error or flash.message from EJS
+    window.addEventListener('DOMContentLoaded', function() {
+      var flash = <%- JSON.stringify(flash) %>;
+      if (flash && (flash.error || flash.message)) {
+        showToast(flash.error ? flash.error : flash.message, flash.error ? 'error' : 'success');
+      }
+    });
+    
+    function showToast(msg, type) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + (type === 'error' ? 'toast-error' : 'toast-success');
+      toast.innerText = msg;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 100);
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 500);
+      }, 3400);
+    }
+  </script>
+  <style>
+    #toast-container { z-index:9999; position:fixed; top:32px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; }
+    .toast { opacity:0; min-width:250px; margin-top:12px; padding: 1em 2em; border-radius: 8px; background: #2563eb; color: #fff; box-shadow:0 4px 16px rgba(0,0,0,0.12); font-weight:500; transition:opacity 0.4s, transform 0.4s; transform:translateY(-25px) scale(0.95); transition:all 0.4s; pointer-events:none; }
+    .toast.show { opacity: 1; transform:translateY(0) scale(1); }
+    .toast-error { background:#e11d48; }
+    .toast-success { background:#16a34a; }
+  </style>
 </body>
 </html>

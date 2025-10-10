@@ -1,684 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Pending Events</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
-  <style>
-    /* ===== Reset & Base ===== */
-    * { 
-      margin: 0; 
-      padding: 0; 
-      box-sizing: border-box; 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    
-    body { 
-      background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
-      color: #111827;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* ===== Navbar ===== */
-    .navbar {
-      width: 100%;
-      background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
-    }
-    
-    .navbar-left {
-      display: flex;
-      gap: 2rem;
-      align-items: center;
-    }
-    
-    .navbar-brand {
-      color: #FFFFFF;
-      font-size: 1.3rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-    }
-    
-    .navbar-brand i {
-      font-size: 1.5rem;
-    }
-    
-    .navbar a:not(.navbar-brand) {
-      color: #FFFFFF;
-      text-decoration: none;
-      font-weight: 600;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
-      padding: 0.5rem 1.5rem;
-      border-radius: 8px;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .navbar a:not(.navbar-brand)::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.1);
-      transition: left 0.3s ease;
-    }
-    
-    .navbar a:not(.navbar-brand):hover::before {
-      left: 0;
-    }
-    
-    .navbar a:not(.navbar-brand):hover { 
-      transform: translateY(-2px);
-    }
-    
-    .navbar a i { 
-      font-size: 1.5rem;
-    }
-
-    .back-btn {
-      background: rgba(255, 255, 255, 0.2);
-      color: #FFFFFF;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-decoration: none;
-    }
-    
-    .back-btn:hover {
-      background: rgba(255, 255, 255, 0.3);
-      transform: translateY(-2px);
-    }
-
-    /* ===== Container ===== */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem 3rem;
-    }
-
-    /* ===== Page Header ===== */
-    .page-header {
-      background: #FFFFFF;
-      padding: 2rem;
-      border-radius: 16px;
-      margin-bottom: 2rem;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    
-    .page-title {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-    
-    .page-title i {
-      font-size: 2.5rem;
-      color: #F59E0B;
-    }
-    
-    .page-title h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #1E3A8A;
-    }
-
-    .pending-count {
-      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-      color: #FFFFFF;
-      padding: 0.75rem 1.5rem;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 1.1rem;
-      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
-    }
-
-    /* ===== Events List ===== */
-    .events-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    /* ===== Event Card ===== */
-    .event-card {
-      background: #FFFFFF;
-      border-radius: 16px;
-      padding: 2rem;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      transition: all 0.3s ease;
-      border-left: 4px solid #F59E0B;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .event-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%);
-    }
-    
-    .event-card:hover {
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      transform: translateY(-4px);
-    }
-
-    /* ===== Event Header ===== */
-    .event-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 2px solid #F3F4F6;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .event-title-section {
-      flex: 1;
-      min-width: 250px;
-    }
-
-    .event-card h2 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: #1E3A8A;
-      margin-bottom: 0.75rem;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .event-card h2 i {
-      color: #F59E0B;
-      font-size: 1.4rem;
-    }
-
-    .club-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
-      color: #1E40AF;
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      border: 2px solid #93C5FD;
-    }
-
-    .club-badge i {
-      font-size: 1rem;
-    }
-
-    .event-status {
-      background: #FEF3C7;
-      color: #92400E;
-      padding: 6px 16px;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      border: 2px solid #FDE68A;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    /* ===== Event Details Grid ===== */
-    .event-details {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .detail-item {
-      background: #F9FAFB;
-      padding: 1.25rem;
-      border-radius: 10px;
-      border: 1px solid #E5E7EB;
-    }
-
-    .detail-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 600;
-      color: #1E3A8A;
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .detail-label i {
-      color: #2563EB;
-      font-size: 1rem;
-    }
-
-    .detail-content {
-      color: #374151;
-      font-size: 1rem;
-      line-height: 1.6;
-    }
-
-    .detail-item.full-width {
-      grid-column: 1 / -1;
-    }
-
-    /* ===== Actions Section ===== */
-    .event-actions {
-      display: flex;
-      gap: 1rem;
-      padding-top: 1.5rem;
-      border-top: 2px solid #F3F4F6;
-      flex-wrap: wrap;
-    }
-
-    .action-form {
-      flex: 1;
-      min-width: 250px;
-    }
-
-    .reject-form {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .reject-form textarea {
-      width: 100%;
-      padding: 0.875rem;
-      border: 2px solid #E5E7EB;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      resize: vertical;
-      min-height: 80px;
-      transition: all 0.3s ease;
-    }
-
-    .reject-form textarea:focus {
-      outline: none;
-      border-color: #DC2626;
-      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
-    }
-
-    .reject-form textarea::placeholder {
-      color: #9CA3AF;
-    }
-
-    .btn {
-      width: 100%;
-      border: none;
-      padding: 1rem 1.5rem;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 1rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.2);
-      transition: left 0.3s ease;
-    }
-
-    .btn:hover::before {
-      left: 0;
-    }
-
-    .btn-approve {
-      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-      color: #FFFFFF;
-      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-    }
-
-    .btn-approve:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
-    }
-
-    .btn-reject {
-      background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
-      color: #FFFFFF;
-      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
-    }
-
-    .btn-reject:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
-    }
-
-    .btn i {
-      font-size: 1.1rem;
-    }
-
-    /* ===== Empty State ===== */
-    .empty-state {
-      text-align: center;
-      padding: 5rem 2rem;
-      background: #FFFFFF;
-      border-radius: 16px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-    }
-
-    .empty-state i {
-      font-size: 5rem;
-      color: #D1D5DB;
-      margin-bottom: 1.5rem;
-    }
-
-    .empty-state h2 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: #1E3A8A;
-      margin-bottom: 0.75rem;
-    }
-
-    .empty-state p {
-      font-size: 1.1rem;
-      color: #6B7280;
-      margin-bottom: 2rem;
-    }
-
-    .empty-state .btn-back {
-      background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%);
-      color: #FFFFFF;
-      text-decoration: none;
-      padding: 1rem 2rem;
-      border-radius: 8px;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-    }
-
-    .empty-state .btn-back:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
-    }
-
-    /* ===== Responsive ===== */
-    @media (max-width: 768px) {
-      .navbar {
-        flex-direction: column;
-        gap: 1rem;
-        padding: 1rem;
-      }
-      
-      .navbar-left {
-        flex-direction: column;
-        gap: 0.5rem;
-        width: 100%;
-        align-items: center;
-      }
-      
-      .navbar-brand {
-        font-size: 1.1rem;
-      }
-      
-      .navbar a:not(.navbar-brand) {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.8rem;
-      }
-
-      .page-header {
-        padding: 1.5rem;
-      }
-
-      .page-title {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .page-title i {
-        font-size: 2rem;
-      }
-
-      .page-title h1 {
-        font-size: 1.5rem;
-      }
-
-      .pending-count {
-        align-self: flex-start;
-      }
-
-      .event-card {
-        padding: 1.5rem;
-      }
-
-      .event-card h2 {
-        font-size: 1.3rem;
-      }
-
-      .event-header {
-        flex-direction: column;
-      }
-
-      .event-details {
-        grid-template-columns: 1fr;
-      }
-
-      .event-actions {
-        flex-direction: column;
-      }
-
-      .action-form {
-        min-width: 100%;
-      }
-
-      .empty-state {
-        padding: 3rem 1.5rem;
-      }
-
-      .empty-state i {
-        font-size: 3.5rem;
-      }
-
-      .empty-state h2 {
-        font-size: 1.4rem;
-      }
-
-      .empty-state p {
-        font-size: 1rem;
-      }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- ===== Navbar ===== -->
-  <div class="navbar">
-    <div class="navbar-left">
-      <a href="/admin/dashboard" class="navbar-brand">
-        <i class="fas fa-shield-halved"></i>
-        <span>Admin Portal</span>
-      </a>
-      <a href="/admin/dashboard">
-        <i class="fas fa-home"></i>
-        <span>Dashboard</span>
-      </a>
-      <a href="/admin/club-requests">
-        <i class="fas fa-user-clock"></i>
-        <span>Club Requests</span>
-      </a>
-      <a href="/admin/posts">
-        <i class="fas fa-file-circle-check"></i>
-        <span>Posts</span>
-      </a>
-    </div>
-    <a href="/admin/dashboard" class="back-btn">
-      <i class="fas fa-arrow-left"></i>
-      <span>Back to Dashboard</span>
-    </a>
-  </div>
-
-  <div class="container">
-    <!-- Page Header -->
-    <div class="page-header">
-      <div class="page-title">
-        <i class="fas fa-calendar-check"></i>
-        <h1>Pending Events</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Pending Events</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/css/events.css" />
+  </head>
+    <body>
+    <!-- ===== Navbar ===== -->
+    <div class="navbar">
+      <div class="navbar-left">
+        <a href="/admin/dashboard" class="navbar-brand">
+          <i class="fas fa-shield-halved"></i>
+          <span>Admin Portal</span>
+        </a>
+        <a href="/admin/dashboard"
+          ><i class="fas fa-home"></i><span>Dashboard</span></a
+        >
+        <a href="/admin/club-requests"
+          ><i class="fas fa-user-clock"></i><span>Club Requests</span></a
+        >
+        <a href="/admin/posts"
+          ><i class="fas fa-file-circle-check"></i><span>Posts</span></a
+        >
       </div>
-      <% if (pendingEvents && pendingEvents.length > 0) { %>
-        <div class="pending-count">
-          <%= pendingEvents.length %> Event<%= pendingEvents.length !== 1 ? 's' : '' %> Awaiting Review
-        </div>
-      <% } %>
+      <a href="/admin/dashboard" class="back-btn">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to Dashboard</span>
+      </a>
     </div>
 
-    <!-- Events List -->
-    <% if (pendingEvents && pendingEvents.length > 0) { %>
-      <div class="events-list">
+    <!-- ===== Container ===== -->
+    <div class="container">
+      <div class="page-header">
+        <div class="page-title">
+          <i class="fas fa-calendar-check"></i>
+          <h1>Pending Events</h1>
+        </div>
+        <% if (pendingEvents && pendingEvents.length > 0) { %>
+        <div class="pending-count">
+          <%= pendingEvents.length %> Event<%= pendingEvents.length !== 1 ? 's'
+          : '' %> Awaiting Review
+        </div>
+        <% } %>
+      </div>
+
+      <% if (pendingEvents && pendingEvents.length > 0) { %>
+      <div class="events-grid">
         <% pendingEvents.forEach(event => { %>
-          <div class="event-card">
-            <!-- Event Header -->
-            <div class="event-header">
-              <div class="event-title-section">
-                <h2>
-                  <i class="fas fa-calendar-star"></i>
-                  <%= event.title %>
-                </h2>
-                <span class="club-badge">
-                  <i class="fas fa-users"></i>
-                  <%= event.club?.username || 'Unknown Club' %>
-                </span>
-              </div>
-              <div class="event-status">
-                <i class="fas fa-hourglass-half"></i>
-                Pending
+        <div
+          class="event-card clickable"
+          data-event='<%- JSON.stringify(event).replace(/'/g, "&apos;") %>'
+
+        >
+          <div class="event-top">
+            <div>
+              <h2><i class="fas fa-calendar-star"></i> <%= event.title %></h2>
+              <div class="club-info">
+                <i class="fas fa-users"></i> <%= event.club?.username ||
+                'Unknown Club' %>
               </div>
             </div>
-
-            <!-- Event Details Grid -->
-            <div class="event-details">
-              <% if (event.description) { %>
-                <div class="detail-item full-width">
-                  <div class="detail-label">
-                    <i class="fas fa-align-left"></i>
-                    Description
-                  </div>
-                  <div class="detail-content"><%= event.description %></div>
-                </div>
-              <% } %>
-
-              <% if (event.location) { %>
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <i class="fas fa-map-marker-alt"></i>
-                    Location
-                  </div>
-                  <div class="detail-content"><%= event.location %></div>
-                </div>
-              <% } %>
-
-              <% if (event.startsAt) { %>
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <i class="fas fa-calendar-day"></i>
-                    Start Date
-                  </div>
-                  <div class="detail-content"><%= new Date(event.startsAt).toLocaleString() %></div>
-                </div>
-              <% } %>
-
-              <% if (event.endsAt) { %>
-                <div class="detail-item">
-                  <div class="detail-label">
-                    <i class="fas fa-calendar-times"></i>
-                    End Date
-                  </div>
-                  <div class="detail-content"><%= new Date(event.endsAt).toLocaleString() %></div>
-                </div>
-              <% } %>
-            </div>
-
-            <!-- Actions -->
-            <div class="event-actions">
-              <!-- Approve Form -->
-              <form class="action-form" action="/admin/events/<%= event.id %>/approve" method="POST">
-                <button type="submit" class="btn btn-approve">
-                  <i class="fas fa-check-circle"></i>
-                  <span>Approve Event</span>
-                </button>
-              </form>
-
-              <!-- Reject Form -->
-              <form class="action-form reject-form" action="/admin/events/<%= event.id %>/reject" method="POST">
-                <textarea name="adminNotes" placeholder="Enter reason for rejection (optional)" rows="3"></textarea>
-                <button type="submit" class="btn btn-reject">
-                  <i class="fas fa-times-circle"></i>
-                  <span>Reject Event</span>
-                </button>
-              </form>
+            <div class="event-status">
+              <i class="fas fa-hourglass-half"></i> Pending
             </div>
           </div>
+
+          <div class="event-summary">
+            <% if (event.location) { %>
+            <div>
+              <i class="fas fa-map-marker-alt"></i> <%= event.location %>
+            </div>
+            <% } %> <% if (event.startsAt) { %>
+            <div>
+              <i class="fas fa-calendar-day"></i> <%= new
+              Date(event.startsAt).toLocaleDateString() %>
+            </div>
+            <% } %> <% if (event.endsAt) { %>
+            <div>
+              <i class="fas fa-calendar-times"></i> <%= new
+              Date(event.endsAt).toLocaleDateString() %>
+            </div>
+            <% } %>
+          </div>
+        </div>
         <% }) %>
       </div>
-    <% } else { %>
+      <% } else { %>
       <div class="empty-state">
         <i class="fas fa-check-double"></i>
         <h2>All Caught Up!</h2>
-        <p>There are no pending events to review at this time.</p>
+        <p>No pending events to review at this time.</p>
         <a href="/admin/dashboard" class="btn-back">
-          <i class="fas fa-arrow-left"></i>
-          <span>Back to Dashboard</span>
+          <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
       </div>
-    <% } %>
-  </div>
+      <% } %>
+    </div>
 
-</body>
+    <!-- ===== Event Modal ===== -->
+    <div id="eventModal" class="modal hidden">
+      <div class="modal-content">
+        <span class="modal-close"><i class="fas fa-times"></i></span>
+        <div class="modal-header">
+          <h2 id="modalTitle"></h2>
+          <div class="modal-club"></div>
+        </div>
+        <div class="modal-body">
+          <p id="modalDescription"></p>
+          <div class="modal-details" id="modalDetails">
+            
+          </div>
+        </div>
+        <div class="modal-actions">
+          <form id="approveForm" method="POST">
+            <button class="btn btn-approve">
+              <i class="fas fa-check-circle"></i> Approve
+            </button>
+          </form>
+          <form id="rejectForm" method="POST" class="reject-form">
+            <textarea
+              name="adminNotes"
+              placeholder="Reason for rejection (optional)"
+            ></textarea>
+            <button class="btn btn-reject">
+              <i class="fas fa-times-circle"></i> Reject
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+     const modal = document.getElementById("eventModal");
+const modalClose = document.querySelector(".modal-close");
+
+modalClose.addEventListener("click", () => modal.classList.add("hidden"));
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) modal.classList.add("hidden");
+});
+
+document.querySelectorAll(".event-card.clickable").forEach(card => {
+  card.addEventListener("click", () => {
+    const event = JSON.parse(card.dataset.event);
+    
+
+    // ----- header -----
+    document.getElementById("modalTitle").textContent = event.title;
+    document.querySelector(".modal-club").textContent =
+      event.club?.username || "Unknown Club";
+    document.getElementById("modalDescription").textContent =
+      event.description || "No description available.";
+ // ----- helper -----
+    const cleanList = (str) =>
+      (str || '')
+        .split('\n')
+        .map(l => l.replace(/^-\s*/, '').trim())
+        .filter(Boolean)
+        .join(', ') || null;
+
+    // ----- details -----
+    const modalDetails = document.getElementById("modalDetails");
+    modalDetails.innerHTML = "";
+     const fields = [
+      { label: "Location", icon: "fa-map-marker-alt", value: event.location },
+      { label: "Starts At", icon: "fa-calendar-day", value: event.startsAt ? new Date(event.startsAt).toLocaleString() : null },
+      { label: "Ends At", icon: "fa-calendar-times", value: event.endsAt ? new Date(event.endsAt).toLocaleString() : null },
+      { label: "Target Audience", icon: "fa-users", value: event.targetAudience },
+      { label: "Speaker", icon: "fa-user-tie", value: event.hasSpeaker ? event.speakerNamePosition : null },
+      { label: "Activity Type", icon: "fa-tags", value: event.activityType },
+      { label: "Workshop", icon: "fa-chalkboard-teacher", value: event.isWorkshop ? "Yes" : null },
+      { label: "Topic", icon: "fa-lightbulb", value: event.topic },
+      { label: "Expected Attendees", icon: "fa-users", value: event.expectedAttendees },
+      { label: "Goals", icon: "fa-bullseye", value: cleanList(event.goals) },
+      { label: "Requests", icon: "fa-hand-holding", value: cleanList(event.requests) }
+    ];
+
+    fields.forEach(f => {
+      if (f.value) {
+        const p = document.createElement("p");
+        p.innerHTML = `<i class="fas ${f.icon}"></i> <strong>${f.label}:</strong> ${f.value}`;
+        modalDetails.appendChild(p);
+      }
+    });
+
+    // ----- actions -----
+    document.getElementById("approveForm").action = `/admin/events/${event.id}/approve`;
+    document.getElementById("rejectForm").action = `/admin/events/${event.id}/reject`;
+
+    modal.classList.remove("hidden");
+  });
+});
+    </script>
+  </body>
 </html>

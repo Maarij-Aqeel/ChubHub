@@ -648,10 +648,12 @@
             </div>
             <div class="card-footer">
               <% if (c.isAccepted) { %>
-                <button class="btn" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);" disabled>
-                  <i class="fas fa-check-circle"></i>
-                  Member
-                </button>
+                <form id="leaveForm-<%= c.id %>" action="/student/<%= user.id %>/leave/<%= c.id %>" method="POST" style="display:inline;">
+                  <button type="button" class="btn secondary" onclick="confirmLeave('<%= c.id %>', '<%= c.username %>')">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Leave Club
+                  </button>
+                </form>
               <% } else if (c.hasApplied) { %>
                 <button class="btn" style="background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);" disabled>
                   <i class="fas fa-clock"></i>
@@ -739,6 +741,12 @@
   <div id="toast-container"></div>
 
   <script>
+    function confirmLeave(clubId, clubName) {
+      if (confirm(`Are you sure you want to leave ${clubName}?`)) {
+        document.getElementById(`leaveForm-${clubId}`).submit();
+      }
+    }
+
     const applicationModal = document.getElementById('applicationModal');
     const applicationForm = document.getElementById('applicationForm');
     const clubNameSpan = document.getElementById('clubName');

@@ -10,8 +10,8 @@
       --bg: #ffffff;
       --dark: #333333;
       --light-text: #666666;
-      --primary: #007bff; /* A nice blue for primary actions */
-      --accent: #007bff; /* Keeping accent consistent for links */
+      --primary: #007bff; 
+      --accent: #007bff; 
       --border-color: #e0e0e0;
       --radius: 8px;
       --shadow: 0 4px 12px rgba(0,0,0,0.05);
@@ -293,8 +293,12 @@
           <input type="date" id="activityDate" name="activityDate" required>
         </div>
         <div class="form-group">
-          <label for="activityTime">Time:</label>
+          <label for="activityTime">Start Time:</label>
           <input type="time" id="activityTime" name="activityTime" required>
+        </div>
+        <div class="form-group">
+          <label for="activityEndTime">End Time:</label>
+          <input type="time" id="activityEndTime" name="activityEndTime" required>
         </div>
       </div>
 
@@ -552,7 +556,7 @@
         } else {
           otherInput.style.display = 'none';
           otherInput.required = false;
-          otherInput.value = ''; // Clear value if not 'Other'
+          otherInput.value = '';
         }
       });
     });

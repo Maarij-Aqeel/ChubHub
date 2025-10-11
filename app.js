@@ -14,6 +14,7 @@ const { EventReport } = require("./models/eventReport");
 const { Application } = require("./models/application");
 const { Subscription } = require("./models/subscription");
 const { RSVP } = require("./models/rsvp");
+const { Op } = require("sequelize");
 
 // ===== Model Associations =====
 // Event → Club(User)
@@ -559,20 +560,38 @@ app.get("/student/:id/home", requireLogin, async (req, res) => {
 
   const subs = await Subscription.findAll({ where: { studentId: user.id } });
   const subscribedClubIds = subs.map((s) => s.clubId);
+  const thirtyDaysAgo = new Date(new Date().setDate(new Date().getDate() - 30));
 
   const allPosts = await Post.findAll({
-    where: { status: "approved" },
+    where: { 
+      status: "approved",
+      createdAt: {
+        [Op.gte]: thirtyDaysAgo
+      }
+    },
     order: [["createdAt", "DESC"]],
   });
   const subPosts = subscribedClubIds.length
     ? await Post.findAll({
-        where: { status: "approved", clubId: subscribedClubIds },
+        where: { 
+          status: "approved", 
+          clubId: subscribedClubIds,
+          createdAt: {
+            [Op.gte]: thirtyDaysAgo
+          }
+        },
         order: [["createdAt", "DESC"]],
       })
     : [];
   const upcomingSubscribedEvents = subscribedClubIds.length
     ? await Event.findAll({
-        where: { status: "approved", clubId: subscribedClubIds },
+        where: { 
+          status: "approved", 
+          clubId: subscribedClubIds,
+          startsAt: {
+            [Op.gte]: new Date()
+          }
+        },
         order: [["startsAt", "ASC"]],
       })
     : [];
@@ -618,7 +637,7 @@ app.get("/club/:id", requireLogin, async (req, res) => {
       clubId: user.id,
       status: 'approved',
       endsAt: {
-        [require('sequelize').Op.lt]: new Date() // Events that have ended
+        [require('sequelize').Op.lt]: new Date() 
       }
     },
     include: [{
@@ -934,6 +953,7 @@ app.post(
         activityTypeOther,
         activityDate,
         activityTime,
+        activityEndTime,
         activityLocation,
         activityLocationOther,
         locationReserved, // radio button value 'Yes' or 'No'
@@ -985,6 +1005,10 @@ app.post(
       const startsAtDateTime = activityDate && activityTime
         ? new Date(`${activityDate}T${activityTime}`)
         : null;
+      
+      const endsAtDateTime = activityDate && activityEndTime
+        ? new Date(`${activityDate}T${activityEndTime}`)
+        : null;
 
       // Prepare responsible members data (array of objects)
       const responsibleMembers = (memberName && memberID && memberMobile)
@@ -1028,7 +1052,7 @@ app.post(
         description: combinedDescription, 
         location: finalActivityLocation,
         startsAt: startsAtDateTime,
-        endsAt: null,
+        endsAt: endsAtDateTime,
         capacity: expectedAttendees ? parseInt(expectedAttendees) : null,
         status: "pending",
         activityType: finalActivityType,
@@ -1150,7 +1174,11 @@ app.get("/club/:id/event/:eventId/report", requireLogin, async (req, res) => {
     return res.status(403).send("Forbidden");
   const event = await Event.findByPk(req.params.eventId);
   if (!event) return res.status(404).send("Event not found");
-  res.render("eventReportForm", { event, error: null });
+  res.render("eventReportForm", {
+    event,
+    error: req.session.flash?.error || null,
+    message: req.session.flash?.message || null,
+  });
 });
 
 // submit report
@@ -1430,6 +1458,40 @@ app.get("/student/:studentId/apply/:clubId", requireLogin, async (req, res) => {
 });
 
 // Submit application
+app.post(
+  "/student/:studentId/leave/:clubId",
+  requireLogin,
+  async (req, res) => {
+    if (
+      req.session.user.role !== "student" ||
+      req.session.user.id != req.params.studentId
+    )
+      return res.status(403).send("Forbidden");
+
+    const club = await User.findByPk(req.params.clubId);
+    if (!club || club.role !== "club")
+      return res.status(404).send("Club not found");
+
+    await Application.destroy({
+      where: {
+        studentId: req.session.user.id,
+        clubId: club.id,
+        status: "accepted",
+      },
+    });
+
+    await Subscription.destroy({
+      where: {
+        studentId: req.session.user.id,
+        clubId: club.id,
+      },
+    });
+
+    setFlash(req, "message", `You have successfully left ${club.username}.`);
+    res.redirect(`/student/${req.session.user.id}/clubs`);
+  }
+);
+
 app.post(
   "/student/:studentId/apply/:clubId",
   requireLogin,

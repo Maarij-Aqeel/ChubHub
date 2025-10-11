@@ -1,0 +1,213 @@
+:root {
+      --bg: #ffffff;
+      --dark: #333333;
+      --light-text: #666666;
+      --primary: #007bff;
+      --accent: #007bff;
+      --border-color: #e0e0e0;
+      --radius: 8px;
+      --shadow: 0 4px 12px rgba(0,0,0,0.05);
+      --input-bg: #f9f9f9;
+      --focus-border: #88bfff;
+      --error-color: #dc3545;
+      --success-color: #28a745;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7f6;
+      margin: 0;
+      padding: 0;
+      color: var(--dark);
+    }
+
+    .form-container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: var(--bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 30px;
+    }
+
+    h1 {
+      color: var(--dark);
+      margin-bottom: 25px;
+      text-align: center;
+      font-size: 2.2em;
+      font-weight: 700;
+    }
+
+    h2 {
+      color: var(--dark);
+      margin-top: 30px;
+      margin-bottom: 15px;
+      font-size: 1.5em;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      color: var(--dark);
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.95em;
+    }
+
+    .required {
+      color: var(--error-color);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="datetime-local"],
+    input[type="email"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      margin-top: 6px;
+      font-size: 1em;
+      color: var(--dark);
+      background-color: var(--input-bg);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      box-sizing: border-box;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="date"]:focus,
+    input[type="datetime-local"]:focus,
+    input[type="email"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--focus-border);
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .file-input-group {
+      margin-bottom: 15px;
+    }
+
+    .file-input-group label {
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .file-input-group input[type="file"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      background-color: var(--input-bg);
+    }
+
+    .file-note {
+      font-size: 0.85em;
+      color: var(--light-text);
+      margin-top: 5px;
+      margin-left: 5px;
+    }
+
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 12px 25px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 1.1em;
+      font-weight: 600;
+      transition: background-color 0.2s ease, box-shadow 0.2s ease;
+      display: block;
+      width: auto;
+      margin: 30px auto 0;
+      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+    }
+
+    button:hover {
+      background-color: #0056b3;
+      box-shadow: 0 6px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    a:hover {
+      color: #0056b3;
+      text-decoration: underline;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 25px;
+      font-size: 1em;
+    }
+
+    .section-note {
+      font-size: 0.9em;
+      color: var(--light-text);
+      margin-top: -10px;
+      margin-bottom: 15px;
+      padding-left: 5px;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .error-message {
+      color: var(--error-color);
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+
+    .success-message {
+      color: var(--success-color);
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+
+    .event-info {
+      background-color: #f8f9fa;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .event-info h3 {
+      margin-top: 0;
+      color: var(--dark);
+    }
+
+    .event-info p {
+      margin: 5px 0;
+      color: var(--light-text);
+    }

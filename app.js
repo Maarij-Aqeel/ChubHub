@@ -46,6 +46,13 @@ try {
 } catch (e) {
   console.warn("Association setup warning (Application→User):", e?.message || e);
 }
+
+// Post → Club(User)
+try {
+  Post.belongsTo(User, { as: "club", foreignKey: "clubId" });
+} catch (e) {
+  console.warn("Association setup warning (Post→User):", e?.message || e);
+}
 const {
   sendVerificationEmail,
   sendPasswordResetEmail,
@@ -125,6 +132,22 @@ function requireLogin(req, res, next) {
 function setFlash(req, type, message) {
   req.session.flash = req.session.flash || {};
   req.session.flash[type] = message;
+}
+
+// Time ago helper
+function timeSince(date) {
+  const seconds = Math.floor((new Date() - date) / 1000);
+  let interval = seconds / 31536000;
+  if (interval > 1) return Math.floor(interval) + " years ago";
+  interval = seconds / 2592000;
+  if (interval > 1) return Math.floor(interval) + " months ago";
+  interval = seconds / 86400;
+  if (interval > 1) return Math.floor(interval) + " days ago";
+  interval = seconds / 3600;
+  if (interval > 1) return Math.floor(interval) + " hours ago";
+  interval = seconds / 60;
+  if (interval > 1) return Math.floor(interval) + " minutes ago";
+  return Math.floor(seconds) + " seconds ago";
 }
 
 // ===== Routes =====
@@ -558,35 +581,55 @@ app.get("/student/:id/home", requireLogin, async (req, res) => {
   if (!user || user.role !== "student")
     return res.status(404).send("Student not found");
 
-  const subs = await Subscription.findAll({ where: { studentId: user.id } });
-  const subscribedClubIds = subs.map((s) => s.clubId);
+  const applications = await Application.findAll({
+    where: { studentId: user.id, status: "accepted" },
+  });
+  const subscribedClubIds = applications.map((a) => a.clubId);
   const thirtyDaysAgo = new Date(new Date().setDate(new Date().getDate() - 30));
 
-  const allPosts = await Post.findAll({
-    where: { 
+  const formatPosts = (posts) => {
+    return posts.map(post => {
+      const postJSON = post.toJSON();
+      return {
+        ...postJSON,
+        clubName: postJSON.club?.username,
+        clubProfilePic: postJSON.club?.profile_data?.profilePic,
+        timeAgo: timeSince(new Date(postJSON.createdAt))
+      };
+    });
+  };
+
+  const allPostsRaw = await Post.findAll({
+    where: {
       status: "approved",
       createdAt: {
         [Op.gte]: thirtyDaysAgo
       }
     },
+    include: [{ model: User, as: 'club', attributes: ['username', 'profile_data'] }],
     order: [["createdAt", "DESC"]],
   });
-  const subPosts = subscribedClubIds.length
+  const allPosts = formatPosts(allPostsRaw);
+
+  const subPostsRaw = subscribedClubIds.length
     ? await Post.findAll({
-        where: { 
-          status: "approved", 
+        where: {
+          status: "approved",
           clubId: subscribedClubIds,
           createdAt: {
             [Op.gte]: thirtyDaysAgo
           }
         },
+        include: [{ model: User, as: 'club', attributes: ['username', 'profile_data'] }],
         order: [["createdAt", "DESC"]],
       })
     : [];
+  const subPosts = formatPosts(subPostsRaw);
+
   const upcomingSubscribedEvents = subscribedClubIds.length
     ? await Event.findAll({
-        where: { 
-          status: "approved", 
+        where: {
+          status: "approved",
           clubId: subscribedClubIds,
           startsAt: {
             [Op.gte]: new Date()
@@ -673,8 +716,13 @@ app.get("/student/:id/clubs", requireLogin, async (req, res) => {
   });
   
   // Get applications for this student
-  const applications = await Application.findAll({ 
-    where: { studentId: user.id }
+  const applications = await Application.findAll({
+    where: {
+      studentId: user.id,
+      status: {
+        [Op.or]: ["pending", "accepted"],
+      },
+    },
   });
   
   const applicationMap = new Map();
@@ -951,9 +999,10 @@ app.post(
         activityName,
         activityType,
         activityTypeOther,
-        activityDate,
-        activityTime,
-        activityEndTime,
+        startDate,
+        startTime,
+        endDate,
+        endTime,
         activityLocation,
         activityLocationOther,
         locationReserved, // radio button value 'Yes' or 'No'
@@ -1002,12 +1051,12 @@ app.post(
       const finalActivityType = activityType === 'Other' ? activityTypeOther : activityType;
       const finalActivityLocation = activityLocation === 'OtherLocation' ? activityLocationOther : activityLocation;
 
-      const startsAtDateTime = activityDate && activityTime
-        ? new Date(`${activityDate}T${activityTime}`)
+      const startsAtDateTime = startDate && startTime
+        ? new Date(`${startDate}T${startTime}`)
         : null;
       
-      const endsAtDateTime = activityDate && activityEndTime
-        ? new Date(`${activityDate}T${activityEndTime}`)
+      const endsAtDateTime = endDate && endTime
+        ? new Date(`${endDate}T${endTime}`)
         : null;
 
       // Prepare responsible members data (array of objects)
@@ -1506,42 +1555,69 @@ app.post(
     if (!club || club.role !== "club")
       return res.status(404).send("Club not found");
 
-    const { 
-      studentName, 
-      gender, 
-      major, 
-      academicYear, 
-      skills, 
-      motivation 
-    } = req.body;
-
-    // Check if student already applied to this club
-    const existingApplication = await Application.findOne({
-      where: { 
-        studentId: req.session.user.id, 
-        clubId: club.id 
-      }
-    });
-
-    if (existingApplication) {
-      setFlash(req, "error", "You have already applied to this club.");
-      return res.redirect(`/student/${req.session.user.id}/clubs`);
-    }
-
-    await Application.create({
-      studentId: req.session.user.id,
-      clubId: club.id,
+    const {
       studentName,
       gender,
       major,
       academicYear,
       skills,
       motivation,
-      message: motivation, // Keep legacy field for backward compatibility
-      status: "pending",
+    } = req.body;
+
+    // Check if student already applied to this club
+    const existingApplication = await Application.findOne({
+      where: {
+        studentId: req.session.user.id,
+        clubId: club.id,
+      },
     });
 
-    setFlash(req, "message", "Your application has been submitted successfully!");
+    if (existingApplication) {
+      if (
+        existingApplication.status === "pending" ||
+        existingApplication.status === "accepted"
+      ) {
+        setFlash(
+          req,
+          "error",
+          "You have already applied to this club and your application is either pending or has been accepted."
+        );
+        return res.redirect(`/student/${req.session.user.id}/clubs`);
+      }
+      // If rejected, allow re-application by updating the existing record
+      existingApplication.studentName = studentName;
+      existingApplication.gender = gender;
+      existingApplication.major = major;
+      existingApplication.academicYear = academicYear;
+      existingApplication.skills = skills;
+      existingApplication.motivation = motivation;
+      existingApplication.message = motivation;
+      existingApplication.status = "pending"; // Reset status
+      existingApplication.clubNotes = null; // Clear rejection notes
+      await existingApplication.save();
+    } else {
+      // No existing application, create a new one
+      const user = await User.findByPk(req.session.user.id);
+      await Application.create({
+        studentId: req.session.user.id,
+        clubId: club.id,
+        email: user.email, // Add student's email
+        studentName,
+        gender,
+        major,
+        academicYear,
+        skills,
+        motivation,
+        message: motivation, // Keep legacy field for backward compatibility
+        status: "pending",
+      });
+    }
+
+    setFlash(
+      req,
+      "message",
+      "Your application has been submitted successfully!"
+    );
     res.redirect(`/student/${req.session.user.id}/clubs`);
   }
 );
@@ -1612,7 +1688,7 @@ app.post(
   try {
     await sequelize.authenticate();
     console.log("Database connected!");
-    await sequelize.sync();
+    await sequelize.sync({ alter:true});
     console.log("All models synced!");
 
     // Seed default admin

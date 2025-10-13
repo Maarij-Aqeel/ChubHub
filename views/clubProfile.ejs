@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Club Profile - Club Hub</title>
+  <title>Club Hub - Club Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
   <style>
     /* ===== Reset & Base ===== */
@@ -38,9 +38,24 @@
     .navbar-left {
       display: flex;
       gap: 2rem;
+      align-items: center;
     }
     
-    .navbar a {
+    .navbar-brand {
+      color: #FFFFFF;
+      font-size: 1.3rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    
+    .navbar-brand i {
+      font-size: 1.5rem;
+    }
+    
+    .navbar a:not(.navbar-brand) {
       color: #FFFFFF;
       text-decoration: none;
       font-weight: 600;
@@ -56,7 +71,7 @@
       overflow: hidden;
     }
     
-    .navbar a::before {
+    .navbar a:not(.navbar-brand)::before {
       content: '';
       position: absolute;
       top: 0;
@@ -67,15 +82,15 @@
       transition: left 0.3s ease;
     }
     
-    .navbar a:hover::before {
+    .navbar a:not(.navbar-brand):hover::before {
       left: 0;
     }
     
-    .navbar a:hover { 
+    .navbar a:not(.navbar-brand):hover { 
       transform: translateY(-2px);
     }
     
-    .navbar i { 
+    .navbar a i { 
       font-size: 1.5rem;
     }
 
@@ -100,116 +115,188 @@
       box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
     }
 
-    /* ===== Profile Container ===== */
-    .profile-container {
-      max-width: 1100px;
+    /* ===== Container ===== */
+    .container {
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 0 1.5rem 3rem;
+      padding: 2rem 1.5rem 3rem;
     }
 
-    /* ===== Banner Section ===== */
-    .banner-section {
-      position: relative;
-      margin-top: 2rem;
-      margin-bottom: 6rem;
-    }
-
-    .banner {
-      width: 100%;
-      height: 250px;
-      background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
-      border-radius: 16px 16px 0 0;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(30, 58, 138, 0.2);
-    }
-    
-    .banner::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      right: -20%;
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-      border-radius: 50%;
-      animation: float 6s ease-in-out infinite;
-    }
-    
-    .banner::after {
-      content: '';
-      position: absolute;
-      bottom: -50%;
-      left: -10%;
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
-      border-radius: 50%;
-      animation: float 8s ease-in-out infinite reverse;
-    }
-    
-    @keyframes float {
-      0%, 100% { transform: translateY(0) translateX(0); }
-      50% { transform: translateY(-20px) translateX(20px); }
-    }
-
-    /* ===== Profile Picture ===== */
-    .profile-pic {
-      position: absolute;
-      bottom: -80px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 160px;
-      height: 160px;
-      border-radius: 50%;
+    /* ===== Header ===== */
+    .page-header {
       background: #FFFFFF;
+      padding: 2rem;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .club-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 5rem;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-      border: 6px solid #FFFFFF;
-      z-index: 10;
+      font-size: 3rem;
+      border: 4px solid #FFFFFF;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    
-    .profile-pic img {
+
+    .club-avatar img {
       width: 100%;
       height: 100%;
       border-radius: 50%;
       object-fit: cover;
     }
 
-    /* ===== Club Details Card ===== */
-    .student-details {
-      background: #FFFFFF;
-      padding: 6rem 2rem 2rem;
-      border-radius: 0 0 16px 16px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    
-    .student-details h2 {
+    .header-info h1 {
       font-size: 2rem;
       font-weight: 700;
       color: #1E3A8A;
       margin-bottom: 0.5rem;
     }
-    
-    .student-details > p {
+
+    .header-info p {
       color: #6B7280;
-      font-size: 1rem;
-      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
     }
-    
+
+    /* ===== Tabs ===== */
+    .tabs-container {
+      background: #FFFFFF;
+      border-radius: 16px 16px 0 0;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      margin-bottom: 0;
+      overflow: hidden;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #E5E7EB;
+      gap: 0;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 1.25rem;
+      border: none;
+      background: #FFFFFF;
+      color: #6B7280;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+      text-decoration: none;
+    }
+
+    .tab:hover {
+      color: #2563EB;
+      background: #F9FAFB;
+    }
+
+    .tab.active {
+      color: #2563EB;
+      border-bottom: 3px solid #2563EB;
+      margin-bottom: -2px;
+    }
+
+    .tab i {
+      font-size: 1.2rem;
+    }
+
+    /* ===== Tab Content ===== */
+    .tab-content {
+      background: #FFFFFF;
+      padding: 2rem;
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ===== Dashboard Tab ===== */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+      padding: 1.5rem;
+      border-radius: 12px;
+      border-left: 4px solid #2563EB;
+    }
+
+    .stat-card.posts {
+      border-left-color: #2563EB;
+    }
+
+    .stat-card.events {
+      border-left-color: #10B981;
+    }
+
+    .stat-card.applications {
+      border-left-color: #F59E0B;
+    }
+
+    .stat-label {
+      color: #6B7280;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stat-label i {
+      font-size: 1.2rem;
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #1E3A8A;
+    }
+
     .info-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 1rem;
       margin: 2rem 0;
-      text-align: left;
     }
-    
+
     .info-item {
       background: #F3F4F6;
       padding: 1rem;
@@ -218,62 +305,143 @@
       align-items: center;
       gap: 12px;
     }
-    
+
     .info-item i {
       color: #2563EB;
       font-size: 1.2rem;
       width: 24px;
       text-align: center;
     }
-    
+
     .info-item strong {
       color: #111827;
       font-weight: 600;
-      margin-right: 4px;
     }
-    
+
     .info-item span {
       color: #374151;
     }
 
-    .social-links {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin: 1.5rem 0;
-      flex-wrap: wrap;
-    }
-    
-    .btn-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%);
-      color: #FFFFFF;
-      text-decoration: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      font-weight: 600;
+    /* ===== Posts/Events Feeds ===== */
+    .feed-item {
+      background: #F9FAFB;
+      padding: 1.5rem;
+      border-radius: 12px;
+      border-left: 4px solid #2563EB;
+      margin-bottom: 1.5rem;
       transition: all 0.3s ease;
-      font-size: 0.9rem;
-      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-    }
-    
-    .btn-link:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
     }
 
+    .feed-item:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .feed-item.event {
+      border-left-color: #10B981;
+    }
+
+    .feed-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    .feed-header h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1E3A8A;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .feed-header i {
+      color: #2563EB;
+    }
+
+    .status-badge {
+      font-size: 0.75rem;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-approved {
+      background: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #a5d6a7;
+    }
+
+    .status-pending {
+      background: #fff3e0;
+      color: #ef6c00;
+      border: 1px solid #ffcc80;
+    }
+
+    .feed-content {
+      color: #374151;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .feed-content img,
+    .feed-content video {
+      width: 100%;
+      max-height: 400px;
+      border-radius: 8px;
+      object-fit: cover;
+      margin-top: 1rem;
+    }
+
+    .feed-meta {
+      color: #6B7280;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .feed-meta i {
+      color: #9CA3AF;
+    }
+
+    .event-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    .event-info-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #F3F4F6;
+      padding: 0.75rem;
+      border-radius: 6px;
+    }
+
+    .event-info-item i {
+      color: #2563EB;
+      width: 20px;
+      text-align: center;
+    }
+
+    /* ===== Action Buttons ===== */
     .action-buttons {
       display: flex;
-      justify-content: center;
       gap: 1rem;
-      margin-top: 2rem;
       flex-wrap: wrap;
+      margin: 2rem 0;
     }
 
     .btn {
-      background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%);
+      background: linear-gradient(135deg, #2563EB 0%, #1E40AF 100%);
       color: #FFFFFF;
       border: none;
       padding: 0.875rem 2rem;
@@ -288,270 +456,46 @@
       gap: 8px;
       text-decoration: none;
     }
-    
+
     .btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
     }
-    
+
     .btn.btn-success {
       background: linear-gradient(135deg, #10B981 0%, #059669 100%);
       box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
     }
-    
+
     .btn.btn-success:hover {
       box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
-    }
-
-    /* ===== Section Headers ===== */
-    .section-header {
-      background: #FFFFFF;
-      padding: 1.5rem;
-      border-radius: 12px;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    
-    .section-header h2 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #1E3A8A;
-      margin: 0;
-    }
-    
-    .section-header i {
-      color: #2563EB;
-      font-size: 1.5rem;
-    }
-
-    /* ===== Posts Feed ===== */
-    .posts-feed {
-      margin-bottom: 2rem;
-    }
-
-    .post {
-      background: #FFFFFF;
-      padding: 1.5rem;
-      border-radius: 16px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      transition: all 0.3s ease;
-      border: 1px solid #E5E7EB;
-      margin-bottom: 1.5rem;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .post::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: linear-gradient(180deg, #2563EB 0%, #1E3A8A 100%);
-      transform: scaleY(0);
-      transition: transform 0.3s ease;
-    }
-    
-    .post:hover {
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      transform: translateY(-4px);
-    }
-    
-    .post:hover::before {
-      transform: scaleY(1);
-    }
-    
-    .post-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 1px solid #F3F4F6;
-    }
-    
-    .post-header-row strong {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #1E3A8A;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .post-header-row strong i {
-      color: #2563EB;
-    }
-
-    .status-badge {
-      font-size: 0.75rem;
-      padding: 4px 12px;
-      border-radius: 999px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .status-approved {
-      background: #e8f5e9;
-      color: #2e7d32;
-      border: 1px solid #a5d6a7;
-    }
-    
-    .status-pending {
-      background: #fff3e0;
-      color: #ef6c00;
-      border: 1px solid #ffcc80;
-    }
-    
-    .status-rejected {
-      background: #fdecea;
-      color: #c62828;
-      border: 1px solid #f5c6cb;
-    }
-
-    .post p {
-      color: #374151;
-      line-height: 1.6;
-      margin-bottom: 1rem;
-      font-size: 0.95rem;
-    }
-    
-    .post img,
-    .post video {
-      width: 100%;
-      max-height: 450px;
-      border-radius: 12px;
-      object-fit: cover;
-      margin-top: 1rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    .post small {
-      color: #6B7280;
-      font-size: 0.85rem;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 1rem;
-    }
-    
-    .post small i {
-      color: #2563EB;
-    }
-
-    /* ===== Events Feed ===== */
-    .events-feed {
-      margin-bottom: 2rem;
-    }
-
-    .event {
-      background: #FFFFFF;
-      padding: 1.5rem;
-      border-radius: 16px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      transition: all 0.3s ease;
-      border: 1px solid #E5E7EB;
-      margin-bottom: 1.5rem;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .event::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: linear-gradient(180deg, #10B981 0%, #059669 100%);
-      transform: scaleY(0);
-      transition: transform 0.3s ease;
-    }
-    
-    .event:hover {
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      transform: translateY(-4px);
-    }
-    
-    .event:hover::before {
-      transform: scaleY(1);
-    }
-    
-    .event h3 {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #1E3A8A;
-      margin-bottom: 0.75rem;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .event h3 i {
-      color: #10B981;
-    }
-    
-    .event p {
-      color: #374151;
-      line-height: 1.6;
-      margin-bottom: 0.75rem;
-      font-size: 0.95rem;
-    }
-    
-    .event p strong {
-      color: #1E3A8A;
-      font-weight: 600;
-      margin-right: 4px;
-    }
-
-    .event-info-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #F3F4F6;
-      padding: 0.75rem;
-      border-radius: 8px;
-      margin-bottom: 0.5rem;
-    }
-    
-    .event-info-item i {
-      color: #2563EB;
-      width: 20px;
-      text-align: center;
     }
 
     /* ===== Empty State ===== */
     .empty-state {
       text-align: center;
-      padding: 4rem 2rem;
+      padding: 3rem 2rem;
       color: #6B7280;
-      background: #FFFFFF;
-      border-radius: 16px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
     }
-    
+
     .empty-state i {
-      font-size: 4rem;
+      font-size: 3rem;
       color: #D1D5DB;
       margin-bottom: 1rem;
     }
-    
+
     .empty-state h3 {
       font-size: 1.3rem;
       margin-bottom: 0.5rem;
       color: #374151;
     }
-    
+
     .empty-state p {
       font-size: 1rem;
+      margin-bottom: 1.5rem;
     }
 
-    /* ===== Modal ===== */
+    /* ===== Modals ===== */
     .modal {
       display: none;
       position: fixed;
@@ -564,30 +508,24 @@
       z-index: 1000;
       align-items: center;
       justify-content: center;
-      animation: fadeIn 0.3s ease;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
     }
 
     .modal-content {
       background: #FFFFFF;
       border-radius: 16px;
-      max-width: 800px;
+      max-width: 600px;
       width: 90%;
       max-height: 90vh;
       overflow-y: auto;
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
       animation: slideUp 0.3s ease;
     }
-    
+
     @keyframes slideUp {
       from { transform: translateY(50px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
-    
+
     .modal-content h3 {
       font-size: 1.75rem;
       font-weight: 700;
@@ -595,67 +533,25 @@
       padding: 2rem 2rem 1rem;
       border-bottom: 2px solid #F3F4F6;
     }
-    
-    .modal-content form {
+
+    .modal-body {
       padding: 2rem;
     }
 
-    .edit-row {
-      display: grid;
-      grid-template-columns: 200px 1fr;
-      gap: 2rem;
-      margin-bottom: 2rem;
+    .form-group {
+      margin-bottom: 1.25rem;
     }
 
-    .profile-pic-edit {
-      text-align: center;
-    }
-    
-    .profile-pic-edit img,
-    .profile-pic-edit div {
-      width: 160px;
-      height: 160px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 1rem;
-      border: 4px solid #E5E7EB;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 4rem;
-      background: #F3F4F6;
-    }
-
-    .file-btn {
-      display: inline-block;
-      background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%);
-      color: #FFFFFF;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
+    .form-group label {
+      display: block;
       font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.9rem;
-      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-    }
-    
-    .file-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
-    }
-    
-    .file-btn input {
-      display: none;
+      color: #374151;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
     }
 
-    .edit-fields {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    
-    .edit-fields input,
-    .edit-fields textarea {
+    .form-group input,
+    .form-group textarea {
       width: 100%;
       padding: 0.875rem;
       border: 2px solid #E5E7EB;
@@ -664,51 +560,17 @@
       font-family: inherit;
       transition: all 0.3s ease;
     }
-    
-    .edit-fields input:focus,
-    .edit-fields textarea:focus {
+
+    .form-group input:focus,
+    .form-group textarea:focus {
       outline: none;
       border-color: #2563EB;
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
-    
-    .edit-fields textarea {
-      resize: vertical;
-      min-height: 100px;
     }
 
-    .post-modal-content textarea {
-      width: 100%;
-      padding: 1rem;
-      border: 2px solid #E5E7EB;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      min-height: 150px;
+    .form-group textarea {
       resize: vertical;
-      margin-bottom: 1rem;
-      transition: all 0.3s ease;
-    }
-    
-    .post-modal-content textarea:focus {
-      outline: none;
-      border-color: #2563EB;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
-    
-    .post-modal-content input[type="file"] {
-      width: 100%;
-      padding: 0.875rem;
-      border: 2px dashed #E5E7EB;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .post-modal-content input[type="file"]:hover {
-      border-color: #2563EB;
-      background: #F3F4F6;
+      min-height: 120px;
     }
 
     .modal-actions {
@@ -718,52 +580,39 @@
       padding-top: 1.5rem;
       border-top: 2px solid #F3F4F6;
     }
-    
-    .save-btn {
-      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-    }
-    
-    .save-btn:hover {
-      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
-    }
-    
-    .cancel-btn {
+
+    .btn-cancel {
       background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);
       box-shadow: 0 2px 8px rgba(107, 114, 128, 0.3);
     }
-    
-    .cancel-btn:hover {
-      box-shadow: 0 4px 16px rgba(107, 114, 128, 0.4);
-    }
 
-    /* ===== Toast Notifications ===== */
-    .toast {
+    /* ===== Toast ===== */
+    #toast-container {
       position: fixed;
       top: 20px;
       right: 20px;
+      z-index: 10000;
+    }
+
+    .toast {
       background: #FFFFFF;
       border-radius: 8px;
       padding: 1rem 1.5rem;
       box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-      z-index: 10000;
+      margin-bottom: 1rem;
+      border-left: 4px solid #10B981;
       transform: translateX(400px);
       transition: transform 0.3s ease;
-      border-left: 4px solid #10B981;
-      max-width: 400px;
       font-weight: 500;
+      max-width: 400px;
     }
-    
+
     .toast.show {
       transform: translateX(0);
     }
-    
+
     .toast-error {
       border-left-color: #EF4444;
-    }
-    
-    .toast-success {
-      border-left-color: #10B981;
     }
 
     /* ===== Responsive ===== */
@@ -773,75 +622,81 @@
         gap: 1rem;
         padding: 1rem;
       }
-      
-      .navbar-left {
-        gap: 0.5rem;
+
+      .tabs {
+        flex-wrap: wrap;
+        gap: 0;
       }
-      
-      .navbar a {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.8rem;
+
+      .tab {
+        flex: 1;
+        min-width: 120px;
+        padding: 1rem;
+        font-size: 0.85rem;
       }
-      
-      .navbar i {
-        font-size: 1.2rem;
+
+      .tab span {
+        display: none;
       }
-      
-      .banner {
-        height: 180px;
+
+      .header-left {
+        flex-direction: column;
+        align-items: flex-start;
       }
-      
-      .profile-pic {
-        width: 120px;
-        height: 120px;
-        font-size: 3.5rem;
-        bottom: -60px;
+
+      .club-avatar {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
       }
-      
-      .student-details {
-        padding: 4.5rem 1.5rem 1.5rem;
+
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
       }
-      
-      .student-details h2 {
+
+      .header-info h1 {
         font-size: 1.5rem;
       }
-      
-      .info-grid {
+
+      .dashboard-grid {
         grid-template-columns: 1fr;
       }
-      
+
       .action-buttons {
         flex-direction: column;
       }
-      
-      .edit-row {
-        grid-template-columns: 1fr;
+
+      .btn {
+        width: 100%;
+        justify-content: center;
       }
-      
-      .section-header h2 {
-        font-size: 1.2rem;
+
+      .tab-content {
+        padding: 1.5rem;
+      }
+
+      .modal-content {
+        width: 95%;
       }
     }
   </style>
 </head>
 <body>
+
   <div id="toast-container"></div>
   <div id="flash-data" data-flash='<%- JSON.stringify(flash || {}) %>' style="display:none"></div>
 
   <!-- ===== Navbar ===== -->
   <div class="navbar">
     <div class="navbar-left">
-      <a href="/club/dashboard">
-        <i class="fas fa-home"></i>
-        <span>Dashboard</span>
+      <a href="/club/dashboard" class="navbar-brand">
+        <i class="fas fa-building"></i>
+        <span>Club Hub</span>
       </a>
-      <a href="/club/events">
-        <i class="fas fa-calendar-alt"></i>
-        <span>Events</span>
-      </a>
-      <a href="/club/members">
+      <a href="/club/<%= user.id %>/applications">
         <i class="fas fa-users"></i>
-        <span>Members</span>
+        <span>Applications</span>
       </a>
     </div>
     <button class="logout-btn-nav" onclick="window.location='/logout'">
@@ -850,204 +705,326 @@
     </button>
   </div>
 
-  <div class="profile-container">
-    <!-- Banner & Profile Picture -->
-    <div class="banner-section">
-      <div class="banner"></div>
-      <div class="profile-pic">
-        <% if (user.profile_data?.profilePic) { %>
-          <img src="<%= user.profile_data.profilePic %>" alt="Club Picture">
-        <% } else { %>
-          🏛️
-        <% } %>
+  <div class="container">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="header-left">
+        <div class="club-avatar">
+          <% if (user.profile_data?.profilePic) { %>
+            <img src="<%= user.profile_data.profilePic %>" alt="Club Picture">
+          <% } else { %>
+            🏛️
+          <% } %>
+        </div>
+        <div class="header-info">
+          <h1><%= user.profile_data?.clubName || user.username %></h1>
+          <p><%= user.profile_data?.clubDescription || 'Student Club' %></p>
+        </div>
       </div>
     </div>
 
-    <!-- Club Info -->
-    <div class="student-details">
-      <h2><%= user.profile_data?.clubName || user.username %></h2>
-      <p><%= user.profile_data?.clubDescription || 'Club | New club profile' %></p>
-      
-      <div class="info-grid">
-        <div class="info-item">
-          <i class="fas fa-user-tie"></i>
-          <div>
-            <strong>Representative:</strong>
-            <span><%= user.profile_data?.representativeName || 'N/A' %></span>
-          </div>
-        </div>
-        <% if (user.profile_data?.email) { %>
-        <div class="info-item">
-          <i class="fas fa-envelope"></i>
-          <div>
-            <strong>Email:</strong>
-            <span><%= user.profile_data.email %></span>
-          </div>
-        </div>
-        <% } %>
-        <% if (user.profile_data?.phone) { %>
-        <div class="info-item">
-          <i class="fas fa-phone"></i>
-          <div>
-            <strong>Phone:</strong>
-            <span><%= user.profile_data.phone %></span>
-          </div>
-        </div>
-        <% } %>
-      </div>
-
-      <% if (user.profile_data?.linkedin || user.profile_data?.instagram || user.profile_data?.tiktok || user.profile_data?.x) { %>
-      <div class="social-links">
-        <% if (user.profile_data?.linkedin) { %>
-          <a href="<%= user.profile_data.linkedin %>" target="_blank" class="btn-link">
-            <i class="fab fa-linkedin"></i> LinkedIn
-          </a>
-        <% } %>
-        <% if (user.profile_data?.instagram) { %>
-          <a href="<%= user.profile_data.instagram %>" target="_blank" class="btn-link">
-            <i class="fab fa-instagram"></i> Instagram
-          </a>
-        <% } %>
-        <% if (user.profile_data?.tiktok) { %>
-          <a href="<%= user.profile_data.tiktok %>" target="_blank" class="btn-link">
-            <i class="fab fa-tiktok"></i> TikTok
-          </a>
-        <% } %>
-        <% if (user.profile_data?.x) { %>
-          <a href="<%= user.profile_data.x %>" target="_blank" class="btn-link">
-            <i class="fab fa-x-twitter"></i> X
-          </a>
-        <% } %>
-      </div>
-      <% } %>
-
-      <% if (pendingReportsCount > 0) { %>
-        <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border: 1px solid #F59E0B; border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0; text-align: center;">
-          <h3 style="color: #92400E; margin: 0 0 1rem 0; font-size: 1.2rem;">
-            <i class="fas fa-exclamation-triangle"></i> Pending Reports Required
-          </h3>
-          <p style="color: #92400E; margin: 0 0 1rem 0;">
-            You have <strong><%= pendingReportsCount %></strong> completed event(s) that require report submission before creating new events.
-          </p>
-          <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-            <% eventsNeedingReports.forEach(event => { %>
-              <a href="/club/<%= user.id %>/event/<%= event.id %>/report" class="btn" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);">
-                <i class="fas fa-file-alt"></i> Report for <%= event.title %>
-              </a>
-            <% }) %>
-          </div>
-        </div>
-      <% } %>
-
-      <div class="action-buttons">
-        <button class="btn" onclick="openEditModal()">
-          <i class="fas fa-edit"></i> Edit Profile
+    <!-- ===== Tabs ===== -->
+    <div class="tabs-container">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('dashboard')">
+          <i class="fas fa-chart-line"></i>
+          <span>Dashboard</span>
         </button>
-        <button class="btn btn-success" onclick="openPostModal()">
-          <i class="fas fa-plus-circle"></i> Add Post
+        <button class="tab" onclick="switchTab('events')">
+          <i class="fas fa-calendar-alt"></i>
+          <span>Events</span>
         </button>
-        <a class="btn" href="/club/<%= user.id %>/applications" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);">
-          <i class="fas fa-users"></i> Applications
-        </a>
-        <% if (pendingReportsCount > 0) { %>
-          <button class="btn" onclick="showReportNotification()" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);">
-            <i class="fas fa-calendar-plus"></i> Create Event (Reports Required)
-          </button>
-        <% } else { %>
-          <a class="btn btn-success" href="/club/<%= user.id %>/event/new">
-            <i class="fas fa-calendar-plus"></i> Create Event
-          </a>
-        <% } %>
+        <button class="tab" onclick="switchTab('posts')">
+          <i class="fas fa-newspaper"></i>
+          <span>Posts</span>
+        </button>
+        <button class="tab" onclick="switchTab('profile')">
+          <i class="fas fa-user-circle"></i>
+          <span>Profile</span>
+        </button>
       </div>
-    </div>
 
-    <!-- ===== Posts Feed ===== -->
-    <div class="section-header">
-      <i class="fas fa-newspaper"></i>
-      <h2>Posts</h2>
-    </div>
-    <div class="posts-feed">
-      <% if (posts && posts.length > 0) { %>
-        <% posts.forEach(post => { %>
-          <div class="post">
-            <div class="post-header-row">
-              <strong>
-                <i class="fas fa-bullhorn"></i>
-                Post
-              </strong>
-              <span class="status-badge status-<%= post.status %>"><%= post.status %></span>
+      <!-- Dashboard Tab -->
+      <div id="dashboard" class="tab-content active">
+        <div class="dashboard-grid">
+          <div class="stat-card posts">
+            <div class="stat-label">
+              <i class="fas fa-newspaper"></i>
+              Total Posts
             </div>
-            <% if (post.text) { %>
-              <p><%= post.text %></p>
-            <% } %>
-
-            <% if (post.image) { %>
-              <img src="<%= post.image %>" alt="Post Image">
-            <% } %>
-            <% if (post.video) { %>
-              <video controls>
-                <source src="<%= post.video %>">
-                Your browser does not support the video tag.
-              </video>
-            <% } %>
-            <small>
-              <i class="far fa-clock"></i>
-              Posted at <%= new Date(post.createdAt).toLocaleString() %>
-            </small>
+            <div class="stat-value"><%= posts ? posts.length : 0 %></div>
           </div>
-        <% }) %>
-      <% } else { %>
-        <div class="empty-state">
-          <i class="fas fa-inbox"></i>
-          <h3>No Posts Yet</h3>
-          <p>Start by adding your first post to engage with students!</p>
+          <div class="stat-card events">
+            <div class="stat-label">
+              <i class="fas fa-calendar-check"></i>
+              Upcoming Events
+            </div>
+            <div class="stat-value"><%= events ? events.length : 0 %></div>
+          </div>
+          <div class="stat-card applications">
+            <div class="stat-label">
+              <i class="fas fa-file-circle-check"></i>
+              Pending Reports
+            </div>
+            <div class="stat-value"><%= pendingReportsCount || 0 %></div>
+          </div>
         </div>
-      <% } %>
-    </div>
 
-    <!-- ===== Approved Events ===== -->
-    <div class="section-header">
-      <i class="fas fa-calendar-check"></i>
-      <h2>Upcoming Events</h2>
-    </div>
-    <div class="events-feed">
-      <% if (events && events.length > 0) { %>
-        <% events.forEach(event => { %>
-          <div class="event">
-            <h3>
-              <i class="fas fa-calendar-star"></i>
-              <%= event.title %>
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: #1E3A8A; margin: 2rem 0 1.5rem;">Club Information</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <i class="fas fa-user-tie"></i>
+            <div>
+              <strong>Representative:</strong>
+              <span><%= user.profile_data?.representativeName || 'N/A' %></span>
+            </div>
+          </div>
+          <% if (user.profile_data?.email) { %>
+          <div class="info-item">
+            <i class="fas fa-envelope"></i>
+            <div>
+              <strong>Email:</strong>
+              <span><%= user.profile_data.email %></span>
+            </div>
+          </div>
+          <% } %>
+          <% if (user.profile_data?.phone) { %>
+          <div class="info-item">
+            <i class="fas fa-phone"></i>
+            <div>
+              <strong>Phone:</strong>
+              <span><%= user.profile_data.phone %></span>
+            </div>
+          </div>
+          <% } %>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn" onclick="openEditModal()">
+            <i class="fas fa-edit"></i> Edit Profile
+          </button>
+          <button class="btn btn-success" onclick="openPostModal()">
+            <i class="fas fa-plus-circle"></i> Add Post
+          </button>
+          <% if (pendingReportsCount > 0) { %>
+            <button class="btn" onclick="showReportNotification()" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);">
+              <i class="fas fa-exclamation-triangle"></i> Reports Required
+            </button>
+          <% } else { %>
+            <a class="btn btn-success" href="/club/<%= user.id %>/event/new">
+              <i class="fas fa-calendar-plus"></i> Create Event
+            </a>
+          <% } %>
+        </div>
+
+        <% if (pendingReportsCount > 0) { %>
+          <div style="background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%); border: 1px solid #F59E0B; border-radius: 12px; padding: 1.5rem; margin-top: 2rem;">
+            <h3 style="color: #92400E; margin: 0 0 1rem 0; font-size: 1.2rem;">
+              <i class="fas fa-exclamation-triangle"></i> Pending Reports Required
             </h3>
-            <% if (event.description) { %>
-              <p><%= event.description %></p>
-            <% } %>
-            <% if (event.location) { %>
-              <div class="event-info-item">
-                <i class="fas fa-map-marker-alt"></i>
-                <span><strong>Location:</strong> <%= event.location %></span>
+            <p style="color: #92400E; margin: 0 0 1rem 0;">
+              You have <strong><%= pendingReportsCount %></strong> completed event(s) that require report submission.
+            </p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+              <% eventsNeedingReports.forEach(event => { %>
+                <a href="/club/<%= user.id %>/event/<%= event.id %>/report" class="btn" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);">
+                  <i class="fas fa-file-alt"></i> <%= event.title %>
+                </a>
+              <% }) %>
+            </div>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Events Tab -->
+      <div id="events" class="tab-content">
+        <div class="action-buttons">
+          <% if (pendingReportsCount > 0) { %>
+            <button class="btn" onclick="showReportNotification()" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);">
+              <i class="fas fa-exclamation-triangle"></i> Reports Required Before Creating
+            </button>
+          <% } else { %>
+            <a class="btn btn-success" href="/club/<%= user.id %>/event/new">
+              <i class="fas fa-calendar-plus"></i> Create Event
+            </a>
+          <% } %>
+        </div>
+
+        <% if (events && events.length > 0) { %>
+          <% events.forEach(event => { %>
+            <div class="feed-item event">
+              <div class="feed-header">
+                <h3>
+                  <i class="fas fa-calendar-star"></i>
+                  <%= event.title %>
+                </h3>
+                <form action="/club/<%= user.id %>/events/<%= event.id %>/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this event?');" style="display: inline;">
+                  <button type="submit" class="btn-delete" style="background: none; border: none; color: #EF4444; cursor: pointer; font-size: 1rem;">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </form>
               </div>
-            <% } %>
-            <% if (event.startsAt) { %>
-              <div class="event-info-item">
-                <i class="fas fa-calendar-day"></i>
-                <span><strong>Starts:</strong> <%= new Date(event.startsAt).toLocaleString() %></span>
+              <% if (event.description) { %>
+                <div class="feed-content"><%= event.description %></div>
+              <% } %>
+              <div class="event-info">
+                <% if (event.location) { %>
+                  <div class="event-info-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span><strong>Location:</strong> <%= event.location %></span>
+                  </div>
+                <% } %>
+                <% if (event.startsAt) { %>
+                  <div class="event-info-item">
+                    <i class="fas fa-calendar-day"></i>
+                    <span><strong>Starts:</strong> <%= new Date(event.startsAt).toLocaleString() %></span>
+                  </div>
+                <% } %>
+                <% if (event.endsAt) { %>
+                  <div class="event-info-item">
+                    <i class="fas fa-calendar-times"></i>
+                    <span><strong>Ends:</strong> <%= new Date(event.endsAt).toLocaleString() %></span>
+                  </div>
+                <% } %>
               </div>
-            <% } %>
-            <% if (event.endsAt) { %>
-              <div class="event-info-item">
-                <i class="fas fa-calendar-times"></i>
-                <span><strong>Ends:</strong> <%= new Date(event.endsAt).toLocaleString() %></span>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <h3>No Upcoming Events</h3>
+            <p>Create your first event to bring your community together!</p>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Posts Tab -->
+      <div id="posts" class="tab-content">
+        <div class="action-buttons">
+          <button class="btn btn-success" onclick="openPostModal()">
+            <i class="fas fa-plus-circle"></i> Add Post
+          </button>
+        </div>
+
+        <% if (posts && posts.length > 0) { %>
+          <% posts.forEach(post => { %>
+            <div class="feed-item">
+              <div class="feed-header">
+                <h3>
+                  <i class="fas fa-bullhorn"></i>
+                  Post
+                </h3>
+                <div>
+                  <span class="status-badge status-<%= post.status %>" style="margin-right: 10px;"><%= post.status %></span>
+                  <form action="/club/<%= user.id %>/posts/<%= post.id %>/delete" method="POST" onsubmit="return confirm('Are you sure you want to delete this post?');" style="display: inline;">
+                    <button type="submit" class="btn-delete" style="background: none; border: none; color: #EF4444; cursor: pointer; font-size: 1rem;">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </form>
+                </div>
               </div>
+              <% if (post.text) { %>
+                <div class="feed-content"><%= post.text %></div>
+              <% } %>
+              <% if (post.image) { %>
+                <img src="<%= post.image %>" alt="Post Image">
+              <% } %>
+              <% if (post.video) { %>
+                <video controls style="width: 100%; max-height: 400px; border-radius: 8px; margin-top: 1rem;">
+                  <source src="<%= post.video %>">
+                  Your browser does not support the video tag.
+                </video>
+              <% } %>
+              <div class="feed-meta">
+                <i class="far fa-clock"></i>
+                Posted at <%= new Date(post.createdAt).toLocaleString() %>
+              </div>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>No Posts Yet</h3>
+            <p>Start by adding your first post to engage with students!</p>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Profile Tab -->
+      <div id="profile" class="tab-content">
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1.5rem;">
+          <i class="fas fa-user-edit"></i> Club Profile
+        </h2>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <i class="fas fa-building"></i>
+            <div>
+              <strong>Club Name:</strong>
+              <span><%= user.profile_data?.clubName || 'N/A' %></span>
+            </div>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-user-tie"></i>
+            <div>
+              <strong>Representative:</strong>
+              <span><%= user.profile_data?.representativeName || 'N/A' %></span>
+            </div>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-envelope"></i>
+            <div>
+              <strong>Email:</strong>
+              <span><%= user.profile_data?.email || 'N/A' %></span>
+            </div>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-phone"></i>
+            <div>
+              <strong>Phone:</strong>
+              <span><%= user.profile_data?.phone || 'N/A' %></span>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="font-size: 1.2rem; font-weight: 700; color: #1E3A8A; margin: 2rem 0 1rem;">About</h3>
+        <div style="background: #F9FAFB; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #2563EB; margin-bottom: 2rem;">
+          <p style="color: #374151; line-height: 1.6;"><%= user.profile_data?.clubDescription || 'No description provided' %></p>
+        </div>
+
+        <% if (user.profile_data?.linkedin || user.profile_data?.instagram || user.profile_data?.tiktok || user.profile_data?.x) { %>
+          <h3 style="font-size: 1.2rem; font-weight: 700; color: #1E3A8A; margin: 2rem 0 1rem;">Social Media</h3>
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+            <% if (user.profile_data?.linkedin) { %>
+              <a href="<%= user.profile_data.linkedin %>" target="_blank" class="btn" style="background: linear-gradient(135deg, #0A66C2 0%, #005A9C 100%); box-shadow: 0 2px 8px rgba(10, 102, 194, 0.3);">
+                <i class="fab fa-linkedin"></i> LinkedIn
+              </a>
+            <% } %>
+            <% if (user.profile_data?.instagram) { %>
+              <a href="<%= user.profile_data.instagram %>" target="_blank" class="btn" style="background: linear-gradient(135deg, #E4405F 0%, #C13584 100%); box-shadow: 0 2px 8px rgba(228, 64, 95, 0.3);">
+                <i class="fab fa-instagram"></i> Instagram
+              </a>
+            <% } %>
+            <% if (user.profile_data?.tiktok) { %>
+              <a href="<%= user.profile_data.tiktok %>" target="_blank" class="btn" style="background: linear-gradient(135deg, #000000 0%, #333333 100%); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                <i class="fab fa-tiktok"></i> TikTok
+              </a>
+            <% } %>
+            <% if (user.profile_data?.x) { %>
+              <a href="<%= user.profile_data.x %>" target="_blank" class="btn" style="background: linear-gradient(135deg, #000000 0%, #333333 100%); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">
+                <i class="fab fa-x-twitter"></i> X / Twitter
+              </a>
             <% } %>
           </div>
-        <% }) %>
-      <% } else { %>
-        <div class="empty-state">
-          <i class="fas fa-calendar-times"></i>
-          <h3>No Upcoming Events</h3>
-          <p>Create your first event to bring your community together!</p>
+        <% } %>
+
+        <div class="action-buttons">
+          <button class="btn" onclick="openEditModal()">
+            <i class="fas fa-edit"></i> Edit Profile
+          </button>
         </div>
-      <% } %>
+      </div>
     </div>
   </div>
 
@@ -1056,35 +1033,77 @@
     <div class="modal-content">
       <h3><i class="fas fa-user-edit"></i> Edit Club Profile</h3>
       <form action="/updateProfile" method="POST" enctype="multipart/form-data">
-        <div class="edit-row">
-          <div class="profile-pic-edit">
-            <% if (user.profile_data?.profilePic) { %>
-              <img src="<%= user.profile_data.profilePic %>" alt="Club Picture">
-            <% } else { %>
-              <div>🏛️</div>
-            <% } %>
-            <label class="file-btn">
-              <i class="fas fa-camera"></i> Change Photo
-              <input type="file" name="profilePic" accept="image/*">
-            </label>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Profile Picture</label>
+            <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem;">
+              <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%); display: flex; align-items: center; justify-content: center; font-size: 2rem; border: 4px solid #FFFFFF; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <% if (user.profile_data?.profilePic) { %>
+                  <img src="<%= user.profile_data.profilePic %>" alt="Club" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                <% } else { %>
+                  🏛️
+                <% } %>
+              </div>
+              <label style="display: inline-block; background: linear-gradient(135deg, #2563EB 0%, #1E40AF 100%); color: #FFFFFF; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);">
+                <i class="fas fa-camera"></i> Upload Photo
+                <input type="file" name="profilePic" accept="image/*" style="display: none;">
+              </label>
+            </div>
           </div>
-          <div class="edit-fields">
-            <input type="text" name="clubName" placeholder="Club Name" value="<%= user.profile_data?.clubName || '' %>">
-            <textarea name="clubDescription" placeholder="Description"><%= user.profile_data?.clubDescription || '' %></textarea>
-            <input type="text" name="representativeName" placeholder="Representative Name" value="<%= user.profile_data?.representativeName || '' %>">
-            <input type="text" name="email" placeholder="Email" value="<%= user.profile_data?.email || '' %>">
-            <input type="text" name="phone" placeholder="Phone Number" value="<%= user.profile_data?.phone || '' %>">
-            <input type="text" name="linkedin" placeholder="LinkedIn URL" value="<%= user.profile_data?.linkedin || '' %>">
-            <input type="text" name="instagram" placeholder="Instagram URL" value="<%= user.profile_data?.instagram || '' %>">
-            <input type="text" name="tiktok" placeholder="TikTok URL" value="<%= user.profile_data?.tiktok || '' %>">
-            <input type="text" name="x" placeholder="X / Twitter URL" value="<%= user.profile_data?.x || '' %>">
+
+          <div class="form-group">
+            <label for="clubName">Club Name</label>
+            <input type="text" id="clubName" name="clubName" placeholder="Club Name" value="<%= user.profile_data?.clubName || '' %>">
+          </div>
+
+          <div class="form-group">
+            <label for="clubDescription">Description</label>
+            <textarea id="clubDescription" name="clubDescription" placeholder="Describe your club..."><%= user.profile_data?.clubDescription || '' %></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="representativeName">Representative Name</label>
+            <input type="text" id="representativeName" name="representativeName" placeholder="Representative Name" value="<%= user.profile_data?.representativeName || '' %>">
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="Email" value="<%= user.profile_data?.email || '' %>">
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="text" id="phone" name="phone" placeholder="Phone Number" value="<%= user.profile_data?.phone || '' %>">
+          </div>
+
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E3A8A; margin: 1.5rem 0 1rem;">Social Media Links</h3>
+
+          <div class="form-group">
+            <label for="linkedin">LinkedIn URL</label>
+            <input type="text" id="linkedin" name="linkedin" placeholder="https://linkedin.com/..." value="<%= user.profile_data?.linkedin || '' %>">
+          </div>
+
+          <div class="form-group">
+            <label for="instagram">Instagram URL</label>
+            <input type="text" id="instagram" name="instagram" placeholder="https://instagram.com/..." value="<%= user.profile_data?.instagram || '' %>">
+          </div>
+
+          <div class="form-group">
+            <label for="tiktok">TikTok URL</label>
+            <input type="text" id="tiktok" name="tiktok" placeholder="https://tiktok.com/..." value="<%= user.profile_data?.tiktok || '' %>">
+          </div>
+
+          <div class="form-group">
+            <label for="x">X / Twitter URL</label>
+            <input type="text" id="x" name="x" placeholder="https://x.com/..." value="<%= user.profile_data?.x || '' %>">
           </div>
         </div>
-        <div class="modal-actions">
-          <button type="button" class="btn cancel-btn" onclick="closeEditModal()">
+
+        <div style="padding: 1.5rem; border-top: 2px solid #F3F4F6; display: flex; gap: 1rem; justify-content: flex-end;">
+          <button type="button" class="btn btn-cancel" onclick="closeEditModal()">
             <i class="fas fa-times"></i> Cancel
           </button>
-          <button type="submit" class="btn save-btn">
+          <button type="submit" class="btn btn-success">
             <i class="fas fa-check"></i> Save Changes
           </button>
         </div>
@@ -1094,16 +1113,27 @@
 
   <!-- ===== Add Post Modal ===== -->
   <div class="modal" id="postModal">
-    <div class="modal-content post-modal-content">
+    <div class="modal-content">
       <h3><i class="fas fa-pen-fancy"></i> Add a Post</h3>
       <form action="/club/<%= user.id %>/addPost" method="POST" enctype="multipart/form-data">
-        <textarea name="content" placeholder="Write something to share with students..." required></textarea>
-        <input type="file" name="media" accept="image/*,video/*">
-        <div class="modal-actions">
-          <button type="button" class="btn cancel-btn" onclick="closePostModal()">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="content">Post Content</label>
+            <textarea id="content" name="content" placeholder="Write something to share with students..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="media">Attach Media (Image or Video)</label>
+            <input type="file" id="media" name="media" accept="image/*,video/*">
+            <small style="color: #6B7280; font-size: 0.85rem;">Optional: Add an image or video to your post</small>
+          </div>
+        </div>
+
+        <div style="padding: 1.5rem; border-top: 2px solid #F3F4F6; display: flex; gap: 1rem; justify-content: flex-end;">
+          <button type="button" class="btn btn-cancel" onclick="closePostModal()">
             <i class="fas fa-times"></i> Cancel
           </button>
-          <button type="submit" class="btn save-btn">
+          <button type="submit" class="btn btn-success">
             <i class="fas fa-paper-plane"></i> Post
           </button>
         </div>
@@ -1114,6 +1144,22 @@
   <script>
     const editModal = document.getElementById('editModal');
     const postModal = document.getElementById('postModal');
+
+    function switchTab(tabName) {
+      // Hide all tab contents
+      const tabContents = document.querySelectorAll('.tab-content');
+      tabContents.forEach(tab => tab.classList.remove('active'));
+
+      // Remove active class from all tabs
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => tab.classList.remove('active'));
+
+      // Show selected tab content
+      document.getElementById(tabName).classList.add('active');
+
+      // Add active class to clicked tab
+      event.target.closest('.tab').classList.add('active');
+    }
 
     function openEditModal() { editModal.style.display = 'flex'; }
     function closeEditModal() { editModal.style.display = 'none'; }
@@ -1129,12 +1175,14 @@
       if (event.target === editModal) closeEditModal();
       if (event.target === postModal) closePostModal();
     }
+
     window.addEventListener('DOMContentLoaded', function() {
       const flash = JSON.parse(document.getElementById('flash-data').dataset.flash || '{}');
       if (flash && (flash.error || flash.message)) {
         showToast(flash.error ? flash.error : flash.message, flash.error ? 'error' : 'success');
       }
     });
+
     function showToast(msg, type) {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
@@ -1148,5 +1196,6 @@
       }, 3400);
     }
   </script>
+
 </body>
 </html>

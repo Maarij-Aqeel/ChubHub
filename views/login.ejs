@@ -1,54 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Club Hub — Login</title>
-  <link rel="stylesheet" href="/css/auth.css">
-</head>
-<body>
-  <!-- Toast Notification Container -->
-  <div id="toast-container"></div>
-  <div class="auth-card">
-    <h2>Club Hub</h2>
-    <!-- Inline error removed: toast handles feedback now -->
-    <form action="/login" method="POST">
-      <input type="email" name="email" placeholder="Email" required autocomplete="email" />
-      <input type="password" name="password" placeholder="Password" required autocomplete="current-password" />
-      <button type="submit">Login</button>
-    </form>
-    <p>Don’t have an account? <a href="/signup">Sign up</a></p>
-  </div>
-  <script>
-    // Simple Toast notification using flash.error or flash.message from EJS
-    window.addEventListener('DOMContentLoaded', function() {
-      var flash = <%- JSON.stringify(flash) %>;
-      if (flash && (flash.error || flash.message)) {
-        showToast(flash.error ? flash.error : flash.message, flash.error ? 'error' : 'success');
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Club Hub — Login</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/css/auth.css" />
+  </head>
+  <body>
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
+    <!-- Login Card -->
+    <div class="auth-card">
+      <h2>
+        <i class="fas fa-sign-in-alt"></i>
+        Club Hub
+      </h2>
+      <p class="subtitle">Welcome back! Please login to your account</p>
+
+      <form action="/login" method="POST">
+        <div class="form-group">
+          <label for="email">
+            <i
+              class="fas fa-envelope"
+              style="color: #f59e0b; margin-right: 6px"
+            ></i>
+            Email Address
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Enter your email"
+            required
+            autocomplete="email"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">
+            <i
+              class="fas fa-lock"
+              style="color: #f59e0b; margin-right: 6px"
+            ></i>
+            Password
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password"
+          />
+        </div>
+
+        <div class="form-footer">
+          <label class="remember-me">
+            <input type="checkbox" name="rememberMe" id="rememberMe" />
+            <span>Remember me</span>
+          </label>
+          <a href="/forgot-password" class="forgot-password"
+            >Forgot password?</a
+          >
+        </div>
+
+        <button type="submit">
+          <i class="fas fa-arrow-right"></i>
+          Login
+        </button>
+      </form>
+
+      <div class="form-divider">
+        <span>New to Club Hub?</span>
+      </div>
+
+      <p>
+        Don't have an account?
+        <a href="/signup">Sign up here</a>
+      </p>
+    </div>
+
+    <!-- Toast Script -->
+    <script>
+      window.addEventListener('DOMContentLoaded', function() {
+        var flash = <%- JSON.stringify(flash) %>;
+        if (flash && (flash.error || flash.message)) {
+          showToast(
+            flash.error ? flash.error : flash.message,
+            flash.error ? 'error' : 'success'
+          );
+        }
+      });
+
+      function showToast(msg, type) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        const isError = type === 'error';
+
+        toast.className = 'toast ' + (isError ? 'toast-error' : 'toast-success');
+
+        const icon = document.createElement('i');
+        icon.className = isError ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
+
+        toast.appendChild(icon);
+
+        const message = document.createElement('span');
+        message.textContent = msg;
+        toast.appendChild(message);
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add('show');
+        }, 100);
+
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 500);
+        }, 3400);
       }
-    });
-    
-    function showToast(msg, type) {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      toast.className = 'toast ' + (type === 'error' ? 'toast-error' : 'toast-success');
-      toast.innerText = msg;
-      container.appendChild(toast);
-      setTimeout(() => {
-        toast.classList.add('show');
-      }, 100);
-      setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 500);
-      }, 3400);
-    }
-  </script>
-  <style>
-    #toast-container { z-index:9999; position:fixed; top:32px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; }
-    .toast { opacity:0; min-width:250px; margin-top:12px; padding: 1em 2em; border-radius: 8px; background: #2563eb; color: #fff; box-shadow:0 4px 16px rgba(0,0,0,0.12); font-weight:500; transition:opacity 0.4s, transform 0.4s; transform:translateY(-25px) scale(0.95); transition:all 0.4s; pointer-events:none; }
-    .toast.show { opacity: 1; transform:translateY(0) scale(1); }
-    .toast-error { background:#e11d48; }
-    .toast-success { background:#16a34a; }
-  </style>
-</body>
+    </script>
+  </body>
 </html>

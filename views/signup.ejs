@@ -4,148 +4,723 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Club Hub — Sign Up</title>
-  <link rel="stylesheet" href="/css/auth.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
   <style>
-    select {
+    /* ===== Reset & Base ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #4a90e2, #50c9c3);
+
+      color: #111827;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    /* ===== Toast Container ===== */
+    #toast-container {
+      z-index: 9999;
+      position: fixed;
+      top: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .toast {
+      opacity: 0;
+      min-width: 250px;
+      margin-top: 12px;
+      padding: 1em 2em;
+      border-radius: 8px;
+      background: #2563eb;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      font-weight: 500;
+      transition: all 0.4s;
+      transform: translateY(-25px) scale(0.95);
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .toast-error {
+      background: #E11D48;
+    }
+
+    .toast-success {
+      background: #16A34A;
+    }
+
+    /* ===== Auth Card ===== */
+    .auth-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      padding: 2.5rem;
+      max-width: 600px;
+      width: 100%;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .auth-card h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1E3A8A;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .auth-card h2 i {
+      color: #F59E0B;
+      font-size: 1.8rem;
+    }
+
+    /* ===== Form Styles ===== */
+    .form-section {
+      margin-bottom: 2rem;
+    }
+
+    .form-section h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1E3A8A;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #F3F4F6;
+    }
+
+    .form-section h3 i {
+      color: #F59E0B;
+      font-size: 1.3rem;
+    }
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1E3A8A;
+      margin: 1.5rem 0 0.75rem 0;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .form-group label .required {
+      color: #DC2626;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 0.85rem;
+      border: 2px solid #E5E7EB;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      background: #FFFFFF;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #2563EB;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-group select {
       appearance: none;
       -webkit-appearance: none;
       -moz-appearance: none;
-      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%23333' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E") no-repeat right 0.75rem center;
-      padding: 0.85rem 2rem 0.85rem 0.85rem;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      width: 100%;
-      margin: 0.55rem 0;
-      font-size: 0.98rem;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%231E3A8A' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.85rem center;
+      background-size: 12px;
+      padding-right: 2.5rem;
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+      line-height: 1.5;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-helper-text {
+      font-size: 0.85rem;
+      color: #6B7280;
+      margin-top: 0.4rem;
+      display: block;
+    }
+
+    .form-helper-text.optional {
+      color: #9CA3AF;
+      font-style: italic;
+    }
+
+    /* ===== Radio Group ===== */
+    .radio-group {
+      display: flex;
+      gap: 2rem;
+      margin-top: 0.75rem;
+    }
+
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0;
+      font-weight: 500;
       cursor: pointer;
     }
-    select:focus {
-      border-color: #4a90e2;
-      box-shadow: 0 0 0 3px rgba(74,144,226,0.12);
-      outline: none;
+
+    .radio-group input[type="radio"] {
+      width: auto;
+      cursor: pointer;
+      accent-color: #2563EB;
     }
-    .role-fields { display: none; }
+
+    /* ===== Separator ===== */
+    .form-separator {
+      height: 2px;
+      background: linear-gradient(90deg, #F3F4F6 0%, #E5E7EB 50%, #F3F4F6 100%);
+      margin: 1.75rem 0;
+    }
+
+    /* ===== Role Toggle ===== */
+    .role-selector {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .role-btn {
+      flex: 1;
+      padding: 1rem;
+      border: 2px solid #E5E7EB;
+      background: #FFFFFF;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: #6B7280;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .role-btn i {
+      font-size: 1.3rem;
+    }
+
+    .role-btn.active {
+      background: linear-gradient(135deg, #2563EB 0%, #1E40AF 100%);
+      color: #FFFFFF;
+      border-color: #1E40AF;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .role-btn:hover {
+      border-color: #2563EB;
+      transform: translateY(-2px);
+    }
+
+    .role-fields {
+      display: none;
+    }
+
+    .role-fields.active {
+      display: block;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* ===== Buttons ===== */
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    button[type="submit"] {
+      flex: 1;
+      padding: 1rem;
+      border: none;
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    button[type="submit"]:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    button[type="submit"]:active {
+      transform: translateY(0);
+    }
+
+    button[type="submit"] i {
+      font-size: 1.1rem;
+    }
+
+    /* ===== Link ===== */
+    .auth-card p {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: #6B7280;
+      font-size: 0.95rem;
+    }
+
+    .auth-card a {
+      color: #2563EB;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .auth-card a:hover {
+      color: #1E40AF;
+      text-decoration: underline;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 640px) {
+      .auth-card {
+        padding: 1.5rem;
+      }
+
+      .auth-card h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .radio-group {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .role-selector {
+        flex-direction: column;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      button[type="submit"] {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
+
 <div id="toast-container"></div>
+
 <div class="auth-card">
-  <h2>Create an account</h2>
-  <!-- Inline errors/messages removed; use toast only -->
+  <h2>
+    <i class="fas fa-users"></i>
+    Create Club Account
+  </h2>
+
+  <!-- Role Selector -->
+  <div class="role-selector">
+    <button type="button" class="role-btn active" onclick="selectRole('club')">
+      <i class="fas fa-building"></i> Club
+    </button>
+    <button type="button" class="role-btn" onclick="selectRole('student')">
+      <i class="fas fa-user-graduate"></i> Student
+    </button>
+  </div>
+
   <form action="/signup" method="POST" id="signupForm">
-    <select name="role" id="roleSelect" required>
-      <option value="" disabled selected>Select role</option>
-      <option value="student">Student</option>
-      <option value="club">Club</option>
-    </select>
-    <!-- role fields ... existing ... -->
-    <div class="role-fields" id="studentFields">
-      <input type="text" name="fullName" placeholder="Full Name" />
-      <input type="email" name="studentEmail" placeholder="University Email (9 digits @psu.edu.sa)"/>
-      <input type="password" name="studentPassword" placeholder="Password (min 8 chars)" minlength="8" />
-      <input type="password" name="studentConfirmPassword" placeholder="Confirm Password" minlength="8" />
-    </div>
-    <div class="role-fields" id="clubFields" style="margin-top: 1.5rem;">
-      <h3 style="margin-bottom: 1rem;">Student Club Registration Form</h3>
-      <label style="font-weight:600;" for="clubName">Club Name:</label>
-      <input type="text" name="clubName" placeholder="e.g., Coding Club" style="margin-bottom:10px;" required />
+    <input type="hidden" name="role" id="roleInput" value="club">
 
-      <label for="clubKind" style="font-weight:600;">Club Kind:</label>
-      <select name="clubKind" id="clubKind" required style="margin-bottom:4px;">
-        <option value="">Select Kind</option>
-        <option value="Academic">Academic</option>
-        <option value="Non Academic">Non Academic</option>
-      </select>
-      <div style="font-size: 0.91em; color: #666; margin-bottom:10px;">If Academic, college approval required.</div>
+    <!-- ===== CLUB FIELDS ===== -->
+    <div class="role-fields active" id="clubFields">
       
-      <label for="clubStatus" style="font-weight:600;">Club Status:</label>
-      <select name="clubStatus" id="clubStatus" required style="margin-bottom:14px;">
-        <option value="">Select Status</option>
-        <option value="Existing">Existing</option>
-        <option value="New">New</option>
-      </select>
-      <hr style="margin:12px 0;">
+      <!-- Club Basic Info -->
+      <div class="form-section">
+        <h3><i class="fas fa-info-circle"></i> Club Information</h3>
 
-      <label for="clubDescription" style="font-weight:600;">About the Club:</label>
-      <textarea name="clubDescription" rows="2" placeholder="Describe the club's mission, target audience, and focus" style="margin-bottom:12px;" required></textarea>
+        <div class="form-group">
+          <label for="clubName">Club Name <span class="required">*</span></label>
+          <input type="text" name="clubName" id="clubName" placeholder="e.g., Coding Club" required>
+        </div>
 
-      <label for="clubVision" style="font-weight:600;">Club Vision and Goals:</label>
-      <textarea name="clubVision" rows="2" placeholder="Vision and Goals" style="margin-bottom:12px;" required></textarea>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="clubKind">Club Kind <span class="required">*</span></label>
+            <select name="clubKind" id="clubKind" required>
+              <option value="">Select Kind</option>
+              <option value="Academic">Academic</option>
+              <option value="Non Academic">Non Academic</option>
+            </select>
+            <span class="form-helper-text">Academic clubs require college approval</span>
+          </div>
 
-      <label for="clubActivities" style="font-weight:600;">Club Activities:</label>
-      <textarea name="clubActivities" rows="2" placeholder="List some main club activities" style="margin-bottom:12px;" required></textarea>
-      <hr style="margin:12px 0;">
+          <div class="form-group">
+            <label for="clubStatus">Club Status <span class="required">*</span></label>
+            <select name="clubStatus" id="clubStatus" required>
+              <option value="">Select Status</option>
+              <option value="Existing">Existing</option>
+              <option value="New">New</option>
+            </select>
+          </div>
+        </div>
 
-      <h4>Club President Information</h4>
-      <input type="text" name="presidentName" placeholder="Name" style="margin-bottom:8px;" required />
-      <input type="text" name="presidentStudentID" placeholder="Student ID" style="margin-bottom:8px;" required />
-      <input type="tel" name="presidentPhone" placeholder="Phone Number" style="margin-bottom:8px;" required />
-      <input type="text" name="presidentCollege" placeholder="College" style="margin-bottom:10px;" required />
+        <div class="form-group">
+          <label for="clubDescription">About the Club <span class="required">*</span></label>
+          <textarea name="clubDescription" id="clubDescription" placeholder="Describe the club's mission, target audience, and focus..." required></textarea>
+        </div>
 
-      <h4>Club Vice President Information</h4>
-      <input type="text" name="vpName" placeholder="Name" style="margin-bottom:8px;" required />
-      <input type="text" name="vpStudentID" placeholder="Student ID" style="margin-bottom:8px;" required />
-      <input type="tel" name="vpPhone" placeholder="Phone Number" style="margin-bottom:12px;" required />
-      <hr style="margin:12px 0;">
+        <div class="form-group">
+          <label for="clubVision">Club Vision and Goals <span class="required">*</span></label>
+          <textarea name="clubVision" id="clubVision" placeholder="Share your club's vision and goals..." required></textarea>
+        </div>
 
-      <h4>Club Members <span style="font-weight:400;font-size:0.96em; color:#777;">(optional)</span> </h4>
-      <input type="text" name="member1" placeholder="Member 1 Name (optional)" style="margin-bottom:8px;" />
-      <input type="text" name="member2" placeholder="Member 2 Name (optional)" style="margin-bottom:8px;" />
-      <input type="text" name="member3" placeholder="Member 3 Name (optional)" style="margin-bottom:8px;" />
-      <input type="text" name="member4" placeholder="Member 4 Name (optional)" style="margin-bottom:8px;" />
-      <input type="text" name="member5" placeholder="Member 5 Name (optional)" style="margin-bottom:5px;" />
-      <hr style="margin:12px 0;">
-
-      <h4>Club Advisor Information</h4>
-      <input type="text" name="advisorName" placeholder="Advisor's Name" style="margin-bottom:8px;" required />
-      <input type="email" name="advisorEmail" placeholder="Advisor's Email" style="margin-bottom:8px;" required />
-      <input type="text" name="advisorSignature" placeholder="Advisor's Signature (optional)" style="margin-bottom:10px;" />
-      <hr style="margin:12px 0;">
-
-      <h4>Club Contact & Socials</h4>
-      <input type="email" name="clubEmail" placeholder="Club Email" style="margin-bottom:8px;" required />
-      <input type="text" name="clubSocials" placeholder="Instagram/Facebook/Twitter links (optional)" style="margin-bottom:12px;" />
-      <input type="number" name="clubMembersCount" placeholder="Number of Club Members (optional)" min="1" style="margin-bottom:12px;" />
-      <hr style="margin:12px 0;">
-
-      <label style="font-weight:600;">Participate in Club Fair?</label>
-      <div style="margin-bottom:12px;">
-        <label><input type="radio" name="clubFair" value="Yes" required /> Yes</label>
-        <label style="margin-left:20px;"><input type="radio" name="clubFair" value="No" required /> No</label>
+        <div class="form-group">
+          <label for="clubActivities">Club Activities <span class="required">*</span></label>
+          <textarea name="clubActivities" id="clubActivities" placeholder="List some main club activities..." required></textarea>
+        </div>
       </div>
 
-      <label for="clubLogo" style="font-weight:600;">Club Logo (image, optional):</label>
-      <input type="file" name="clubLogo" accept="image/png, image/jpeg, image/jpg" style="margin-bottom:15px;" />
-      <hr style="margin:12px 0;">
+      <div class="form-separator"></div>
 
-      <h4>Password</h4>
-      <input type="password" name="clubPassword" placeholder="Password (min 8 chars)" minlength="8" style="margin-bottom:8px;" required />
-      <input type="password" name="clubConfirmPassword" placeholder="Confirm Password" minlength="8" style="margin-bottom:10px;" required />
-      <hr style="margin:12px 0;">
+      <!-- President Information -->
+      <div class="form-section">
+        <h3><i class="fas fa-crown"></i> Club President Information</h3>
 
-      <h4>College Dean's Approval <span style="font-size:0.93em">(Academic Clubs Only, optional)</span></h4>
-      <input type="text" name="deanName" placeholder="Dean's Name (optional)" style="margin-bottom:8px;" />
-      <input type="text" name="deanSignature" placeholder="Dean's Signature (optional)" style="margin-bottom:8px;" />
-      <input type="date" name="deanApprovalDate" placeholder="Date (optional)" style="margin-bottom:10px;" />
-      <hr style="margin:12px 0;">
+        <div class="form-group">
+          <label for="presidentName">President Name <span class="required">*</span></label>
+          <input type="text" name="presidentName" id="presidentName" placeholder="Full name" required>
+        </div>
 
-      <h4>DSA Approval <span style="font-size:0.93em">(optional)</span></h4>
-      <input type="text" name="dsaName" placeholder="DSA Name (optional)" style="margin-bottom:8px;" />
-      <input type="text" name="dsaSignature" placeholder="DSA Signature (optional)" style="margin-bottom:8px;" />
-      <input type="date" name="dsaApprovalDate" placeholder="Date (optional)" style="margin-bottom:14px;" />
+        <div class="form-row">
+          <div class="form-group">
+            <label for="presidentStudentID">Student ID <span class="required">*</span></label>
+            <input type="text" name="presidentStudentID" id="presidentStudentID" placeholder="Student ID" required>
+          </div>
+
+          <div class="form-group">
+            <label for="presidentPhone">Phone Number <span class="required">*</span></label>
+            <input type="tel" name="presidentPhone" id="presidentPhone" placeholder="+966..." required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="presidentCollege">College <span class="required">*</span></label>
+          <input type="text" name="presidentCollege" id="presidentCollege" placeholder="College name" required>
+        </div>
+      </div>
+
+      <div class="form-separator"></div>
+
+      <!-- Vice President Information -->
+      <div class="form-section">
+        <h3><i class="fas fa-medal"></i> Club Vice President Information</h3>
+
+        <div class="form-group">
+          <label for="vpName">Vice President Name <span class="required">*</span></label>
+          <input type="text" name="vpName" id="vpName" placeholder="Full name" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="vpStudentID">Student ID <span class="required">*</span></label>
+            <input type="text" name="vpStudentID" id="vpStudentID" placeholder="Student ID" required>
+          </div>
+
+          <div class="form-group">
+            <label for="vpPhone">Phone Number <span class="required">*</span></label>
+            <input type="tel" name="vpPhone" id="vpPhone" placeholder="+966..." required>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-separator"></div>
+
+      <!-- Club Members -->
+      <div class="form-section">
+        <h3><i class="fas fa-users-line"></i> Club Members</h3>
+        <span class="form-helper-text optional">The following fields are optional</span>
+
+        <div class="form-group" style="margin-top: 1rem;">
+          <input type="text" name="member1" placeholder="Member 1 Name">
+        </div>
+        <div class="form-group">
+          <input type="text" name="member2" placeholder="Member 2 Name">
+        </div>
+        <div class="form-group">
+          <input type="text" name="member3" placeholder="Member 3 Name">
+        </div>
+        <div class="form-group">
+          <input type="text" name="member4" placeholder="Member 4 Name">
+        </div>
+        <div class="form-group">
+          <input type="text" name="member5" placeholder="Member 5 Name">
+        </div>
+      </div>
+
+      <div class="form-separator"></div>
+
+      <!-- Advisor Information -->
+      <div class="form-section">
+        <h3><i class="fas fa-chalkboard-user"></i> Club Advisor Information</h3>
+
+        <div class="form-group">
+          <label for="advisorName">Advisor Name <span class="required">*</span></label>
+          <input type="text" name="advisorName" id="advisorName" placeholder="Full name" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="advisorEmail">Advisor Email <span class="required">*</span></label>
+            <input type="email" name="advisorEmail" id="advisorEmail" placeholder="email@example.com" required>
+          </div>
+
+          <div class="form-group">
+            <label for="advisorSignature">Advisor Signature</label>
+            <input type="text" name="advisorSignature" placeholder="Signature (optional)">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-separator"></div>
+
+      <!-- Contact & Socials -->
+      <div class="form-section">
+        <h3><i class="fas fa-link"></i> Contact & Social Media</h3>
+
+        <div class="form-group">
+          <label for="clubEmail">Club Email <span class="required">*</span></label>
+          <input type="email" name="clubEmail" id="clubEmail" placeholder="club@example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="clubSocials">Social Media Links</label>
+          <input type="text" name="clubSocials" id="clubSocials" placeholder="Instagram/Facebook/Twitter links">
+          <span class="form-helper-text optional">Separate multiple links with commas</span>
+        </div>
+
+        <div class="form-group">
+          <label for="clubMembersCount">Number of Members</label>
+          <input type="number" name="clubMembersCount" id="clubMembersCount" placeholder="e.g., 50" min="1">
+        </div>
+
+        <div class="form-group">
+          <label>Club Fair Participation <span class="required">*</span></label>
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="clubFair" value="Yes" required> Yes
+            </label>
+            <label>
+              <input type="radio" name="clubFair" value="No" required> No
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="clubLogo">Club Logo</label>
+          <input type="file" name="clubLogo" id="clubLogo" accept="image/png, image/jpeg, image/jpg">
+          <span class="form-helper-text optional">PNG, JPG, or JPEG format</span>
+        </div>
+      </div>
+
+      <div class="form-separator"></div>
+
+      <!-- Password -->
+      <div class="form-section">
+        <h3><i class="fas fa-lock"></i> Password</h3>
+
+        <div class="form-group">
+          <label for="clubPassword">Password <span class="required">*</span></label>
+          <input type="password" name="clubPassword" id="clubPassword" placeholder="Minimum 8 characters" minlength="8" required>
+          <span class="form-helper-text">Must be at least 8 characters long</span>
+        </div>
+
+        <div class="form-group">
+          <label for="clubConfirmPassword">Confirm Password <span class="required">*</span></label>
+          <input type="password" name="clubConfirmPassword" id="clubConfirmPassword" placeholder="Confirm password" minlength="8" required>
+        </div>
+      </div>
+
+      <div class="form-separator"></div>
+
+      <!-- Approvals -->
+      <div class="form-section">
+        <h3><i class="fas fa-stamp"></i> Approvals</h3>
+
+        <h4>College Dean's Approval <span style="font-size: 0.9em; font-weight: 400; color: #6B7280;">(Academic Clubs Only)</span></h4>
+
+        <div class="form-group">
+          <input type="text" name="deanName" id="deanName" placeholder="Dean's Name">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <input type="text" name="deanSignature" id="deanSignature" placeholder="Dean's Signature">
+          </div>
+
+          <div class="form-group">
+            <input type="date" name="deanApprovalDate" id="deanApprovalDate">
+          </div>
+        </div>
+
+        <h4 style="margin-top: 1.5rem;">DSA Approval</h4>
+
+        <div class="form-group">
+          <input type="text" name="dsaName" id="dsaName" placeholder="DSA Name">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <input type="text" name="dsaSignature" id="dsaSignature" placeholder="DSA Signature">
+          </div>
+
+          <div class="form-group">
+            <input type="date" name="dsaApprovalDate" id="dsaApprovalDate">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-separator"></div>
+
+      <!-- Submit Button -->
+      <div class="button-group">
+        <button type="submit">
+          <i class="fas fa-check-circle"></i> Create Club Account
+        </button>
+      </div>
     </div>
-    <button type="submit">Sign Up</button>
+
+    <!-- ===== STUDENT FIELDS ===== -->
+    <div class="role-fields" id="studentFields">
+      
+      <div class="form-section">
+        <h3><i class="fas fa-user"></i> Personal Information</h3>
+
+        <div class="form-group">
+          <label for="fullName">Full Name <span class="required">*</span></label>
+          <input type="text" name="fullName" id="fullName" placeholder="Your full name">
+        </div>
+
+        <div class="form-group">
+          <label for="studentEmail">University Email <span class="required">*</span></label>
+          <input type="email" name="studentEmail" id="studentEmail" placeholder="9 digits @psu.edu.sa">
+          <span class="form-helper-text">Must be your university email</span>
+        </div>
+      </div>
+
+      <div class="form-separator"></div>
+
+      <div class="form-section">
+        <h3><i class="fas fa-lock"></i> Password</h3>
+
+        <div class="form-group">
+          <label for="studentPassword">Password <span class="required">*</span></label>
+          <input type="password" name="studentPassword" id="studentPassword" placeholder="Minimum 8 characters" minlength="8" required>
+          <span class="form-helper-text">Must be at least 8 characters long</span>
+        </div>
+
+        <div class="form-group">
+          <label for="studentConfirmPassword">Confirm Password <span class="required">*</span></label>
+          <input type="password" name="studentConfirmPassword" id="studentConfirmPassword" placeholder="Confirm password" minlength="8" required>
+        </div>
+      </div>
+
+      <div class="form-separator"></div>
+
+      <!-- Submit Button -->
+      <div class="button-group">
+        <button type="submit">
+          <i class="fas fa-check-circle"></i> Create Student Account
+        </button>
+      </div>
+    </div>
+
   </form>
-  <p>Already have an account? <a href="/login">Login</a></p>
+
+  <p>Already have an account? <a href="/login">Login here</a></p>
 </div>
+
 <script>
-  // Toast notification logic (reused)
+  // Toast notification logic
   window.addEventListener('DOMContentLoaded', function() {
     var flash = <%- JSON.stringify(flash) %>;
     if (flash && (flash.error || flash.message)) {
       showToast(flash.error ? flash.error : flash.message, flash.error ? 'error' : 'success');
     }
   });
+
   function showToast(msg, type) {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
@@ -160,54 +735,55 @@
       setTimeout(() => toast.remove(), 500);
     }, 3400);
   }
-</script>
-<script>
-const roleSelect = document.getElementById('roleSelect');
-const studentFields = document.getElementById('studentFields');
-const clubFields = document.getElementById('clubFields');
 
-// Define only essential required club fields
-const requiredClubFieldNames = [
-  'clubName', 'clubKind', 'clubStatus', 'clubDescription', 'clubVision', 'clubActivities', 
-  'presidentName', 'presidentStudentID', 'presidentPhone', 'presidentCollege',
-  'vpName', 'vpStudentID', 'vpPhone',
-  'advisorName', 'advisorEmail',
-  'clubEmail',
-  'clubPassword', 'clubConfirmPassword'
-];
+  // Role selection logic
+  const requiredClubFieldNames = [
+    'clubName', 'clubKind', 'clubStatus', 'clubDescription', 'clubVision', 'clubActivities', 
+    'presidentName', 'presidentStudentID', 'presidentPhone', 'presidentCollege',
+    'vpName', 'vpStudentID', 'vpPhone',
+    'advisorName', 'advisorEmail',
+    'clubEmail',
+    'clubPassword', 'clubConfirmPassword'
+  ];
 
-function showFields(role) {
-  if (role === 'student') {
-    studentFields.style.display = 'block';
-    clubFields.style.display = 'none';
-    studentFields.querySelectorAll('input').forEach(i => i.required = true);
-    clubFields.querySelectorAll('input,textarea,select').forEach(i => i.required = false);
-  } else if (role === 'club') {
-    clubFields.style.display = 'block';
-    studentFields.style.display = 'none';
-    clubFields.querySelectorAll('input,textarea,select').forEach(i => {
-      // Only essentials required
-      if (requiredClubFieldNames.includes(i.name)) {
-        i.required = true;
-      } else {
-        i.required = false;
-      }
-    });
-    studentFields.querySelectorAll('input').forEach(i => i.required = false);
-  } else {
-    studentFields.style.display = 'none';
-    clubFields.style.display = 'none';
+  function selectRole(role) {
+    // Update role input
+    document.getElementById('roleInput').value = role;
+
+    // Update buttons
+    document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.closest('.role-btn').classList.add('active');
+
+    // Show/hide fields
+    const clubFields = document.getElementById('clubFields');
+    const studentFields = document.getElementById('studentFields');
+
+    if (role === 'club') {
+      clubFields.classList.add('active');
+      studentFields.classList.remove('active');
+      
+      clubFields.querySelectorAll('input, textarea, select').forEach(el => {
+        if (requiredClubFieldNames.includes(el.name)) {
+          el.required = true;
+        } else {
+          el.required = false;
+        }
+      });
+
+      studentFields.querySelectorAll('input').forEach(el => el.required = false);
+    } else {
+      studentFields.classList.add('active');
+      clubFields.classList.remove('active');
+
+      studentFields.querySelectorAll('input').forEach(el => el.required = true);
+
+      clubFields.querySelectorAll('input, textarea, select').forEach(el => el.required = false);
+    }
   }
-}
-roleSelect.addEventListener('change', () => showFields(roleSelect.value));
-showFields(roleSelect.value); // Initialize on page load
+
+  // Initialize on page load
+  selectRole('club');
 </script>
-<style>
-  #toast-container { z-index:9999; position:fixed; top:32px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; }
-  .toast { opacity:0; min-width:250px; margin-top:12px; padding: 1em 2em; border-radius: 8px; background: #2563eb; color: #fff; box-shadow:0 4px 16px rgba(0,0,0,0.12); font-weight:500; transition:opacity 0.4s, transform 0.4s; transform:translateY(-25px) scale(0.95); transition:all 0.4s; pointer-events:none; }
-  .toast.show { opacity: 1; transform:translateY(0) scale(1); }
-  .toast-error { background:#e11d48; }
-  .toast-success { background:#16a34a; }
-</style>
+
 </body>
 </html>

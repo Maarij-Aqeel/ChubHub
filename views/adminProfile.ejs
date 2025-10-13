@@ -1,728 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard - Club Hub</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
-  <style>
-    /* ===== Reset & Base ===== */
-    * { 
-      margin: 0; 
-      padding: 0; 
-      box-sizing: border-box; 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    
-    body { 
-      background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
-      color: #111827;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* ===== Navbar ===== */
-    .navbar {
-      width: 100%;
-      background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
-    }
-    
-    .navbar-left {
-      display: flex;
-      gap: 2rem;
-      align-items: center;
-    }
-    
-    .navbar-brand {
-      color: #FFFFFF;
-      font-size: 1.3rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .navbar-brand i {
-      font-size: 1.5rem;
-    }
-    
-    .navbar a {
-      color: #FFFFFF;
-      text-decoration: none;
-      font-weight: 600;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
-      padding: 0.5rem 1.5rem;
-      border-radius: 8px;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .navbar a::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.1);
-      transition: left 0.3s ease;
-    }
-    
-    .navbar a:hover::before {
-      left: 0;
-    }
-    
-    .navbar a:hover { 
-      transform: translateY(-2px);
-    }
-    
-    .navbar a i { 
-      font-size: 1.5rem;
-    }
-
-    .logout-btn-nav {
-      background: rgba(220, 38, 38, 0.9);
-      color: #FFFFFF;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .logout-btn-nav:hover {
-      background: #DC2626;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-    }
-
-    /* ===== Profile Container ===== */
-    .profile-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1.5rem 3rem;
-    }
-
-    /* ===== Banner Section ===== */
-    .banner-section {
-      position: relative;
-      margin-top: 2rem;
-      margin-bottom: 6rem;
-    }
-
-    .banner {
-      width: 100%;
-      height: 250px;
-      background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
-      border-radius: 16px 16px 0 0;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
-    }
-    
-    .banner::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      right: -20%;
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
-      border-radius: 50%;
-      animation: float 6s ease-in-out infinite;
-    }
-    
-    .banner::after {
-      content: '';
-      position: absolute;
-      bottom: -50%;
-      left: -10%;
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-      border-radius: 50%;
-      animation: float 8s ease-in-out infinite reverse;
-    }
-    
-    @keyframes float {
-      0%, 100% { transform: translateY(0) translateX(0); }
-      50% { transform: translateY(-20px) translateX(20px); }
-    }
-
-    /* ===== Profile Picture ===== */
-    .profile-pic {
-      position: absolute;
-      bottom: -80px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 160px;
-      height: 160px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 5rem;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-      border: 6px solid #FFFFFF;
-      z-index: 10;
-      color: #FFFFFF;
-    }
-
-    /* ===== Admin Details ===== */
-    .admin-details {
-      background: #FFFFFF;
-      padding: 6rem 2rem 2rem;
-      border-radius: 0 0 16px 16px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    
-    .admin-details h2 {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #1E3A8A;
-      margin-bottom: 0.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-    
-    .admin-badge {
-      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-      color: #FFFFFF;
-      padding: 4px 12px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    .admin-details > p {
-      color: #6B7280;
-      font-size: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    
-    .admin-details > p i {
-      color: #2563EB;
-    }
-
-    /* ===== Stats Grid ===== */
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1.5rem;
-      margin: 2rem 0;
-    }
-
-    .stat-card {
-      background: linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%);
-      padding: 1.5rem;
-      border-radius: 12px;
-      text-align: center;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      border: 2px solid #E5E7EB;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 4px;
-      background: linear-gradient(90deg, #2563EB 0%, #1E3A8A 100%);
-      transform: scaleX(0);
-      transition: transform 0.3s ease;
-    }
-    
-    .stat-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      border-color: #2563EB;
-    }
-    
-    .stat-card:hover::before {
-      transform: scaleX(1);
-    }
-    
-    .stat-icon {
-      width: 60px;
-      height: 60px;
-      margin: 0 auto 1rem;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.8rem;
-    }
-    
-    .stat-card:nth-child(1) .stat-icon {
-      background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
-      color: #1E40AF;
-    }
-    
-    .stat-card:nth-child(2) .stat-icon {
-      background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
-      color: #047857;
-    }
-    
-    .stat-card:nth-child(3) .stat-icon {
-      background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
-      color: #B45309;
-    }
-
-    .stat-card h3 {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #1E3A8A;
-      margin-bottom: 0.5rem;
-    }
-
-    .stat-card p {
-      font-size: 0.95rem;
-      color: #6B7280;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* ===== Section Headers ===== */
-    .section-header {
-      background: #FFFFFF;
-      padding: 1.5rem;
-      border-radius: 12px;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    
-    .section-header h3 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #1E3A8A;
-      margin: 0;
-    }
-    
-    .section-header i {
-      color: #2563EB;
-      font-size: 1.5rem;
-    }
-
-    /* ===== Management Section ===== */
-    .management {
-      margin-bottom: 2rem;
-    }
-
-    .manage-buttons {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-    }
-
-    .manage-buttons a {
-      text-decoration: none;
-    }
-
-    .manage-buttons button {
-      width: 100%;
-      padding: 1.25rem 1.5rem;
-      border: none;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%);
-      color: #FFFFFF;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .manage-buttons button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.1);
-      transition: left 0.3s ease;
-    }
-    
-    .manage-buttons button:hover::before {
-      left: 0;
-    }
-
-    .manage-buttons button:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
-    }
-    
-    .manage-buttons button i {
-      font-size: 1.2rem;
-    }
-
-    .manage-buttons button.warning {
-      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
-    }
-    
-    .manage-buttons button.warning:hover {
-      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
-    }
-
-    /* ===== Recent Actions ===== */
-    .recent-actions {
-      margin-bottom: 2rem;
-    }
-
-    .action-card {
-      background: #FFFFFF;
-      padding: 1.25rem;
-      border-radius: 12px;
-      margin-bottom: 1rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      border-left: 4px solid #2563EB;
-      transition: all 0.3s ease;
-    }
-    
-    .action-card:hover {
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-      transform: translateX(4px);
-    }
-
-    .action-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.5rem;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    .action-type {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 700;
-      color: #1E3A8A;
-      font-size: 0.95rem;
-    }
-    
-    .action-type i {
-      color: #2563EB;
-    }
-
-    .action-time {
-      font-size: 0.85rem;
-      color: #6B7280;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    
-    .action-time i {
-      color: #9CA3AF;
-    }
-
-    .action-details {
-      color: #374151;
-      font-size: 0.9rem;
-      line-height: 1.5;
-    }
-
-    /* ===== Empty State ===== */
-    .empty-state {
-      text-align: center;
-      padding: 4rem 2rem;
-      color: #6B7280;
-      background: #FFFFFF;
-      border-radius: 16px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    }
-    
-    .empty-state i {
-      font-size: 4rem;
-      color: #D1D5DB;
-      margin-bottom: 1rem;
-    }
-    
-    .empty-state h3 {
-      font-size: 1.3rem;
-      margin-bottom: 0.5rem;
-      color: #374151;
-    }
-    
-    .empty-state p {
-      font-size: 1rem;
-    }
-
-    /* ===== Responsive ===== */
-    @media (max-width: 768px) {
-      .navbar {
-        flex-direction: column;
-        gap: 1rem;
-        padding: 1rem;
-      }
-      
-      .navbar-left {
-        flex-direction: column;
-        gap: 0.5rem;
-        width: 100%;
-      }
-      
-      .navbar-brand {
-        font-size: 1.1rem;
-      }
-      
-      .navbar a {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.8rem;
-      }
-      
-      .navbar a i {
-        font-size: 1.2rem;
-      }
-      
-      .banner {
-        height: 180px;
-      }
-      
-      .profile-pic {
-        width: 120px;
-        height: 120px;
-        font-size: 3.5rem;
-        bottom: -60px;
-      }
-      
-      .admin-details {
-        padding: 4.5rem 1.5rem 1.5rem;
-      }
-      
-      .admin-details h2 {
-        font-size: 1.5rem;
-        flex-direction: column;
-      }
-      
-      .stats {
-        grid-template-columns: 1fr;
-      }
-      
-      .manage-buttons {
-        grid-template-columns: 1fr;
-      }
-      
-      .section-header h3 {
-        font-size: 1.2rem;
-      }
-      
-      .action-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div id="toast-container"></div>
-  <div id="flash-data" data-flash='<%- JSON.stringify(flash || {}) %>' style="display:none"></div>
-  <!-- ===== Navbar ===== -->
-  <div class="navbar">
-    <div class="navbar-left">
-      <div class="navbar-brand">
-        <i class="fas fa-shield-halved"></i>
-        <span>Admin Portal</span>
-      </div>
-      <a href="/admin/<%= user.id %>/dashboard">
-        <i class="fas fa-home"></i>
-        <span>Dashboard</span>
-      </a>
-      <a href="/admin/reports">
-        <i class="fas fa-chart-line"></i>
-        <span>Reports</span>
-      </a>
-      <a href="/admin/<%= user.id %>/settings">
-        <i class="fas fa-cog"></i>
-        <span>Profile Settings</span>
-      </a>
-    </div>
-    <a href="/logout">
-      <button class="logout-btn-nav">
-        <i class="fas fa-sign-out-alt"></i>
-        <span>Log Out</span>
-      </button>
-    </a>
-  </div>
-
-  <div class="profile-container">
-    <!-- Banner & Profile Picture -->
-    <div class="banner-section">
-      <div class="banner"></div>
-      <div class="profile-pic">
-        <i class="fas fa-user-shield"></i>
-      </div>
-    </div>
-
-    <!-- Admin Details -->
-    <div class="admin-details">
-      <h2>
-        <%= user.username %>
-        <span class="admin-badge">Administrator</span>
-      </h2>
-      <p>
-        <i class="fas fa-envelope"></i>
-        <%= user.email %>
-      </p>
-
-      <!-- Stats -->
-      <div class="stats">
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-user-graduate"></i>
-          </div>
-          <h3><%= stats.students %></h3>
-          <p>Students</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - Club Hub</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/css/adminprofile.css" />
+  </head>
+  <body>
+    <div id="toast-container"></div>
+    <div
+      id="flash-data"
+      data-flash="<%- JSON.stringify(flash || {}) %>"
+      style="display: none"
+    ></div>
+    <!-- ===== Navbar ===== -->
+    <div class="navbar">
+      <div class="navbar-left">
+        <div class="navbar-brand">
+          <i class="fas fa-shield-halved"></i>
+          <span>Admin Portal</span>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-users"></i>
-          </div>
-          <h3><%= stats.clubs %></h3>
-          <p>Clubs</p>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-newspaper"></i>
-          </div>
-          <h3><%= stats.posts %></h3>
-          <p>Posts</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Management Section -->
-    <div class="management">
-      <div class="section-header">
-        <i class="fas fa-tasks"></i>
-        <h3>Quick Management</h3>
-      </div>
-      <div class="manage-buttons">
-        <a href="/admin/club-requests">
-          <button class="warning">
-            <i class="fas fa-user-clock"></i>
-            <span>Pending Club Requests</span>
-          </button>
+        <a href="/admin/dashboard">
+          <i class="fas fa-home"></i>
+          <span>Dashboard</span>
         </a>
-        <a href="/admin/posts">
-          <button class="warning">
-            <i class="fas fa-file-circle-check"></i>
-            <span>Pending Posts</span>
-          </button>
+        <a href="/admin/reports">
+          <i class="fas fa-chart-line"></i>
+          <span>Reports</span>
         </a>
-        <a href="/admin/events">
-          <button class="warning">
-            <i class="fas fa-calendar-check"></i>
-            <span>Pending Events</span>
-          </button>
+        <a href="/admin/settings">
+          <i class="fas fa-cog"></i>
+          <span>Profile Settings</span>
         </a>
       </div>
+      <a href="/logout">
+        <button class="logout-btn-nav">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Log Out</span>
+        </button>
+      </a>
     </div>
 
-    <!-- Recent Actions -->
-    <div class="recent-actions">
-      <div class="section-header">
-        <i class="fas fa-history"></i>
-        <h3>Recent Actions</h3>
+    <div class="profile-container">
+      <!-- Banner & Profile Picture -->
+      <div class="banner-section">
+        <div class="banner"></div>
+        <div class="profile-pic">
+          <img
+            src="<%= user.profile_data.profilePic %>"
+            alt="Profile Picture"
+          />
+        </div>
       </div>
-      <% if (recentLogs && recentLogs.length) { %>
-        <% recentLogs.forEach(log => { %>
-          <div class="action-card">
-            <div class="action-header">
-              <div class="action-type">
-                <i class="fas fa-circle-check"></i>
-                <span><%= log.action %> <%= log.targetType %> #<%= log.targetId %></span>
-              </div>
-              <div class="action-time">
-                <i class="far fa-clock"></i>
-                <%= new Date(log.createdAt).toLocaleString() %>
-              </div>
+
+      <!-- Admin Details -->
+      <div class="admin-details">
+        <h2>
+          <%= user.username %>
+          <span class="admin-badge">Administrator</span>
+        </h2>
+        <p>
+          <i class="fas fa-envelope"></i>
+          <%= user.email %>
+        </p>
+
+        <!-- Stats -->
+        <div class="stats">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-user-graduate"></i>
             </div>
-            <% if (log.details) { %>
-              <div class="action-details"><%= log.details %></div>
-            <% } %>
+            <h3><%= stats.students %></h3>
+            <p>Students</p>
           </div>
-        <% }) %>
-      <% } else { %>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <h3><%= stats.clubs %></h3>
+            <p>Clubs</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-newspaper"></i>
+            </div>
+            <h3><%= stats.posts %></h3>
+            <p>Posts</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Management Section -->
+      <div class="management">
+        <div class="section-header">
+          <i class="fas fa-tasks"></i>
+          <h3>Quick Management</h3>
+        </div>
+        <div class="manage-buttons">
+          <a href="/admin/club-requests">
+            <button class="warning">
+              <i class="fas fa-user-clock"></i>
+              <span>Pending Club Requests</span>
+            </button>
+          </a>
+          <a href="/admin/posts">
+            <button class="warning">
+              <i class="fas fa-file-circle-check"></i>
+              <span>Pending Posts</span>
+            </button>
+          </a>
+          <a href="/admin/events">
+            <button class="warning">
+              <i class="fas fa-calendar-check"></i>
+              <span>Pending Events</span>
+            </button>
+          </a>
+        </div>
+      </div>
+
+      <!-- Recent Actions -->
+      <div class="recent-actions">
+        <div class="section-header">
+          <i class="fas fa-history"></i>
+          <h3>Recent Actions</h3>
+        </div>
+        <% if (recentLogs && recentLogs.length) { %>
+          <% recentLogs.forEach(log => { %>
+            <div class="action-card">
+              <div class="action-header">
+                <div class="action-type">
+                  <i class="fas fa-circle-check"></i>
+                  <span><%= log.action %> <%= log.targetType %> #<%= log.targetId %></span>
+                </div>
+                <div class="action-time">
+                  <i class="far fa-clock"></i>
+                  <%= new Date(log.createdAt).toLocaleString() %>
+                </div>
+              </div>
+              <% if (log.details) { %>
+                <div class="action-details"><%= log.details %></div>
+              <% } %>
+            </div>
+          <% }); %>
+        <% } else { %>
         <div class="empty-state">
           <i class="fas fa-inbox"></i>
           <h3>No Recent Actions</h3>
           <p>Your activity log will appear here.</p>
         </div>
-      <% } %>
+        <% } %>
+      </div>
     </div>
-  </div>
-  <script>
-    window.addEventListener('DOMContentLoaded', function() {
-      const flash = JSON.parse(document.getElementById('flash-data').dataset.flash || '{}');
-      if (flash && (flash.error || flash.message)) {
-        showToast(flash.error ? flash.error : flash.message, flash.error ? 'error' : 'success');
+    <script>
+      window.addEventListener("DOMContentLoaded", function () {
+        const flash = JSON.parse(
+          document.getElementById("flash-data").dataset.flash || "{}"
+        );
+        if (flash && (flash.error || flash.message)) {
+          showToast(
+            flash.error ? flash.error : flash.message,
+            flash.error ? "error" : "success"
+          );
+        }
+      });
+      function showToast(msg, type) {
+        const container = document.getElementById("toast-container");
+        const toast = document.createElement("div");
+        toast.className =
+          "toast " + (type === "error" ? "toast-error" : "toast-success");
+        toast.innerText = msg;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.classList.add("show");
+        }, 100);
+        setTimeout(() => {
+          toast.classList.remove("show");
+          setTimeout(() => toast.remove(), 500);
+        }, 3400);
       }
-    });
-    function showToast(msg, type) {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      toast.className = 'toast ' + (type === 'error' ? 'toast-error' : 'toast-success');
-      toast.innerText = msg;
-      container.appendChild(toast);
-      setTimeout(() => { toast.classList.add('show'); }, 100);
-      setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 500);
-      }, 3400);
-    }
-  </script>
-  <style>
-    #toast-container { z-index:9999; position:fixed; top:32px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; }
-    .toast { opacity:0; min-width:250px; margin-top:12px; padding: 1em 2em; border-radius: 8px; background: #2563eb; color: #fff; box-shadow:0 4px 16px rgba(0,0,0,0.12); font-weight:500; transition:opacity 0.4s, transform 0.4s; transform:translateY(-25px) scale(0.95); transition:all 0.4s; pointer-events:none; }
-    .toast.show { opacity: 1; transform:translateY(0) scale(1); }
-    .toast-error { background:#e11d48; }
-    .toast-success { background:#16a34a; }
-  </style>
-</body>
+    </script>
+    <style>
+      #toast-container {
+        z-index: 9999;
+        position: fixed;
+        top: 32px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .toast {
+        opacity: 0;
+        min-width: 250px;
+        margin-top: 12px;
+        padding: 1em 2em;
+        border-radius: 8px;
+        background: #2563eb;
+        color: #fff;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        font-weight: 500;
+        transition: opacity 0.4s, transform 0.4s;
+        transform: translateY(-25px) scale(0.95);
+        transition: all 0.4s;
+        pointer-events: none;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      .toast-error {
+        background: #e11d48;
+      }
+      .toast-success {
+        background: #16a34a;
+      }
+    </style>
+  </body>
 </html>

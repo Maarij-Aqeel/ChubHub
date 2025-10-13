@@ -1,94 +1,638 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Club Request Detail</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Club Request Detail</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
   <style>
-    body { background: #f7f8fa; color: #223049; font-family: 'Segoe UI',Tahoma,Verdana,sans-serif; margin: 0; }
-    .container { max-width: 700px; margin: 2.5rem auto; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px #0001; padding: 2.5rem 2rem; }
-    h2 { margin-bottom: 12px; }
-    .block-label { color: #6077a1; font-size:1.08em; font-weight:600; margin-top:24px; }
-    .value { padding: 0.18em 0; margin-bottom: 2px; }
-    .flex-row { display:flex; gap:2.5em; }
-    .actions { margin: 2.3em 0 1em; display: flex; gap: 2em; }
-    form {display:inline;}
-    .btn {background: #2563eb; color:white; border:none; border-radius:7px; padding:0.5em 2.3em; font-size:1.08em; cursor:pointer; margin-right:1.25em;}
-    .btn-danger { background:#e11d48;}
-    .btn:hover { background:#1e40af; }
-    .btn-danger:hover { background:#b91c1c; }
-    hr {border:0; border-top:1px solid #e5e7eb; margin:1.5em 0;}
-    dl { display:grid; grid-template-columns:170px 1fr; gap:7px 16px; margin:0; }
-    dt { font-weight:600; opacity:0.75; }
-    dd { margin:0 0 6px 0; }
+    /* ===== Reset & Base ===== */
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body { 
+      background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+      color: #111827;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ===== Navbar ===== */
+    .navbar {
+      width: 100%;
+      background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
+    }
+    
+    .navbar-left {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+    
+    .navbar-brand {
+      color: #FFFFFF;
+      font-size: 1.3rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    
+    .navbar-brand i {
+      font-size: 1.5rem;
+    }
+    
+    .navbar a:not(.navbar-brand) {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      padding: 0.5rem 1.5rem;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .navbar a:not(.navbar-brand)::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      transition: left 0.3s ease;
+    }
+    
+    .navbar a:not(.navbar-brand):hover::before {
+      left: 0;
+    }
+    
+    .navbar a:not(.navbar-brand):hover { 
+      transform: translateY(-2px);
+    }
+    
+    .navbar a i { 
+      font-size: 1.5rem;
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+    
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* ===== Container ===== */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 3rem;
+    }
+
+    /* ===== Page Header ===== */
+    .page-header {
+      background: #FFFFFF;
+      padding: 2rem;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .page-title i {
+      font-size: 2.5rem;
+      color: #F59E0B;
+    }
+    
+    .page-title h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1E3A8A;
+    }
+
+    .status-badge {
+      background: #FEF3C7;
+      color: #92400E;
+      padding: 0.75rem 1.5rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: 2px solid #FDE68A;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-badge i {
+      font-size: 1rem;
+    }
+
+    /* ===== Details Card ===== */
+    .details-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      margin-bottom: 2rem;
+    }
+
+    .details-section {
+      margin-bottom: 2rem;
+    }
+
+    .details-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1E3A8A;
+      margin-bottom: 1.25rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #F3F4F6;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title i {
+      color: #F59E0B;
+      font-size: 1.4rem;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .detail-label {
+      font-weight: 600;
+      color: #6B7280;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .detail-value {
+      color: #374151;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    .detail-value.text-area {
+      white-space: pre-wrap;
+    }
+
+    .detail-grid.full {
+      grid-template-columns: 1fr;
+    }
+
+    /* ===== Separator ===== */
+    .divider {
+      height: 2px;
+      background: linear-gradient(90deg, #F3F4F6 0%, #E5E7EB 50%, #F3F4F6 100%);
+      margin: 2rem 0;
+    }
+
+    /* ===== Action Buttons ===== */
+    .actions-section {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn {
+      border: none;
+      padding: 0.875rem 2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: left 0.3s ease;
+    }
+
+    .btn:hover::before {
+      left: 0;
+    }
+
+    .btn-approve {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-approve:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-reject {
+      background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+    }
+
+    .btn-reject:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+    }
+
+    .btn-back {
+      background: linear-gradient(135deg, #2563EB 0%, #1E40AF 100%);
+      color: #FFFFFF;
+      text-decoration: none;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+      margin-left: auto;
+    }
+
+    .btn-back:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn i {
+      font-size: 1.1rem;
+    }
+
+    form {
+      display: inline;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+      }
+      
+      .navbar-left {
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        align-items: center;
+      }
+
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .page-title {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .page-title h1 {
+        font-size: 1.5rem;
+      }
+
+      .details-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .details-grid.full {
+        grid-template-columns: 1fr;
+      }
+
+      .actions-section {
+        flex-direction: column;
+      }
+
+      .btn-back {
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .btn {
+        flex: 1;
+        justify-content: center;
+      }
+
+      .details-card,
+      .actions-section {
+        padding: 1.5rem;
+      }
+    }
   </style>
 </head>
 <body>
+
+  <!-- ===== Navbar ===== -->
+  <div class="navbar">
+    <div class="navbar-left">
+      <a href="/admin/dashboard" class="navbar-brand">
+        <i class="fas fa-shield-halved"></i>
+        <span>Admin Portal</span>
+      </a>
+      <a href="/admin/dashboard">
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="/admin/club-requests">
+        <i class="fas fa-user-clock"></i>
+        <span>Club Requests</span>
+      </a>
+      <a href="/admin/events">
+        <i class="fas fa-calendar-check"></i>
+        <span>Events</span>
+      </a>
+    </div>
+    <a href="/admin/dashboard" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span>Back to Dashboard</span>
+    </a>
+  </div>
+
   <div class="container">
-    <h2>Club Request: <%= clubRequest.clubName %></h2>
-    <dl>
-      <dt>Email:</dt><dd><%= clubRequest.clubEmail %></dd>
-      <dt>Status:</dt><dd style="color:#c2780f"><%= clubRequest.status %></dd>
-      <dt>Date Submitted:</dt><dd><%= clubRequest.createdAt.toLocaleString ? clubRequest.createdAt.toLocaleString() : new Date(clubRequest.createdAt).toLocaleString() %></dd>
-      <dt>Description:</dt><dd><%= clubRequest.clubDescription %></dd>
-      <% if (clubRequest.clubKind) { %>
-        <dt>Club Kind:</dt><dd><%= clubRequest.clubKind %></dd>
-      <% } %>
-      <% if (clubRequest.clubStatus) { %>
-        <dt>Club Status:</dt><dd><%= clubRequest.clubStatus %></dd>
-      <% } %>
-      <% if (clubRequest.representativeName) { %>
-        <dt>Representative:</dt><dd><%= clubRequest.representativeName %></dd>
-      <% } %>
-      <% if (clubRequest.presidentName) { %>
-        <dt>President Name:</dt><dd><%= clubRequest.presidentName %></dd>
-        <dt>President ID:</dt><dd><%= clubRequest.presidentStudentID %></dd>
-        <dt>President Phone:</dt><dd><%= clubRequest.presidentPhone %></dd>
-        <dt>President College:</dt><dd><%= clubRequest.presidentCollege %></dd>
-      <% } %>
-      <% if (clubRequest.vpName) { %>
-        <dt>Vice President Name:</dt><dd><%= clubRequest.vpName %></dd>
-        <dt>Vice President ID:</dt><dd><%= clubRequest.vpStudentID %></dd>
-        <dt>Vice President Phone:</dt><dd><%= clubRequest.vpPhone %></dd>
-      <% } %>
-      <% if (clubRequest.member1 || clubRequest.member2 || clubRequest.member3) { %>
-        <dt>Members:</dt>
-        <dd>
-          <% [1,2,3,4,5].forEach(i => { %>
-            <% if (clubRequest['member'+i]) { %>
-              <div><%= clubRequest['member'+i] %></div>
-            <% } %>
-          <% }); %>
-        </dd>
-      <% } %>
+    
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-title">
+        <i class="fas fa-clipboard-check"></i>
+        <h1>Club Request Details</h1>
+      </div>
+      <div class="status-badge">
+        <i class="fas fa-hourglass-half"></i>
+        <%= clubRequest.status %>
+      </div>
+    </div>
+
+    <!-- Club Information Card -->
+    <div class="details-card">
+      
+      <div class="details-section">
+        <h2 class="section-title">
+          <i class="fas fa-info-circle"></i>
+          Club Information
+        </h2>
+        <div class="details-grid">
+          <div class="detail-item">
+            <span class="detail-label">Club Name</span>
+            <span class="detail-value"><strong><%= clubRequest.clubName %></strong></span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Club Email</span>
+            <span class="detail-value"><%= clubRequest.clubEmail %></span>
+          </div>
+          <% if (clubRequest.clubKind) { %>
+            <div class="detail-item">
+              <span class="detail-label">Club Kind</span>
+              <span class="detail-value"><%= clubRequest.clubKind %></span>
+            </div>
+          <% } %>
+          <% if (clubRequest.clubStatus) { %>
+            <div class="detail-item">
+              <span class="detail-label">Club Status</span>
+              <span class="detail-value"><%= clubRequest.clubStatus %></span>
+            </div>
+          <% } %>
+          <div class="detail-item">
+            <span class="detail-label">Date Submitted</span>
+            <span class="detail-value"><%= clubRequest.createdAt.toLocaleString ? clubRequest.createdAt.toLocaleString() : new Date(clubRequest.createdAt).toLocaleString() %></span>
+          </div>
+        </div>
+        <% if (clubRequest.clubDescription) { %>
+          <div class="detail-item" style="margin-top: 1rem;">
+            <span class="detail-label">Description</span>
+            <span class="detail-value text-area"><%= clubRequest.clubDescription %></span>
+          </div>
+        <% } %>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Club Leadership -->
+      <div class="details-section">
+        <h2 class="section-title">
+          <i class="fas fa-crown"></i>
+          Club Leadership
+        </h2>
+        <div class="details-grid">
+          <% if (clubRequest.presidentName) { %>
+            <div class="detail-item">
+              <span class="detail-label">President Name</span>
+              <span class="detail-value"><%= clubRequest.presidentName %></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">President Student ID</span>
+              <span class="detail-value"><%= clubRequest.presidentStudentID %></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">President Phone</span>
+              <span class="detail-value"><%= clubRequest.presidentPhone %></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">President College</span>
+              <span class="detail-value"><%= clubRequest.presidentCollege %></span>
+            </div>
+          <% } %>
+          <% if (clubRequest.vpName) { %>
+            <div class="detail-item">
+              <span class="detail-label">Vice President Name</span>
+              <span class="detail-value"><%= clubRequest.vpName %></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Vice President Student ID</span>
+              <span class="detail-value"><%= clubRequest.vpStudentID %></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Vice President Phone</span>
+              <span class="detail-value"><%= clubRequest.vpPhone %></span>
+            </div>
+          <% } %>
+        </div>
+      </div>
+
       <% if (clubRequest.advisorName) { %>
-        <dt>Advisor Name:</dt><dd><%= clubRequest.advisorName %></dd>
+        <div class="divider"></div>
+
+        <div class="details-section">
+          <h2 class="section-title">
+            <i class="fas fa-chalkboard-user"></i>
+            Advisor Information
+          </h2>
+          <div class="details-grid">
+            <div class="detail-item">
+              <span class="detail-label">Advisor Name</span>
+              <span class="detail-value"><%= clubRequest.advisorName %></span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Advisor Email</span>
+              <span class="detail-value"><%= clubRequest.advisorEmail %></span>
+            </div>
+          </div>
+        </div>
       <% } %>
-      <% if (clubRequest.advisorEmail) { %>
-        <dt>Advisor Email:</dt><dd><%= clubRequest.advisorEmail %></dd>
+
+      <% if (clubRequest.member1 || clubRequest.member2 || clubRequest.member3 || clubRequest.member4 || clubRequest.member5) { %>
+        <div class="divider"></div>
+
+        <div class="details-section">
+          <h2 class="section-title">
+            <i class="fas fa-users-line"></i>
+            Club Members
+          </h2>
+          <div class="details-grid full">
+            <% [1,2,3,4,5].forEach(i => { %>
+              <% if (clubRequest['member'+i]) { %>
+                <div class="detail-item">
+                  <span class="detail-label">Member <%= i %></span>
+                  <span class="detail-value"><%= clubRequest['member'+i] %></span>
+                </div>
+              <% } %>
+            <% }); %>
+          </div>
+        </div>
       <% } %>
-      <% if (clubRequest.clubVision) { %>
-        <dt>Vision/Goals:</dt><dd><%= clubRequest.clubVision %></dd>
+
+      <% if (clubRequest.clubVision || clubRequest.clubActivities) { %>
+        <div class="divider"></div>
+
+        <div class="details-section">
+          <h2 class="section-title">
+            <i class="fas fa-lightbulb"></i>
+            Vision & Activities
+          </h2>
+          <% if (clubRequest.clubVision) { %>
+            <div class="detail-item" style="margin-bottom: 1rem;">
+              <span class="detail-label">Vision and Goals</span>
+              <span class="detail-value text-area"><%= clubRequest.clubVision %></span>
+            </div>
+          <% } %>
+          <% if (clubRequest.clubActivities) { %>
+            <div class="detail-item">
+              <span class="detail-label">Activities</span>
+              <span class="detail-value text-area"><%= clubRequest.clubActivities %></span>
+            </div>
+          <% } %>
+        </div>
       <% } %>
-      <% if (clubRequest.clubActivities) { %>
-        <dt>Activities:</dt><dd><%= clubRequest.clubActivities %></dd>
+
+      <% if (clubRequest.clubSocials || clubRequest.clubMembersCount) { %>
+        <div class="divider"></div>
+
+        <div class="details-section">
+          <h2 class="section-title">
+            <i class="fas fa-link"></i>
+            Social Media & Stats
+          </h2>
+          <div class="details-grid">
+            <% if (clubRequest.clubSocials) { %>
+              <div class="detail-item">
+                <span class="detail-label">Social Media</span>
+                <span class="detail-value"><%= clubRequest.clubSocials %></span>
+              </div>
+            <% } %>
+            <% if (clubRequest.clubMembersCount) { %>
+              <div class="detail-item">
+                <span class="detail-label">Number of Members</span>
+                <span class="detail-value"><%= clubRequest.clubMembersCount %></span>
+              </div>
+            <% } %>
+          </div>
+        </div>
       <% } %>
-      <% if (clubRequest.clubSocials) { %>
-        <dt>Social Media:</dt><dd><%= clubRequest.clubSocials %></dd>
-      <% } %>
-      <% if (clubRequest.clubMembersCount) { %>
-        <dt>Number of Members:</dt><dd><%= clubRequest.clubMembersCount %></dd>
-      <% } %>
-    </dl>
-    <hr />
-    <div class="actions">
+
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-section">
       <form action="/admin/club-requests/<%= clubRequest.id %>/approve" method="POST">
-        <button class="btn" type="submit">Approve</button>
+        <button class="btn btn-approve" type="submit">
+          <i class="fas fa-check-circle"></i>
+          <span>Approve Request</span>
+        </button>
       </form>
       <form action="/admin/club-requests/<%= clubRequest.id %>/reject" method="POST">
-        <button class="btn btn-danger" type="submit">Reject</button>
+        <button class="btn btn-reject" type="submit">
+          <i class="fas fa-times-circle"></i>
+          <span>Reject Request</span>
+        </button>
       </form>
-      <a href="/admin/club-requests" style="margin-left:auto;color:#2563eb;text-decoration:underline;font-size:1.06em;">&larr; Back to list</a>
+      <a href="/admin/club-requests" class="btn btn-back">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to Requests</span>
+      </a>
     </div>
+
   </div>
+
 </body>
 </html>
-

@@ -29,14 +29,20 @@ try {
   EventReport.belongsTo(Event, { as: "event", foreignKey: "eventId" });
   Event.hasOne(EventReport, { as: "report", foreignKey: "eventId" });
 } catch (e) {
-  console.warn("Association setup warning (EventReport→Event):", e?.message || e);
+  console.warn(
+    "Association setup warning (EventReport→Event):",
+    e?.message || e
+  );
 }
 
 // EventReport → Club(User)
 try {
   EventReport.belongsTo(User, { as: "club", foreignKey: "clubId" });
 } catch (e) {
-  console.warn("Association setup warning (EventReport→User):", e?.message || e);
+  console.warn(
+    "Association setup warning (EventReport→User):",
+    e?.message || e
+  );
 }
 
 // Application → Student(User) and Club(User)
@@ -44,7 +50,10 @@ try {
   Application.belongsTo(User, { as: "student", foreignKey: "studentId" });
   Application.belongsTo(User, { as: "club", foreignKey: "clubId" });
 } catch (e) {
-  console.warn("Association setup warning (Application→User):", e?.message || e);
+  console.warn(
+    "Association setup warning (Application→User):",
+    e?.message || e
+  );
 }
 
 // Post → Club(User)
@@ -160,7 +169,7 @@ app.get("/", (req, res) => {
     else if (req.session.user.role === "club")
       return res.redirect(`/club/${req.session.user.id}`);
     else if (req.session.user.role === "admin")
-      return res.redirect(`/admin/${req.session.user.id}/dashboard`);
+      return res.redirect(`/admin/dashboard`);
   }
   res.redirect("/landing");
 });
@@ -208,7 +217,11 @@ app.post("/signup", async (req, res) => {
 
       const passwordOk = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password);
       if (!passwordOk) {
-        setFlash(req, "error", "Password must be at least 8 characters and include letters and numbers.");
+        setFlash(
+          req,
+          "error",
+          "Password must be at least 8 characters and include letters and numbers."
+        );
         return res.redirect("/signup");
       }
 
@@ -238,7 +251,11 @@ app.post("/signup", async (req, res) => {
       });
 
       await sendVerificationEmail(newUser.email, verificationToken);
-      setFlash(req, "message", "A verification email has been sent to your email address. Please verify your email to login.");
+      setFlash(
+        req,
+        "message",
+        "A verification email has been sent to your email address. Please verify your email to login."
+      );
       return res.redirect("/signup");
     } else if (role === "club") {
       // === Club signup → save as ClubRequest instead of User ===
@@ -257,7 +274,11 @@ app.post("/signup", async (req, res) => {
 
       const passwordOk = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(password);
       if (!passwordOk) {
-        setFlash(req, "error", "Password must be at least 8 characters and include letters and numbers.");
+        setFlash(
+          req,
+          "error",
+          "Password must be at least 8 characters and include letters and numbers."
+        );
         return res.redirect("/signup");
       }
       if (password !== confirmPassword) {
@@ -275,7 +296,11 @@ app.post("/signup", async (req, res) => {
         where: { clubEmail: email, status: "pending" },
       });
       if (existingPendingReqEmail) {
-        setFlash(req, "error", "A pending request with this email already exists.");
+        setFlash(
+          req,
+          "error",
+          "A pending request with this email already exists."
+        );
         return res.redirect("/signup");
       }
 
@@ -292,7 +317,11 @@ app.post("/signup", async (req, res) => {
         where: { clubName: normalizedClubName, status: "pending" },
       });
       if (existingPendingClubName) {
-        setFlash(req, "error", "A pending request with this club name already exists.");
+        setFlash(
+          req,
+          "error",
+          "A pending request with this club name already exists."
+        );
         return res.redirect("/signup");
       }
 
@@ -306,7 +335,11 @@ app.post("/signup", async (req, res) => {
         representativeName,
         status: "pending",
       });
-      setFlash(req, "message", "Your club request has been submitted. Please wait for admin approval.");
+      setFlash(
+        req,
+        "message",
+        "Your club request has been submitted. Please wait for admin approval."
+      );
       return res.redirect("/signup");
     } else {
       setFlash(req, "error", "Please select a role");
@@ -376,9 +409,10 @@ app.post("/login", async (req, res) => {
       profile_data: user.profile_data,
     };
     setFlash(req, "message", "Logged in successfully!");
-    if (user.role === "student") return res.redirect(`/student/${user.id}/home`);
+    if (user.role === "student")
+      return res.redirect(`/student/${user.id}/home`);
     else if (user.role === "club") return res.redirect(`/club/${user.id}`);
-    else if (user.role === "admin") return res.redirect(`/admin/${user.id}/dashboard`);
+    else if (user.role === "admin") return res.redirect(`/admin/dashboard`);
   } catch (err) {
     console.error(err);
     setFlash(req, "error", "Something went wrong!");
@@ -538,7 +572,8 @@ app.post("/admin/club-requests/:id/reject", requireLogin, async (req, res) => {
 
 // Admin view single club request detail
 app.get("/admin/club-requests/:id", requireLogin, async (req, res) => {
-  if (req.session.user.role !== "admin") return res.status(403).send("Forbidden");
+  if (req.session.user.role !== "admin")
+    return res.status(403).send("Forbidden");
   const clubRequest = await ClubRequest.findByPk(req.params.id);
   if (!clubRequest) return res.status(404).send("Club request not found");
   res.render("admin-club-request-detail", { clubRequest });
@@ -588,13 +623,13 @@ app.get("/student/:id/home", requireLogin, async (req, res) => {
   const thirtyDaysAgo = new Date(new Date().setDate(new Date().getDate() - 30));
 
   const formatPosts = (posts) => {
-    return posts.map(post => {
+    return posts.map((post) => {
       const postJSON = post.toJSON();
       return {
         ...postJSON,
         clubName: postJSON.club?.username,
         clubProfilePic: postJSON.club?.profile_data?.profilePic,
-        timeAgo: timeSince(new Date(postJSON.createdAt))
+        timeAgo: timeSince(new Date(postJSON.createdAt)),
       };
     });
   };
@@ -603,10 +638,12 @@ app.get("/student/:id/home", requireLogin, async (req, res) => {
     where: {
       status: "approved",
       createdAt: {
-        [Op.gte]: thirtyDaysAgo
-      }
+        [Op.gte]: thirtyDaysAgo,
+      },
     },
-    include: [{ model: User, as: 'club', attributes: ['username', 'profile_data'] }],
+    include: [
+      { model: User, as: "club", attributes: ["username", "profile_data"] },
+    ],
     order: [["createdAt", "DESC"]],
   });
   const allPosts = formatPosts(allPostsRaw);
@@ -617,10 +654,12 @@ app.get("/student/:id/home", requireLogin, async (req, res) => {
           status: "approved",
           clubId: subscribedClubIds,
           createdAt: {
-            [Op.gte]: thirtyDaysAgo
-          }
+            [Op.gte]: thirtyDaysAgo,
+          },
         },
-        include: [{ model: User, as: 'club', attributes: ['username', 'profile_data'] }],
+        include: [
+          { model: User, as: "club", attributes: ["username", "profile_data"] },
+        ],
         order: [["createdAt", "DESC"]],
       })
     : [];
@@ -632,8 +671,8 @@ app.get("/student/:id/home", requireLogin, async (req, res) => {
           status: "approved",
           clubId: subscribedClubIds,
           startsAt: {
-            [Op.gte]: new Date()
-          }
+            [Op.gte]: new Date(),
+          },
         },
         order: [["startsAt", "ASC"]],
       })
@@ -678,27 +717,31 @@ app.get("/club/:id", requireLogin, async (req, res) => {
   const completedEventsWithoutReports = await Event.findAll({
     where: {
       clubId: user.id,
-      status: 'approved',
+      status: "approved",
       endsAt: {
-        [require('sequelize').Op.lt]: new Date() 
-      }
+        [require("sequelize").Op.lt]: new Date(),
+      },
     },
-    include: [{
-      model: EventReport,
-      required: false,
-      as: 'report'
-    }]
+    include: [
+      {
+        model: EventReport,
+        required: false,
+        as: "report",
+      },
+    ],
   });
 
   // Filter events that don't have reports
-  const eventsNeedingReports = completedEventsWithoutReports.filter(event => !event.report);
+  const eventsNeedingReports = completedEventsWithoutReports.filter(
+    (event) => !event.report
+  );
 
-  res.render("clubProfile", { 
-    user, 
-    posts, 
-    events, 
+  res.render("clubProfile", {
+    user,
+    posts,
+    events,
     eventsNeedingReports,
-    pendingReportsCount: eventsNeedingReports.length
+    pendingReportsCount: eventsNeedingReports.length,
   });
 });
 // Browse clubs
@@ -714,7 +757,7 @@ app.get("/student/:id/clubs", requireLogin, async (req, res) => {
     where: { role: "club" },
     order: [["username", "ASC"]],
   });
-  
+
   // Get applications for this student
   const applications = await Application.findAll({
     where: {
@@ -724,14 +767,14 @@ app.get("/student/:id/clubs", requireLogin, async (req, res) => {
       },
     },
   });
-  
+
   const applicationMap = new Map();
-  applications.forEach(app => {
+  applications.forEach((app) => {
     applicationMap.set(app.clubId, {
       status: app.status,
       hasApplied: true,
-      isAccepted: app.status === 'accepted',
-      isPending: app.status === 'pending'
+      isAccepted: app.status === "accepted",
+      isPending: app.status === "pending",
     });
   });
 
@@ -741,15 +784,19 @@ app.get("/student/:id/clubs", requireLogin, async (req, res) => {
       c.username.toLowerCase().includes(q) ||
       (c.profile_data?.clubDescription || "").toLowerCase().includes(q)
   );
-  
+
   const decorated = filtered.map((c) => {
-    const appInfo = applicationMap.get(c.id) || { hasApplied: false, isAccepted: false, isPending: false };
+    const appInfo = applicationMap.get(c.id) || {
+      hasApplied: false,
+      isAccepted: false,
+      isPending: false,
+    };
     return {
       ...c.toJSON(),
-      ...appInfo
+      ...appInfo,
     };
   });
-  
+
   res.render("clubs", { user, clubs: decorated, q });
 });
 
@@ -900,8 +947,6 @@ app.post("/club/:id/posts/:postId/delete", requireLogin, async (req, res) => {
   res.redirect(`/club/${req.params.id}`);
 });
 
-
-
 // Club: show event creation form
 app.get("/club/:id/event/new", requireLogin, async (req, res) => {
   if (req.session.user.role !== "club" || req.session.user.id != req.params.id)
@@ -914,45 +959,53 @@ app.get("/club/:id/event/new", requireLogin, async (req, res) => {
   const completedEventsWithoutReports = await Event.findAll({
     where: {
       clubId: club.id,
-      status: 'approved',
+      status: "approved",
       endsAt: {
-        [require('sequelize').Op.lt]: new Date() // Events that have ended
-      }
+        [require("sequelize").Op.lt]: new Date(), // Events that have ended
+      },
     },
-    include: [{
-      model: EventReport,
-      required: false,
-      as: 'report'
-    }]
+    include: [
+      {
+        model: EventReport,
+        required: false,
+        as: "report",
+      },
+    ],
   });
 
   // Filter events that don't have reports
-  const eventsNeedingReports = completedEventsWithoutReports.filter(event => !event.report);
+  const eventsNeedingReports = completedEventsWithoutReports.filter(
+    (event) => !event.report
+  );
 
   if (eventsNeedingReports.length > 0) {
-    setFlash(req, "error", `You must submit reports for ${eventsNeedingReports.length} completed event(s) before creating a new event. Please complete the pending reports first.`);
+    setFlash(
+      req,
+      "error",
+      `You must submit reports for ${eventsNeedingReports.length} completed event(s) before creating a new event. Please complete the pending reports first.`
+    );
     return res.redirect(`/club/${club.id}`);
   }
 
-  res.render("eventForm", {        // file is now eventForm.ejs
+  res.render("eventForm", {
+    // file is now eventForm.ejs
     clubId: club.id,
     clubName: club.username,
     error: req.session.flash?.error || null,
 
     // these are the names used inside the value="..." attributes
-    advisorName: '',
-    advisorSignature: '',
-    advisorComments: '',
-    deanName: '',
-    deanSignature: '',
-    deanComments: '',
-    dsaName: '',
-    dsaSignature: '',
-    dsaComments: ''
+    advisorName: "",
+    advisorSignature: "",
+    advisorComments: "",
+    deanName: "",
+    deanSignature: "",
+    deanComments: "",
+    dsaName: "",
+    dsaSignature: "",
+    dsaComments: "",
   });
 });
 // Club: create event form
-
 
 app.post(
   "/club/:id/event/new",
@@ -960,12 +1013,15 @@ app.post(
   // === MULTER MIDDLEWARE FOR FILE UPLOADS ===
   upload.fields([
     { name: "reservationConfirmation", maxCount: 1 }, // Matches input name="reservationConfirmation"
-    { name: "eventProposalBudget", maxCount: 5 },    // Matches input name="eventProposalBudget"
-    { name: "speakerCV", maxCount: 1 },              // Matches input name="speakerCV"
+    { name: "eventProposalBudget", maxCount: 5 }, // Matches input name="eventProposalBudget"
+    { name: "speakerCV", maxCount: 1 }, // Matches input name="speakerCV"
   ]),
   async (req, res) => {
     // 1. Authorization check
-    if (req.session.user.role !== "club" || req.session.user.id != req.params.id) {
+    if (
+      req.session.user.role !== "club" ||
+      req.session.user.id != req.params.id
+    ) {
       setFlash(req, "error", "Unauthorized access.");
       return res.status(403).redirect(`/club/${req.params.id}`);
     }
@@ -974,21 +1030,29 @@ app.post(
     const completedEventsWithoutReports = await Event.findAll({
       where: {
         clubId: req.session.user.id,
-        status: 'approved',
+        status: "approved",
         endsAt: {
-          [require('sequelize').Op.lt]: new Date() // Events that have ended
-        }
+          [require("sequelize").Op.lt]: new Date(), // Events that have ended
+        },
       },
-      include: [{
-        model: EventReport,
-        required: false,
-        as: 'report'
-      }]
+      include: [
+        {
+          model: EventReport,
+          required: false,
+          as: "report",
+        },
+      ],
     });
 
-    const eventsNeedingReports = completedEventsWithoutReports.filter(event => !event.report);
+    const eventsNeedingReports = completedEventsWithoutReports.filter(
+      (event) => !event.report
+    );
     if (eventsNeedingReports.length > 0) {
-      setFlash(req, "error", `You must submit reports for ${eventsNeedingReports.length} completed event(s) before creating a new event. Please complete the pending reports first.`);
+      setFlash(
+        req,
+        "error",
+        `You must submit reports for ${eventsNeedingReports.length} completed event(s) before creating a new event. Please complete the pending reports first.`
+      );
       return res.redirect(`/club/${req.session.user.id}`);
     }
 
@@ -1006,20 +1070,20 @@ app.post(
         activityLocation,
         activityLocationOther,
         locationReserved, // radio button value 'Yes' or 'No'
-        activityGoals,    // Array from multiple text inputs
+        activityGoals, // Array from multiple text inputs
         targetAudience,
         expectedAttendees,
         activityRequests, // Array from multiple text inputs
-        hasSpeaker,       // radio button value 'Yes' or 'No'
-        speakerType,      // radio button value 'PSU Members' or 'Outside PSU'
+        hasSpeaker, // radio button value 'Yes' or 'No'
+        speakerType, // radio button value 'PSU Members' or 'Outside PSU'
         speakerNamePosition,
         officeCenterName,
         representativeName, // This is for collaboration rep, not club's main rep
         roleType,
-        requiredTasks,    // Array from multiple text inputs
-        memberName,       // Array from the dynamic table
-        memberID,         // Array from the dynamic table
-        memberMobile,     // Array from the dynamic table
+        requiredTasks, // Array from multiple text inputs
+        memberName, // Array from the dynamic table
+        memberID, // Array from the dynamic table
+        memberMobile, // Array from the dynamic table
         // These approval fields are usually updated by admin/advisor later,
         // but if you want to store what was submitted in the form:
         advisorName,
@@ -1030,43 +1094,50 @@ app.post(
         deanComments,
         dsaName,
         dsaSignature,
-        dsaComments
+        dsaComments,
       } = req.body;
 
       // 3. Process Uploaded Files (from req.files)
       const files = req.files;
-      const reservationConfirmationPath = files['reservationConfirmation'] && files['reservationConfirmation'][0]
-        ? '/uploads/' + files['reservationConfirmation'][0].filename
-        : null;
+      const reservationConfirmationPath =
+        files["reservationConfirmation"] && files["reservationConfirmation"][0]
+          ? "/uploads/" + files["reservationConfirmation"][0].filename
+          : null;
 
-      const eventProposalBudgetPaths = files['eventProposalBudget']
-        ? files['eventProposalBudget'].map(file => '/uploads/' + file.filename)
+      const eventProposalBudgetPaths = files["eventProposalBudget"]
+        ? files["eventProposalBudget"].map(
+            (file) => "/uploads/" + file.filename
+          )
         : [];
 
-      const speakerCVPath = files['speakerCV'] && files['speakerCV'][0]
-        ? '/uploads/' + files['speakerCV'][0].filename
-        : null;
+      const speakerCVPath =
+        files["speakerCV"] && files["speakerCV"][0]
+          ? "/uploads/" + files["speakerCV"][0].filename
+          : null;
 
       // 4. Combine/Process Data
-      const finalActivityType = activityType === 'Other' ? activityTypeOther : activityType;
-      const finalActivityLocation = activityLocation === 'OtherLocation' ? activityLocationOther : activityLocation;
+      const finalActivityType =
+        activityType === "Other" ? activityTypeOther : activityType;
+      const finalActivityLocation =
+        activityLocation === "OtherLocation"
+          ? activityLocationOther
+          : activityLocation;
 
-      const startsAtDateTime = startDate && startTime
-        ? new Date(`${startDate}T${startTime}`)
-        : null;
-      
-      const endsAtDateTime = endDate && endTime
-        ? new Date(`${endDate}T${endTime}`)
-        : null;
+      const startsAtDateTime =
+        startDate && startTime ? new Date(`${startDate}T${startTime}`) : null;
+
+      const endsAtDateTime =
+        endDate && endTime ? new Date(`${endDate}T${endTime}`) : null;
 
       // Prepare responsible members data (array of objects)
-      const responsibleMembers = (memberName && memberID && memberMobile)
-        ? memberName.map((name, index) => ({
-            name: name,
-            id: memberID[index],
-            mobile: memberMobile[index]
-          }))
-        : [];
+      const responsibleMembers =
+        memberName && memberID && memberMobile
+          ? memberName.map((name, index) => ({
+              name: name,
+              id: memberID[index],
+              mobile: memberMobile[index],
+            }))
+          : [];
 
       // Combine description from various fields (if you still want a single description field)
       const combinedDescription = `
@@ -1075,30 +1146,49 @@ app.post(
         **Expected Attendees:** ${expectedAttendees}
 
         **Goals:**
-        ${Array.isArray(activityGoals) && activityGoals.some(g => g.trim() !== '')
-          ? activityGoals.filter(g => g.trim() !== '').map((g, i) => `  - ${g}`).join('\n')
-          : '  - None specified'}
+        ${
+          Array.isArray(activityGoals) &&
+          activityGoals.some((g) => g.trim() !== "")
+            ? activityGoals
+                .filter((g) => g.trim() !== "")
+                .map((g, i) => `  - ${g}`)
+                .join("\n")
+            : "  - None specified"
+        }
 
         **Requests:**
-        ${Array.isArray(activityRequests) && activityRequests.some(r => r.trim() !== '')
-          ? activityRequests.filter(r => r.trim() !== '').map((r, i) => `  - ${r}`).join('\n')
-          : '  - None specified'}
+        ${
+          Array.isArray(activityRequests) &&
+          activityRequests.some((r) => r.trim() !== "")
+            ? activityRequests
+                .filter((r) => r.trim() !== "")
+                .map((r, i) => `  - ${r}`)
+                .join("\n")
+            : "  - None specified"
+        }
 
-        ${officeCenterName
-          ? `**Organizing with:** ${officeCenterName} (Representative: ${representativeName}, Role: ${roleType})
+        ${
+          officeCenterName
+            ? `**Organizing with:** ${officeCenterName} (Representative: ${representativeName}, Role: ${roleType})
            **Required Tasks:**
-           ${Array.isArray(requiredTasks) && requiredTasks.some(t => t.trim() !== '')
-             ? requiredTasks.filter(t => t.trim() !== '').map((t, i) => `  - ${t}`).join('\n')
-             : '  - None specified'}`
-          : ''}
+           ${
+             Array.isArray(requiredTasks) &&
+             requiredTasks.some((t) => t.trim() !== "")
+               ? requiredTasks
+                   .filter((t) => t.trim() !== "")
+                   .map((t, i) => `  - ${t}`)
+                   .join("\n")
+               : "  - None specified"
+           }`
+            : ""
+        }
       `.trim();
-
 
       // 5. Create the Event in the database
       await Event.create({
         clubId: req.session.user.id,
-        title: activityName, 
-        description: combinedDescription, 
+        title: activityName,
+        description: combinedDescription,
         location: finalActivityLocation,
         startsAt: startsAtDateTime,
         endsAt: endsAtDateTime,
@@ -1106,20 +1196,24 @@ app.post(
         status: "pending",
         activityType: finalActivityType,
         targetAudience: targetAudience,
-        expectedAttendees: expectedAttendees ? parseInt(expectedAttendees) : null,
+        expectedAttendees: expectedAttendees
+          ? parseInt(expectedAttendees)
+          : null,
         reservationConfirmationFile: reservationConfirmationPath,
-        eventProposalBudgetFiles: eventProposalBudgetPaths, 
-        hasSpeaker: hasSpeaker === 'Yes',
-        speakerType: hasSpeaker === 'Yes' ? speakerType : null,
-        speakerNamePosition: hasSpeaker === 'Yes' ? speakerNamePosition : null,
+        eventProposalBudgetFiles: eventProposalBudgetPaths,
+        hasSpeaker: hasSpeaker === "Yes",
+        speakerType: hasSpeaker === "Yes" ? speakerType : null,
+        speakerNamePosition: hasSpeaker === "Yes" ? speakerNamePosition : null,
         speakerCVFile: speakerCVPath,
         officeCenterName: officeCenterName || null,
-        representativeNameOffice: representativeName || null, 
+        representativeNameOffice: representativeName || null,
         roleType: roleType || null,
-        requiredTasks: Array.isArray(requiredTasks) && requiredTasks.some(t => t.trim() !== '')
-          ? requiredTasks.filter(t => t.trim() !== '')
-          : [], 
-        responsibleMembers: responsibleMembers, 
+        requiredTasks:
+          Array.isArray(requiredTasks) &&
+          requiredTasks.some((t) => t.trim() !== "")
+            ? requiredTasks.filter((t) => t.trim() !== "")
+            : [],
+        responsibleMembers: responsibleMembers,
         // clubAdvisorNameSubmitted: advisorName,
         // clubAdvisorSignatureSubmitted: advisorSignature,
         // clubAdvisorCommentsSubmitted: advisorComments,
@@ -1131,12 +1225,19 @@ app.post(
         // dsaCommentsSubmitted: dsaComments,
       });
 
-      setFlash(req, "message", "Event request submitted successfully and is awaiting approval!");
+      setFlash(
+        req,
+        "message",
+        "Event request submitted successfully and is awaiting approval!"
+      );
       res.redirect(`/club/${req.session.user.id}`);
-
     } catch (err) {
       console.error("Error creating event:", err);
-      setFlash(req, "error", "Failed to submit event request. Please try again.");
+      setFlash(
+        req,
+        "error",
+        "Failed to submit event request. Please try again."
+      );
       // You might want to pass existing form data back to the template if you re-render on error
       // For now, redirecting to the club profile on error.
       res.redirect(`/club/${req.session.user.id}`);
@@ -1239,7 +1340,7 @@ app.post(
     { name: "attendanceSheet", maxCount: 5 },
     { name: "receiptsAndLiquidation", maxCount: 5 },
     { name: "activityProposal", maxCount: 5 },
-    { name: "supportingDocuments", maxCount: 10 }
+    { name: "supportingDocuments", maxCount: 10 },
   ]),
   async (req, res) => {
     if (
@@ -1261,16 +1362,26 @@ app.post(
         participatingStudents,
         numberOfAttendance,
         evaluationResults,
-        recommendations
+        recommendations,
       } = req.body;
 
       // Process uploaded files
       const files = req.files;
-      const photos = files['photos'] ? files['photos'].map(f => '/uploads/' + f.filename) : [];
-      const attendanceSheet = files['attendanceSheet'] ? files['attendanceSheet'].map(f => '/uploads/' + f.filename) : [];
-      const receiptsAndLiquidation = files['receiptsAndLiquidation'] ? files['receiptsAndLiquidation'].map(f => '/uploads/' + f.filename) : [];
-      const activityProposal = files['activityProposal'] ? files['activityProposal'].map(f => '/uploads/' + f.filename) : [];
-      const supportingDocuments = files['supportingDocuments'] ? files['supportingDocuments'].map(f => '/uploads/' + f.filename) : [];
+      const photos = files["photos"]
+        ? files["photos"].map((f) => "/uploads/" + f.filename)
+        : [];
+      const attendanceSheet = files["attendanceSheet"]
+        ? files["attendanceSheet"].map((f) => "/uploads/" + f.filename)
+        : [];
+      const receiptsAndLiquidation = files["receiptsAndLiquidation"]
+        ? files["receiptsAndLiquidation"].map((f) => "/uploads/" + f.filename)
+        : [];
+      const activityProposal = files["activityProposal"]
+        ? files["activityProposal"].map((f) => "/uploads/" + f.filename)
+        : [];
+      const supportingDocuments = files["supportingDocuments"]
+        ? files["supportingDocuments"].map((f) => "/uploads/" + f.filename)
+        : [];
 
       // Create the report
       await EventReport.create({
@@ -1296,7 +1407,13 @@ app.post(
         // Legacy fields for backward compatibility
         summary: activityDescription,
         attendeesCount: parseInt(numberOfAttendance) || 0,
-        attachments: [...photos, ...attendanceSheet, ...receiptsAndLiquidation, ...activityProposal, ...supportingDocuments]
+        attachments: [
+          ...photos,
+          ...attendanceSheet,
+          ...receiptsAndLiquidation,
+          ...activityProposal,
+          ...supportingDocuments,
+        ],
       });
 
       setFlash(req, "message", "Event report submitted successfully!");
@@ -1350,7 +1467,7 @@ app.post(
             .send("Invalid CV file type. Upload PDF or Word document");
       }
 
-      if (user.role === "student") {
+      if (user.role === "student" || user.role === "admin") {
         const { fullName, bio, phone, linkedin } = req.body;
 
         // normalize existing stored paths to web paths under /uploads
@@ -1433,10 +1550,13 @@ app.post(
         username: user.username,
         profile_data: user.profile_data,
       };
-
-      res.redirect(
-        user.role === "student" ? `/student/${user.id}` : `/club/${user.id}`
-      );
+      if (user.role === "student") {
+        res.redirect(`/student/${user.id}`);
+      } else if (user.role === "club") {
+        res.redirect(`/club/${user.id}`);
+      } else {
+        res.redirect(`/admin/dashboard`);
+      }
     } catch (err) {
       console.error(err);
       res.send("Something went wrong!");
@@ -1445,8 +1565,8 @@ app.post(
 );
 
 // ===== Admin Profile =====
-app.get("/admin/:id/dashboard", requireLogin, async (req, res) => {
-  const user = await User.findByPk(req.params.id);
+app.get("/admin/dashboard", requireLogin, async (req, res) => {
+  const user = await User.findByPk(req.session.user.id);
   if (!user || user.role !== "admin")
     return res.status(404).send("Admin not found");
 
@@ -1475,8 +1595,8 @@ app.get("/admin/reports", requireLogin, async (req, res) => {
     return res.status(403).send("Forbidden");
   const reports = await EventReport.findAll({
     include: [
-      { model: Event, as: 'event' },
-      { model: User, as: 'club', attributes: ['id', 'username', 'email'] }
+      { model: Event, as: "event" },
+      { model: User, as: "club", attributes: ["id", "username", "email"] },
     ],
     order: [["createdAt", "DESC"]],
   });
@@ -1484,8 +1604,8 @@ app.get("/admin/reports", requireLogin, async (req, res) => {
 });
 
 // Admin Profile Settings Page
-app.get("/admin/:id/settings", requireLogin, async (req, res) => {
-  const user = await User.findByPk(req.params.id);
+app.get("/admin/settings", requireLogin, async (req, res) => {
+  const user = await User.findByPk(req.session.user.id);
   if (!user || user.role !== "admin")
     return res.status(404).send("Admin not found");
   res.render("adminProfileSettings", { user });
@@ -1555,14 +1675,8 @@ app.post(
     if (!club || club.role !== "club")
       return res.status(404).send("Club not found");
 
-    const {
-      studentName,
-      gender,
-      major,
-      academicYear,
-      skills,
-      motivation,
-    } = req.body;
+    const { studentName, gender, major, academicYear, skills, motivation } =
+      req.body;
 
     // Check if student already applied to this club
     const existingApplication = await Application.findOne({
@@ -1635,7 +1749,7 @@ app.get("/club/:clubId/applications", requireLogin, async (req, res) => {
     return res.status(404).send("Club not found");
 
   const applications = await Application.findAll({
-    where: { clubId: req.params.clubId, status: "pending" }
+    where: { clubId: req.params.clubId, status: "pending" },
   });
 
   res.render("clubApplications", { applications, user });
@@ -1688,7 +1802,7 @@ app.post(
   try {
     await sequelize.authenticate();
     console.log("Database connected!");
-    await sequelize.sync({ alter:true});
+    await sequelize.sync({ alter: true });
     console.log("All models synced!");
 
     // Seed default admin

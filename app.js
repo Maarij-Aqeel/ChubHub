@@ -616,10 +616,10 @@ app.get("/student/:id/home", requireLogin, async (req, res) => {
   if (!user || user.role !== "student")
     return res.status(404).send("Student not found");
 
-  const applications = await Application.findAll({
-    where: { studentId: user.id, status: "accepted" },
+  const subscriptions = await Subscription.findAll({
+    where: { studentId: user.id },
   });
-  const subscribedClubIds = applications.map((a) => a.clubId);
+  const subscribedClubIds = subscriptions.map((s) => s.clubId);
   const thirtyDaysAgo = new Date(new Date().setDate(new Date().getDate() - 30));
 
   const formatPosts = (posts) => {
@@ -792,6 +792,16 @@ app.get("/student/:id/clubs", requireLogin, async (req, res) => {
     });
   });
 
+  // Get subscriptions for this student
+  const subscriptions = await Subscription.findAll({
+    where: { studentId: user.id },
+  });
+
+  const subscriptionMap = new Map();
+  subscriptions.forEach((sub) => {
+    subscriptionMap.set(sub.clubId, true);
+  });
+
   const filtered = clubs.filter(
     (c) =>
       !q ||
@@ -805,9 +815,11 @@ app.get("/student/:id/clubs", requireLogin, async (req, res) => {
       isAccepted: false,
       isPending: false,
     };
+    const isSubscribed = subscriptionMap.get(c.id) || false;
     return {
       ...c.toJSON(),
       ...appInfo,
+      isSubscribed,
     };
   });
 
@@ -826,6 +838,19 @@ app.post(
     const club = await User.findByPk(req.params.clubId);
     if (!club || club.role !== "club")
       return res.status(404).send("Club not found");
+
+    // Check if student is a member (has accepted application)
+    const membership = await Application.findOne({
+      where: {
+        studentId: req.session.user.id,
+        clubId: club.id,
+        status: "accepted",
+      },
+    });
+    if (!membership) {
+      return res.status(403).send("You must be a member to subscribe to notifications.");
+    }
+
     await Subscription.findOrCreate({
       where: { studentId: req.session.user.id, clubId: club.id },
     });
@@ -1793,6 +1818,11 @@ app.post(
 
     app.status = "accepted";
     await app.save();
+
+    // Auto-subscribe the student to notifications for this club
+    await Subscription.findOrCreate({
+      where: { studentId: app.studentId, clubId: app.clubId },
+    });
 
     res.redirect(`/club/${req.params.clubId}/applications`);
   }

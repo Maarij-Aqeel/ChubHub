@@ -648,12 +648,29 @@
             </div>
             <div class="card-footer">
               <% if (c.isAccepted) { %>
-                <form id="leaveForm-<%= c.id %>" action="/student/<%= user.id %>/leave/<%= c.id %>" method="POST" style="display:inline;">
-                  <button type="button" class="btn secondary" onclick="confirmLeave('<%= c.id %>', '<%= c.username %>')">
-                    <i class="fas fa-sign-out-alt"></i>
-                    Leave Club
-                  </button>
-                </form>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                  <% if (c.isSubscribed) { %>
+                    <form action="/student/<%= user.id %>/clubs/<%= c.id %>/unsubscribe" method="POST" style="display:inline;">
+                      <button type="submit" class="btn" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); font-size: 0.85rem;">
+                        <i class="fas fa-bell-slash"></i>
+                        Unsubscribe
+                      </button>
+                    </form>
+                  <% } else { %>
+                    <form action="/student/<%= user.id %>/clubs/<%= c.id %>/subscribe" method="POST" style="display:inline;">
+                      <button type="submit" class="btn" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); font-size: 0.85rem;">
+                        <i class="fas fa-bell"></i>
+                        Subscribe
+                      </button>
+                    </form>
+                  <% } %>
+                  <form id="leaveForm-<%= c.id %>" action="/student/<%= user.id %>/leave/<%= c.id %>" method="POST" style="display:inline;">
+                    <button type="button" class="btn secondary" onclick="confirmLeave('<%= c.id %>', '<%= c.username %>')" style="font-size: 0.85rem;">
+                      <i class="fas fa-sign-out-alt"></i>
+                      Leave Club
+                    </button>
+                  </form>
+                </div>
               <% } else if (c.hasApplied) { %>
                 <button class="btn" style="background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);" disabled>
                   <i class="fas fa-clock"></i>

@@ -8,6 +8,8 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
+  <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css' rel='stylesheet' />
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
     <link rel="stylesheet" href="/css/adminprofile.css" />
   </head>
   <body>
@@ -24,10 +26,14 @@
           <i class="fas fa-shield-halved"></i>
           <span>Admin Portal</span>
         </div>
-        <a href="/admin/dashboard">
+        <button onclick="showSection('dashboard')" class="nav-link active" id="nav-dashboard">
           <i class="fas fa-home"></i>
           <span>Dashboard</span>
-        </a>
+        </button>
+        <button onclick="showSection('calendar')" class="nav-link" id="nav-calendar">
+          <i class="fas fa-calendar-alt"></i>
+          <span>Calendar</span>
+        </button>
         <a href="/admin/reports">
           <i class="fas fa-chart-line"></i>
           <span>Reports</span>
@@ -45,88 +51,80 @@
       </a>
     </div>
 
-    <div class="profile-container">
-      <!-- Banner & Profile Picture -->
-      <div class="banner-section">
-        <div class="banner"></div>
-        <div class="profile-pic">
-          <img
-            src="<%= user.profile_data.profilePic %>"
-            alt="Profile Picture"
-          />
-        </div>
-      </div>
-
-      <!-- Admin Details -->
-      <div class="admin-details">
-        <h2>
-          <%= user.username %>
-          <span class="admin-badge">Administrator</span>
-        </h2>
-        <p>
-          <i class="fas fa-envelope"></i>
-          <%= user.email %>
-        </p>
-
-        <!-- Stats -->
-        <div class="stats">
-          <div class="stat-card">
-            <div class="stat-icon">
-              <i class="fas fa-user-graduate"></i>
-            </div>
-            <h3><%= stats.students %></h3>
-            <p>Students</p>
+    <div class="container">
+      <!-- Page Header -->
+      <div class="page-header">
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%); display: flex; align-items: center; justify-content: center; font-size: 3rem; border: 4px solid #FFFFFF; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <% if (user.profile_data?.profilePic) { %>
+              <img src="<%= user.profile_data.profilePic %>" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+            <% } else { %>
+              👤️
+            <% } %>
           </div>
-          <div class="stat-card">
-            <div class="stat-icon">
-              <i class="fas fa-users"></i>
-            </div>
-            <h3><%= stats.clubs %></h3>
-            <p>Clubs</p>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon">
-              <i class="fas fa-newspaper"></i>
-            </div>
-            <h3><%= stats.posts %></h3>
-            <p>Posts</p>
+          <div>
+            <h1 style="font-size: 2rem; font-weight: 700; color: #1E3A8A; margin-bottom: 0.5rem;"><%= user.username %></h1>
+            <p style="color: #6B7280;"><%= user.email %></p>
           </div>
         </div>
       </div>
 
-      <!-- Management Section -->
-      <div class="management">
-        <div class="section-header">
-          <i class="fas fa-tasks"></i>
-          <h3>Quick Management</h3>
+      <!-- Dashboard Section -->
+      <div id="dashboard" class="content-section active">
+        <div class="dashboard-grid">
+          <div class="stat-card">
+            <div class="stat-label">
+              <i class="fas fa-user-graduate"></i> Total Students
+            </div>
+            <div class="stat-value"><%= stats.students %></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">
+              <i class="fas fa-users"></i> Total Clubs
+            </div>
+            <div class="stat-value"><%= stats.clubs %></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">
+              <i class="fas fa-newspaper"></i> Total Posts
+            </div>
+            <div class="stat-value"><%= stats.posts %></div>
+          </div>
         </div>
-        <div class="manage-buttons">
-          <a href="/admin/club-requests">
-            <button class="warning">
-              <i class="fas fa-user-clock"></i>
-              <span>Pending Club Requests</span>
-            </button>
-          </a>
-          <a href="/admin/posts">
-            <button class="warning">
-              <i class="fas fa-file-circle-check"></i>
-              <span>Pending Posts</span>
-            </button>
-          </a>
-          <a href="/admin/events">
-            <button class="warning">
-              <i class="fas fa-calendar-check"></i>
-              <span>Pending Events</span>
-            </button>
-          </a>
-        </div>
-      </div>
 
-      <!-- Recent Actions -->
-      <div class="recent-actions">
-        <div class="section-header">
-          <i class="fas fa-history"></i>
-          <h3>Recent Actions</h3>
+        <!-- Management Section -->
+        <div class="management">
+          <div class="section-header">
+            <i class="fas fa-tasks"></i>
+            <h3>Quick Management</h3>
+          </div>
+          <div class="manage-buttons">
+            <a href="/admin/club-requests">
+              <button class="warning">
+                <i class="fas fa-user-clock"></i>
+                <span>Pending Club Requests</span>
+              </button>
+            </a>
+            <a href="/admin/posts">
+              <button class="warning">
+                <i class="fas fa-file-circle-check"></i>
+                <span>Pending Posts</span>
+              </button>
+            </a>
+            <a href="/admin/events">
+              <button class="warning">
+                <i class="fas fa-calendar-check"></i>
+                <span>Pending Events</span>
+              </button>
+            </a>
+          </div>
+        </div>
+
+        <!-- Recent Actions -->
+        <div class="recent-actions">
+          <div class="section-header">
+            <i class="fas fa-history"></i>
+            <h3>Recent Actions</h3>
         </div>
         <% if (recentLogs && recentLogs.length) { %>
           <% recentLogs.forEach(log => { %>
@@ -153,9 +151,38 @@
           <p>Your activity log will appear here.</p>
         </div>
         <% } %>
+        </div>
+      </div>
+
+      <!-- Calendar Section -->
+      <div id="calendar" class="content-section">
+        <div id='admin-calendar' style="background: #FFFFFF; border-radius: 16px; padding: 2rem; box-shadow: 0 2px 12px rgba(0,0,0,0.08);"></div>
       </div>
     </div>
+
+    <script id="admin-events-data" type="application/json"><%- JSON.stringify(allEvents) %></script>
+
     <script>
+      function showSection(sectionName) {
+        // Hide all sections
+        const sections = document.querySelectorAll('.content-section');
+        sections.forEach(sec => sec.classList.remove('active'));
+
+        // Remove active class from all nav links
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => link.classList.remove('active'));
+
+        // Show selected section
+        document.getElementById(sectionName).classList.add('active');
+
+        // Add active class to clicked nav button
+        event.target.classList.add('active');
+
+        if(sectionName === 'calendar') {
+          initAdminCalendar();
+        }
+      }
+
       window.addEventListener("DOMContentLoaded", function () {
         const flash = JSON.parse(
           document.getElementById("flash-data").dataset.flash || "{}"
@@ -167,6 +194,48 @@
           );
         }
       });
+
+      function initAdminCalendar() {
+        const calendarEl = document.getElementById('admin-calendar');
+        if (!calendarEl) return;
+        if (calendarEl._calendar) return;
+
+        const rawAdminEvents = JSON.parse(document.getElementById('admin-events-data').textContent);
+        const events = rawAdminEvents.map(e => ({
+          title: `[${e.status}] ${e.title}`,
+          start: e.startsAt,
+          end: e.endsAt,
+          backgroundColor: e.status === 'approved' ? '#10b981' : e.status === 'rejected' ? '#ef4444' : '#f59e0b',
+          extendedProps: {
+            description: e.description,
+            location: e.location,
+            activityType: e.activityType,
+            targetAudience: e.targetAudience,
+            status: e.status,
+            clubName: e.club ? e.club.username : 'Unknown'
+          }
+        }));
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth',
+          events: events,
+          eventClick: function(info) {
+            const props = info.event.extendedProps;
+            const startTime = new Date(info.event.start).toLocaleString();
+            const endTime = info.event.end ? new Date(info.event.end).toLocaleString() : 'TBD';
+            alert(`Event: ${info.event.title}\nStatus: ${props.status}\nStart: ${startTime}\nEnd: ${endTime}\nLocation: ${props.location || 'TBD'}\nActivity Type: ${props.activityType || 'N/A'}\nTarget Audience: ${props.targetAudience || 'N/A'}\nClub: ${props.clubName}\nDescription: ${props.description || 'N/A'}`);
+          },
+          headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          },
+          height: 'auto'
+        });
+
+        calendar.render();
+        calendarEl._calendar = calendar;
+      }
       function showToast(msg, type) {
         const container = document.getElementById("toast-container");
         const toast = document.createElement("div");
@@ -218,6 +287,48 @@
       }
       .toast-success {
         background: #16a34a;
+      }
+    </style>
+    <style>
+      .nav-link {
+        color: #FFFFFF;
+        text-decoration: none;
+        font-weight: 600;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        padding: 0.5rem 1.5rem;
+        border-radius: 8px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+      }
+
+      .nav-link:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-1px);
+      }
+
+      .nav-link.active {
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      }
+
+      .content-section {
+        display: none;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      .content-section.active {
+        display: block;
       }
     </style>
   </body>

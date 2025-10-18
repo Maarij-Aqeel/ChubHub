@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Club Hub - Club Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css' rel='stylesheet' />
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
   <style>
     /* ===== Reset & Base ===== */
     * { 
@@ -732,8 +734,12 @@
           <span>Dashboard</span>
         </button>
         <button class="tab" onclick="switchTab('events')">
-          <i class="fas fa-calendar-alt"></i>
+          <i class="fas fa-list"></i>
           <span>Events</span>
+        </button>
+        <button class="tab" onclick="switchTab('calendar')">
+          <i class="fas fa-calendar-alt"></i>
+          <span>Calendar</span>
         </button>
         <button class="tab" onclick="switchTab('posts')">
           <i class="fas fa-newspaper"></i>
@@ -912,6 +918,11 @@
             <p>Create your first event to bring your community together!</p>
           </div>
         <% } %>
+      </div>
+
+      <!-- Calendar Tab -->
+      <div id="calendar" class="tab-content">
+        <div id='club-calendar' style="background: #FFFFFF; border-radius: 16px; padding: 2rem; box-shadow: 0 2px 12px rgba(0,0,0,0.08);"></div>
       </div>
 
       <!-- Posts Tab -->
@@ -1156,6 +1167,8 @@
     </div>
   </div>
 
+  <script id="club-events-data" type="application/json"><%- JSON.stringify(events) %></script>
+
   <script>
     const editModal = document.getElementById('editModal');
     const postModal = document.getElementById('postModal');
@@ -1174,6 +1187,10 @@
 
       // Add active class to clicked tab
       event.target.closest('.tab').classList.add('active');
+
+      if(tabName === 'calendar') {
+        initClubCalendar();
+      }
     }
 
     function openEditModal() { editModal.style.display = 'flex'; }
@@ -1181,6 +1198,52 @@
 
     function openPostModal() { postModal.style.display = 'flex'; }
     function closePostModal() { postModal.style.display = 'none'; }
+
+    function initClubCalendar() {
+      const calendarEl = document.getElementById('club-calendar');
+      if (!calendarEl) return;
+
+      // Check if calendar is already initialized
+      if (calendarEl._calendar) {
+        calendarEl._calendar.updateSize(); // Adjust size if already initialized
+        return;
+      }
+
+      const rawClubEvents = JSON.parse(document.getElementById('club-events-data').textContent);
+      const events = rawClubEvents.map(e => ({
+        title: e.title,
+        start: e.startsAt,
+        end: e.endsAt,
+        extendedProps: {
+          description: e.description,
+          location: e.location,
+          activityType: e.activityType,
+          targetAudience: e.targetAudience,
+          status: e.status,
+          clubName: '<%= user.profile_data?.clubName || user.username %>'
+        }
+      }));
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        events: events,
+        eventClick: function(info) {
+          const props = info.event.extendedProps;
+          const startTime = new Date(info.event.start).toLocaleString();
+          const endTime = info.event.end ? new Date(info.event.end).toLocaleString() : 'TBD';
+          alert(`Event: ${info.event.title}\nStatus: ${props.status}\nStart: ${startTime}\nEnd: ${endTime}\nLocation: ${props.location || 'TBD'}\nActivity Type: ${props.activityType || 'N/A'}\nTarget Audience: ${props.targetAudience || 'N/A'}\nClub: ${props.clubName}\nDescription: ${props.description || 'N/A'}`);
+        },
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        height: 'auto'
+      });
+
+      calendar.render();
+      calendarEl._calendar = calendar;
+    }
 
     function showReportNotification() {
       showToast('You must submit reports for completed events before creating new events. Please complete the pending reports first.', 'error');

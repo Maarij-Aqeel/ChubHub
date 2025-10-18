@@ -678,11 +678,25 @@ app.get("/student/:id/home", requireLogin, async (req, res) => {
       })
     : [];
 
+  const allUpcomingEvents = await Event.findAll({
+    where: {
+      status: "approved",
+      startsAt: {
+        [Op.gte]: new Date(),
+      },
+    },
+    include: [
+      { model: User, as: "club", attributes: ["username", "profile_data"] },
+    ],
+    order: [["startsAt", "ASC"]],
+  });
+
   res.render("homepage", {
     user,
     allPosts,
     subPosts,
     upcomingSubscribedEvents,
+    allUpcomingEvents,
   });
 });
 
@@ -1578,6 +1592,13 @@ app.get("/admin/dashboard", requireLogin, async (req, res) => {
     limit: 10,
   });
 
+  const allEvents = await Event.findAll({
+    include: [
+      { model: User, as: "club", attributes: ["username", "profile_data"] },
+    ],
+    order: [["startsAt", "ASC"]],
+  });
+
   res.render("adminProfile", {
     user,
     stats: {
@@ -1586,6 +1607,7 @@ app.get("/admin/dashboard", requireLogin, async (req, res) => {
       posts: postsCount,
     },
     recentLogs,
+    allEvents,
   });
 });
 

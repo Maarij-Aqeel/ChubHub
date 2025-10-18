@@ -111,9 +111,8 @@
           <div class="modal-club"></div>
         </div>
         <div class="modal-body">
-          <p id="modalDescription"></p>
           <div class="modal-details" id="modalDetails">
-            
+
           </div>
         </div>
         <div class="modal-actions">
@@ -153,8 +152,6 @@ document.querySelectorAll(".event-card.clickable").forEach(card => {
     document.getElementById("modalTitle").textContent = event.title;
     document.querySelector(".modal-club").textContent =
       event.club?.username || "Unknown Club";
-    document.getElementById("modalDescription").textContent =
-      event.description || "No description available.";
  // ----- helper -----
     const cleanList = (str) =>
       (str || '')

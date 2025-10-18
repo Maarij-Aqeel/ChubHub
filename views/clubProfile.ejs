@@ -865,29 +865,44 @@
                   </button>
                 </form>
               </div>
-              <% if (event.description) { %>
-                <div class="feed-content"><%= event.description %></div>
-              <% } %>
-              <div class="event-info">
-                <% if (event.location) { %>
-                  <div class="event-info-item">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span><strong>Location:</strong> <%= event.location %></span>
-                  </div>
-                <% } %>
-                <% if (event.startsAt) { %>
-                  <div class="event-info-item">
-                    <i class="fas fa-calendar-day"></i>
-                    <span><strong>Starts:</strong> <%= new Date(event.startsAt).toLocaleString() %></span>
-                  </div>
-                <% } %>
-                <% if (event.endsAt) { %>
-                  <div class="event-info-item">
-                    <i class="fas fa-calendar-times"></i>
-                    <span><strong>Ends:</strong> <%= new Date(event.endsAt).toLocaleString() %></span>
-                  </div>
-                <% } %>
-              </div>
+      <div class="event-info">
+        <% if (event.activityType) { %>
+          <div class="event-info-item">
+            <i class="fas fa-cubes"></i>
+            <span><strong>Activity Type:</strong> <%= event.activityType %></span>
+          </div>
+        <% } %>
+        <% if (event.targetAudience) { %>
+          <div class="event-info-item">
+            <i class="fas fa-users"></i>
+            <span><strong>Target Audience:</strong> <%= event.targetAudience %></span>
+          </div>
+        <% } %>
+        <% if (event.expectedAttendees) { %>
+          <div class="event-info-item">
+            <i class="fas fa-user-check"></i>
+            <span><strong>Expected Attendees:</strong> <%= event.expectedAttendees %></span>
+          </div>
+        <% } %>
+        <% if (event.location) { %>
+          <div class="event-info-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <span><strong>Location:</strong> <%= event.location %></span>
+          </div>
+        <% } %>
+        <% if (event.startsAt) { %>
+          <div class="event-info-item">
+            <i class="fas fa-calendar-day"></i>
+            <span><strong>Starts:</strong> <%= new Date(event.startsAt).toLocaleString() %></span>
+          </div>
+        <% } %>
+        <% if (event.endsAt) { %>
+          <div class="event-info-item">
+            <i class="fas fa-calendar-times"></i>
+            <span><strong>Ends:</strong> <%= new Date(event.endsAt).toLocaleString() %></span>
+          </div>
+        <% } %>
+      </div>
             </div>
           <% }) %>
         <% } else { %>

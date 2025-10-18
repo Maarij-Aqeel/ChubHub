@@ -306,9 +306,31 @@
       color: #374151;
       font-weight: 500;
     }
-    
+
     .event-location i {
       color: #2563EB;
+    }
+
+    .event-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    .event-info-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #F3F4F6;
+      padding: 0.75rem;
+      border-radius: 6px;
+    }
+
+    .event-info-item i {
+      color: #2563EB;
+      width: 20px;
+      text-align: center;
     }
 
     /* ===== Button Styles ===== */
@@ -520,21 +542,38 @@
                 <span><i class="far fa-calendar"></i> <%= e.startsAt ? new Date(e.startsAt).toLocaleString() : '' %></span>
               </div>
             </div>
-            <div class="post-content">
-              <% if (e.description) { %><p><%= e.description %></p><% } %>
-              <% if (e.location) { %>
-                <div class="event-location">
-                  <i class="fas fa-map-marker-alt"></i>
-                  <span><%= e.location %></span>
+            <div class="event-info">
+              <% if (e.activityType) { %>
+                <div class="event-info-item">
+                  <i class="fas fa-cubes"></i>
+                  <span><strong>Activity Type:</strong> <%= e.activityType %></span>
                 </div>
               <% } %>
-              <form method="POST" action="/student/<%= user.id %>/events/<%= e.id %>/rsvp" style="margin-top:1rem;">
-                <input type="hidden" name="status" value="going"/>
-                <button class="btn" type="submit">
-                  <i class="fas fa-check-circle"></i> RSVP Going
-                </button>
-              </form>
+              <% if (e.targetAudience) { %>
+                <div class="event-info-item">
+                  <i class="fas fa-users"></i>
+                  <span><strong>Target Audience:</strong> <%= e.targetAudience %></span>
+                </div>
+              <% } %>
+              <% if (e.expectedAttendees) { %>
+                <div class="event-info-item">
+                  <i class="fas fa-user-check"></i>
+                  <span><strong>Expected Attendees:</strong> <%= e.expectedAttendees %></span>
+                </div>
+              <% } %>
+              <% if (e.location) { %>
+                <div class="event-info-item">
+                  <i class="fas fa-map-marker-alt"></i>
+                  <span><strong>Location:</strong> <%= e.location %></span>
+                </div>
+              <% } %>
             </div>
+            <form method="POST" action="/student/<%= user.id %>/events/<%= e.id %>/rsvp" style="margin-top:1rem;">
+              <input type="hidden" name="status" value="going"/>
+              <button class="btn" type="submit">
+                <i class="fas fa-check-circle"></i> RSVP Going
+              </button>
+            </form>
           </div>
         <% }) %>
       <% } else { %>

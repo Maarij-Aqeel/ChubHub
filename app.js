@@ -62,10 +62,18 @@ try {
 } catch (e) {
   console.warn("Association setup warning (Post→User):", e?.message || e);
 }
+
+// Subscription → Student(User)
+try {
+  Subscription.belongsTo(User, { as: "student", foreignKey: "studentId" });
+} catch (e) {
+  console.warn("Association setup warning (Subscription→User):", e?.message || e);
+}
 const {
   sendVerificationEmail,
   sendPasswordResetEmail,
   sendRSVPEmail,
+  sendNotificationEmail,
 } = require("./config/mailer");
 const { AuditLog } = require("./models/auditLog");
 const crypto = require("crypto");
@@ -597,6 +605,30 @@ app.post("/admin/posts/:id/approve", requireLogin, async (req, res) => {
   if (!post) return res.status(404).send("Not found");
   post.status = "approved";
   await post.save();
+
+  // Send notifications to subscribed students
+  const subscriptions = await Subscription.findAll({
+    where: { clubId: post.clubId },
+    include: [{ model: User, as: "student", attributes: ["email"] }],
+  });
+  const subscribedEmails = subscriptions.map(s => s.student.email);
+
+  const club = await User.findByPk(post.clubId, { attributes: ["username"] });
+
+  for (const email of subscribedEmails) {
+    try {
+      await sendNotificationEmail(
+        email,
+        club.username,
+        "post",
+        null, // no title for posts
+        post.text
+      );
+    } catch (error) {
+      console.error(`Failed to send post notification to ${email}:`, error);
+    }
+  }
+
   res.redirect("/admin/posts");
 });
 
@@ -1338,6 +1370,31 @@ app.post("/admin/events/:eventId/approve", requireLogin, async (req, res) => {
 
   event.status = "approved";
   await event.save();
+
+  // Send notifications to subscribed students
+  const subscriptions = await Subscription.findAll({
+    where: { clubId: event.clubId },
+    include: [{ model: User, as: "student", attributes: ["email"] }],
+  });
+  const subscribedEmails = subscriptions.map(s => s.student.email);
+
+  const club = await User.findByPk(event.clubId, { attributes: ["username"] });
+
+  const eventDescription = `Location: ${event.location || 'TBA'}\nStarts: ${event.startsAt ? new Date(event.startsAt).toLocaleString() : 'TBA'}\nEnds: ${event.endsAt ? new Date(event.endsAt).toLocaleString() : 'TBA'}\nCapacity: ${event.capacity || 'Unlimited'}\n\n${event.description || ''}`;
+
+  for (const email of subscribedEmails) {
+    try {
+      await sendNotificationEmail(
+        email,
+        club.username,
+        "event",
+        event.title,
+        eventDescription
+      );
+    } catch (error) {
+      console.error(`Failed to send event notification to ${email}:`, error);
+    }
+  }
 
   res.redirect("/admin/events");
 });

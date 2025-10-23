@@ -37,4 +37,27 @@ const sendRSVPEmail = async (to, event) => {
   });
 };
 
-module.exports = { sendVerificationEmail, sendPasswordResetEmail, sendRSVPEmail };
+const sendNotificationEmail = async (to, clubName, itemType, itemTitle, itemDescription) => {
+  const subject = `New ${itemType} from ${clubName}`;
+  let html = `<p>Hello,</p>
+<p>${clubName} has posted a new ${itemType}:</p>`;
+  if (itemTitle) {
+    html += `<p><strong>Title:</strong> ${itemTitle}</p>`;
+  }
+  if (itemDescription) {
+    html += `<p><strong>Description:</strong> ${itemDescription}</p>`;
+  }
+  html += `<p>Check it out on the platform!</p>`;
+
+  try {
+    await transporter.sendMail({
+      to,
+      subject,
+      html,
+    });
+  } catch (error) {
+    console.error(`Failed to send notification email to ${to}:`, error);
+  }
+};
+
+module.exports = { sendVerificationEmail, sendPasswordResetEmail, sendRSVPEmail, sendNotificationEmail };

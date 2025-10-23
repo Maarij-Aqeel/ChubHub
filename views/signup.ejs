@@ -393,7 +393,7 @@
 
   <!-- Role Selector -->
   <div class="role-selector">
-    <button type="button" class="role-btn active" onclick="selectRole('club')">
+    <button type="button" class="role-btn" onclick="selectRole('club')">
       <i class="fas fa-building"></i> Club
     </button>
     <button type="button" class="role-btn" onclick="selectRole('student')">
@@ -402,10 +402,10 @@
   </div>
 
   <form action="/signup" method="POST" id="signupForm">
-    <input type="hidden" name="role" id="roleInput" value="club">
+    <input type="hidden" name="role" id="roleInput" value="">
 
     <!-- ===== CLUB FIELDS ===== -->
-    <div class="role-fields active" id="clubFields">
+    <div class="role-fields" id="clubFields">
       
       <!-- Club Basic Info -->
       <div class="form-section">
@@ -781,8 +781,7 @@
     }
   }
 
-  // Initialize on page load
-  selectRole('club');
+  // Initialize on page load - role fields hidden initially
 </script>
 
 </body>

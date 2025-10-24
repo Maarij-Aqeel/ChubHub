@@ -30,6 +30,10 @@
           <i class="fas fa-home"></i>
           <span>Dashboard</span>
         </button>
+        <button onclick="showSection('messages')" class="nav-link" id="nav-messages">
+          <i class="fas fa-comments"></i>
+          <span>Messages</span>
+        </button>
         <button onclick="showSection('calendar')" class="nav-link" id="nav-calendar">
           <i class="fas fa-calendar-alt"></i>
           <span>Calendar</span>
@@ -154,6 +158,42 @@
         </div>
       </div>
 
+      <!-- Messages Section -->
+      <div id="messages" class="content-section">
+        <div style="background: #FFFFFF; border-radius: 16px; padding: 2rem; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+          <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+            <i class="fas fa-comments" style="font-size: 2rem; color: #2563EB;"></i>
+            <h2 style="font-size: 1.5rem; font-weight: 700; color: #1E3A8A; margin: 0;">Broadcast Messages</h2>
+          </div>
+          <div style="display: flex; gap: 2rem; height: 600px;">
+            <!-- Messages List -->
+            <div style="flex: 1; background: #F9FAFB; border-radius: 12px; padding: 1rem; overflow-y: auto;">
+              <h3 style="color: #1E3A8A; margin-bottom: 1rem; font-size: 1.2rem;">Message History</h3>
+              <div id="admin-message-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <!-- Messages will be loaded here -->
+              </div>
+            </div>
+            <!-- Compose Message -->
+            <div style="flex: 1; background: #FFFFFF; border-radius: 12px; padding: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+              <h3 style="color: #1E3A8A; margin-bottom: 1rem; font-size: 1.2rem;">Send Broadcast</h3>
+              <div style="margin-bottom: 1rem;">
+                <select id="admin-message-target" style="width: 100%; padding: 0.75rem; border: 2px solid #E5E7EB; border-radius: 8px; font-size: 0.95rem;">
+                  <option value="">Select recipients...</option>
+                <option value="students">📢 Broadcast to Verified Students</option>
+                <option value="clubs">📢 Broadcast to Approved Clubs</option>
+                </select>
+              </div>
+              <div style="flex: 1; margin-bottom: 1rem;">
+                <textarea id="admin-message-input" placeholder="Type your broadcast message..." style="width: 100%; height: 400px; padding: 1rem; border: 2px solid #E5E7EB; border-radius: 8px; font-size: 0.95rem; resize: none;"></textarea>
+              </div>
+              <button id="admin-send-button" class="btn" style="width: 100%; padding: 0.75rem;">
+                <i class="fas fa-paper-plane"></i> Send Broadcast Message
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Calendar Section -->
       <div id="calendar" class="content-section">
         <div id='admin-calendar' style="background: #FFFFFF; border-radius: 16px; padding: 2rem; box-shadow: 0 2px 12px rgba(0,0,0,0.08);"></div>
@@ -161,6 +201,7 @@
     </div>
 
     <script id="admin-events-data" type="application/json"><%- JSON.stringify(allEvents) %></script>
+    <script src="/socket.io/socket.io.js"></script>
 
     <script>
       function showSection(sectionName) {
@@ -180,6 +221,8 @@
 
         if(sectionName === 'calendar') {
           initAdminCalendar();
+        } else if(sectionName === 'messages') {
+          initAdminMessaging();
         }
       }
 
@@ -236,6 +279,72 @@
         calendar.render();
         calendarEl._calendar = calendar;
       }
+      function initAdminMessaging() {
+        const socket = io();
+        const adminId = <%= user.id %>;
+
+        // Join admin rooms
+        socket.emit('join-rooms', { userId: adminId, role: 'admin' });
+
+        // Load message history
+        loadAdminMessages();
+
+        // Bind send button
+        document.getElementById('admin-send-button').addEventListener('click', function() {
+          sendAdminMessage(socket, adminId);
+        });
+      }
+
+      async function loadAdminMessages() {
+        try {
+          const response = await fetch('/messages/admin');
+          const messages = await response.json();
+
+          const messageList = document.getElementById('admin-message-list');
+          messageList.innerHTML = '';
+
+          if (messages.length === 0) {
+            messageList.innerHTML = '<div style="color: #6B7280; text-align: center;">No broadcast messages sent yet</div>';
+            return;
+          }
+
+          messages.forEach(function(msg) {
+            const messageDiv = document.createElement('div');
+            messageDiv.style.cssText = 'padding: 1rem; border-radius: 8px; background: #FFFFFF; margin-bottom: 0.5rem; border: 1px solid #E5E7EB;';
+            messageDiv.innerHTML = '<div style="font-weight: 600; color: #1E3A8A; margin-bottom: 0.5rem;">📢 Broadcast by ' + msg.senderName + '</div>' +
+                                  '<div style="margin-bottom: 0.5rem;">' + msg.message + '</div>' +
+                                  '<div style="font-size: 0.8rem; color: #6B7280;">' + new Date(msg.timestamp).toLocaleString() + '</div>';
+            messageList.appendChild(messageDiv);
+          });
+
+          messageList.scrollTop = messageList.scrollHeight;
+        } catch (err) {
+          console.error('Error loading messages:', err);
+        }
+      }
+
+      function sendAdminMessage(socket, adminId) {
+        const target = document.getElementById('admin-message-target').value;
+        const message = document.getElementById('admin-message-input').value.trim();
+
+        if (!target || !message) {
+          showToast('Please select recipients and enter a message', 'error');
+          return;
+        }
+
+        socket.emit('send-message', {
+          senderId: adminId,
+          receiverId: null,
+          clubId: null,
+          message: message,
+          target: target
+        });
+
+        // Clear input
+        document.getElementById('admin-message-input').value = '';
+        showToast('Broadcast message sent successfully!', 'success');
+      }
+
       function showToast(msg, type) {
         const container = document.getElementById("toast-container");
         const toast = document.createElement("div");

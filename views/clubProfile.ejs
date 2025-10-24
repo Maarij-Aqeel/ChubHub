@@ -745,6 +745,10 @@
           <i class="fas fa-newspaper"></i>
           <span>Posts</span>
         </button>
+        <button class="tab" onclick="switchTab('messages')">
+          <i class="fas fa-comments"></i>
+          <span>Messages</span>
+        </button>
         <button class="tab" onclick="switchTab('profile')">
           <i class="fas fa-user-circle"></i>
           <span>Profile</span>
@@ -977,6 +981,46 @@
         <% } %>
       </div>
 
+      <!-- Messages Tab -->
+      <div id="messages" class="tab-content">
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1.5rem;">
+          <i class="fas fa-comments"></i> Messages
+        </h2>
+        <div style="display: flex; gap: 2rem; height: 600px;">
+          <!-- Messages List -->
+          <div style="flex: 1; background: #F9FAFB; border-radius: 12px; padding: 1rem; overflow-y: auto;">
+            <h3 style="color: #1E3A8A; margin-bottom: 1rem;">Message History</h3>
+            <div id="messages-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <!-- Messages will be loaded here -->
+            </div>
+          </div>
+          <!-- Chat Interface -->
+          <div style="flex: 1; background: #FFFFFF; border-radius: 12px; padding: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+            <div style="margin-bottom: 1rem;">
+              <select id="message-target" style="width: 100%; padding: 0.75rem; border: 2px solid #E5E7EB; border-radius: 8px;">
+                <option value="">Choose recipient...</option>
+                <option value="admin">👑 Admin</option>
+                <option value="student">👨‍🎓 Student</option>
+              </select>
+              <div id="student-selector" style="display: none; margin-top: 1rem;">
+                <select id="student-target" style="width: 100%; padding: 0.75rem; border: 2px solid #E5E7EB; border-radius: 8px;">
+                  <option value="">Loading subscribed students...</option>
+                </select>
+              </div>
+            </div>
+            <div id="chat-messages" style="flex: 1; overflow-y: auto; margin-bottom: 1rem; padding: 1rem; background: #F9FAFB; border-radius: 8px; min-height: 400px;">
+              <!-- Chat messages will appear here -->
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="text" id="message-input" placeholder="Type your message..." style="flex: 1; padding: 0.75rem; border: 2px solid #E5E7EB; border-radius: 8px; font-size: 0.95rem;">
+              <button id="send-button" class="btn" style="padding: 0.75rem 1.5rem;">
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Profile Tab -->
       <div id="profile" class="tab-content">
         <h2 style="font-size: 1.5rem; font-weight: 700; color: #1E3A8A; margin-bottom: 1.5rem;">
@@ -1168,10 +1212,15 @@
   </div>
 
   <script id="club-events-data" type="application/json"><%- JSON.stringify(events) %></script>
+  <script src="/socket.io/socket.io.js"></script>
 
   <script>
     const editModal = document.getElementById('editModal');
     const postModal = document.getElementById('postModal');
+    const currentUserId = <%= user.id %>;
+
+    // Socket.IO chat functionality
+    const socket = io();
 
     function switchTab(tabName) {
       // Hide all tab contents
@@ -1190,6 +1239,8 @@
 
       if(tabName === 'calendar') {
         initClubCalendar();
+      } else if(tabName === 'messages') {
+        initChat();
       }
     }
 
@@ -1272,6 +1323,195 @@
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 500);
       }, 3400);
+    }
+
+    // Chat functions
+    function initChat() {
+      // Join rooms for the club user
+      socket.emit('join-rooms', { userId: currentUserId, role: 'club' });
+      loadMessages();
+    }
+
+    async function loadMessages() {
+      try {
+        const response = await fetch('/messages/club/' + currentUserId);
+        const messages = await response.json();
+        const messagesList = document.getElementById('messages-list');
+        const chatMessages = document.getElementById('chat-messages');
+
+        // Clear existing messages
+        messagesList.innerHTML = '';
+        chatMessages.innerHTML = '';
+
+        if (messages.length === 0) {
+          messagesList.innerHTML = '<div style="color: #6B7280; text-align: center;">No messages yet</div>';
+          return;
+        }
+
+        // Group messages by conversation
+        const conversations = {};
+        messages.forEach(function(msg) {
+          const key = msg.clubId || 'broadcast';
+          if (!conversations[key]) conversations[key] = [];
+          conversations[key].push(msg);
+        });
+
+        // Display conversation list
+        Object.keys(conversations).forEach(function(key) {
+          const convMsgs = conversations[key];
+          const latestMsg = convMsgs[convMsgs.length - 1];
+          const div = document.createElement('div');
+          div.style.cssText = 'padding: 1rem; border-radius: 8px; background: #FFFFFF; margin-bottom: 0.5rem; cursor: pointer; border: 2px solid #E5E7EB; transition: all 0.3s ease;';
+          div.onclick = function() { loadConversation(key, convMsgs); };
+          const displayKey = key === 'broadcast' ? '📢 Broadcast Messages' : 'Club Conversations';
+          div.innerHTML = '<div style="font-weight: 600; color: #2563EB;">' + displayKey + '</div>' +
+                          '<div style="color: #6B7280; font-size: 0.9rem;">' + latestMsg.message.slice(0, 50) + (latestMsg.message.length > 50 ? '...' : '') + '</div>' +
+                          '<div style="color: #9CA3AF; font-size: 0.8rem;">' + new Date(latestMsg.timestamp).toLocaleString() + '</div>';
+          messagesList.appendChild(div);
+        });
+
+        // Load the first conversation by default
+        if (Object.keys(conversations).length > 0) {
+          const firstKey = Object.keys(conversations)[0];
+          loadConversation(firstKey, conversations[firstKey]);
+        }
+      } catch (err) {
+        console.error('Error loading messages:', err);
+      }
+    }
+
+    function loadConversation(key, messages) {
+      const chatMessages = document.getElementById('chat-messages');
+      chatMessages.innerHTML = '';
+
+      // Mark all conversation list items as unselected
+      document.querySelectorAll('#messages-list div').forEach(function(div) {
+        div.style.borderColor = '#E5E7EB';
+      });
+
+      // Mark selected conversation
+      event.target.closest('div').style.borderColor = '#2563EB';
+
+      messages.forEach(function(msg) {
+        const messageDiv = document.createElement('div');
+        const userId = currentUserId;
+        const isSent = msg.senderId === userId;
+        messageDiv.style.cssText = 'margin-bottom: 1rem; padding: 0.75rem; border-radius: 8px; max-width: 70%; ' +
+                                  (isSent ? 'margin-left: auto; background: #2563EB; color: #FFFFFF;' : 'background: #FFFFFF; color: #111827;');
+        messageDiv.innerHTML = '<div style="font-weight: 600; margin-bottom: 0.25rem;">' + msg.senderName + '</div>' +
+                              '<div>' + msg.message + '</div>' +
+                              '<div style="font-size: 0.8rem; opacity: 0.8;">' + new Date(msg.timestamp).toLocaleString() + '</div>';
+        chatMessages.appendChild(messageDiv);
+      });
+
+      // Scroll to bottom
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Socket.IO message event listeners
+    socket.on('new-message', function(msg) {
+      // Reload messages if we're on messages tab
+      // But only if this message is relevant to clubs
+      const messagesTab = document.getElementById('messages');
+      if (messagesTab.classList.contains('active')) {
+        // Admin broadcasts should only show to clubs if sent to clubs or everyone
+        if (msg.clubId === null && msg.receiverId === null) {
+          // This is an admin broadcast - only show if sent to clubs or all
+          if (!msg.adminTarget || msg.adminTarget === 'clubs') {
+            loadMessages();
+          }
+        } else {
+          // Regular club messages - show all
+          loadMessages();
+        }
+      }
+    });
+
+    socket.on('error', function(data) {
+      showToast(data.message, 'error');
+    });
+
+    // Message sending
+    document.getElementById('message-target').addEventListener('change', function(e) {
+      const studentSelector = document.getElementById('student-selector');
+      if (e.target.value === 'student') {
+        studentSelector.style.display = 'block';
+        loadSubscribedStudents();
+      } else {
+        studentSelector.style.display = 'none';
+      }
+    });
+
+    document.getElementById('send-button').addEventListener('click', sendMessage);
+    document.getElementById('message-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    async function loadSubscribedStudents() {
+      try {
+        const response = await fetch('/api/subscriptions/club/' + currentUserId);
+        const subscriptions = await response.json();
+
+        const studentSelect = document.getElementById('student-target');
+        studentSelect.innerHTML = '';
+
+        if (subscriptions.length === 0) {
+          const option = document.createElement('option');
+          option.value = '';
+          option.textContent = 'No subscribed students';
+          studentSelect.appendChild(option);
+          return;
+        }
+
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Choose subscribed student...';
+        studentSelect.appendChild(defaultOption);
+
+        subscriptions.forEach(function(sub) {
+          const option = document.createElement('option');
+          option.value = sub.student.id;
+          option.textContent = sub.student.profile_data?.fullName || sub.student.username;
+          studentSelect.appendChild(option);
+        });
+      } catch (err) {
+        console.error('Error loading subscribed students:', err);
+        showToast('Failed to load subscribed students', 'error');
+      }
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('message-input');
+      const target = document.getElementById('message-target');
+      const studentTarget = document.getElementById('student-target');
+      const message = input.value.trim();
+
+      if (!message || !target.value) return;
+
+      let clubId = null;
+      let receiverId = null;
+
+      if (target.value === 'admin') {
+        // Send to admin - set receiverId to null, backend will handle admin messaging
+        receiverId = null;
+        clubId = currentUserId;
+      } else if (target.value === 'student' && studentTarget.value) {
+        // Send to specific student
+        receiverId = studentTarget.value;
+        clubId = currentUserId;
+      } else {
+        showToast('Please select a valid recipient', 'error');
+        return;
+      }
+
+      socket.emit('send-message', {
+        senderId: currentUserId,
+        receiverId: receiverId,
+        clubId: clubId,
+        message: message
+      });
+
+      input.value = '';
     }
   </script>
 

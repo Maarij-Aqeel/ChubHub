@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Profile - UClub</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <script src="/socket.io/socket.io.js"></script>
   <style>
     /* ===== Reset & Base ===== */
     * { 
@@ -569,6 +570,10 @@
       <i class="fas fa-layer-group"></i>
       <span>Clubs</span>
     </a>
+    <a href="/student/<%= user.id %>/messages">
+      <i class="fas fa-comments"></i>
+      <span>Messages</span>
+    </a>
     <a href="/student/<%= user.id %>">
       <i class="fas fa-user"></i>
       <span>Profile</span>
@@ -672,11 +677,42 @@
         </div>
 
         <div class="action-buttons">
+          <button class="btn message-btn" onclick="openMessagesModal()">
+            <i class="fas fa-comments"></i>
+            Messages
+          </button>
           <button class="btn" onclick="openEditModal()">
             <i class="fas fa-edit"></i>
             Edit Profile
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Messages Modal ===== -->
+  <div class="modal" id="messagesModal">
+    <div class="modal-content" style="width: 90%; max-width: 1200px; height: 80vh;">
+      <h3><i class="fas fa-comments"></i> Messages</h3>
+      <div style="display: flex; gap: 2rem; height: calc(80vh - 150px);">
+        <!-- Messages List -->
+        <div style="flex: 1; background: #F9FAFB; border-radius: 12px; padding: 1rem; overflow-y: auto;">
+          <h4 style="color: #1E3A8A; margin-bottom: 1rem; font-size: 1.2rem;">Club Chats</h4>
+          <div id="club-chats-list" style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <!-- Club chats will be loaded here -->
+          </div>
+        </div>
+        <!-- Chat Interface -->
+        <div id="chat-interface" style="flex: 2; background: #FFFFFF; border-radius: 12px; padding: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+          <div style="flex: 1; overflow-y: auto; background: #F9FAFB; border-radius: 8px; margin-bottom: 1rem; padding: 1rem;">
+            <div style="text-align: center; color: #6B7280; padding: 2rem;">Select a club chat to start messaging</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn cancel-btn" onclick="closeMessagesModal()">
+          <i class="fas fa-times"></i> Close
+        </button>
       </div>
     </div>
   </div>
@@ -732,6 +768,10 @@
     function openEditModal() { editModal.style.display = 'flex'; }
     function closeEditModal() { editModal.style.display = 'none'; }
 
+    const messagesModal = document.getElementById('messagesModal');
+    function openMessagesModal() { messagesModal.style.display = 'flex'; initStudentChat(); }
+    function closeMessagesModal() { messagesModal.style.display = 'none'; }
+
     const clubsModal = document.getElementById('clubsModal');
     const clubsList = document.getElementById('clubsList');
     const clubsTitle = document.getElementById('clubsTitle');
@@ -749,10 +789,126 @@
     }
     function closeClubsModal() { clubsModal.style.display = 'none'; }
 
-    window.onclick = function(event) { 
+    window.onclick = function(event) {
       if (event.target === editModal) closeEditModal();
+      if (event.target === messagesModal) closeMessagesModal();
       if (event.target === clubsModal) closeClubsModal();
     }
+
+    // Student Chat Functionality
+    const socket = io();
+    const studentId = <%= user.id %>;
+    let currentClubChat = null;
+
+    function initStudentChat() {
+      // Join rooms for the student user
+      socket.emit('join-rooms', { userId: studentId, role: 'student' });
+      loadSubscribedClubs();
+    }
+
+    async function loadSubscribedClubs() {
+      try {
+        const response = await fetch('/api/subscriptions/' + studentId);
+        const subscriptions = await response.json();
+
+        const clubChatsList = document.getElementById('club-chats-list');
+        clubChatsList.innerHTML = '';
+
+        if (subscriptions.length === 0) {
+          clubChatsList.innerHTML = '<div style="color: #6B7280; text-align: center;">No subscribed clubs</div>';
+          return;
+        }
+
+        subscriptions.forEach(function(sub) {
+          const club = sub.club; // Assuming subscription includes club data
+          const div = document.createElement('div');
+          div.style.cssText = 'padding: 1rem; border-radius: 8px; background: #FFFFFF; margin-bottom: 0.5rem; cursor: pointer; border: 2px solid #E5E7EB; transition: all 0.3s ease;';
+          div.onclick = function() { openClubChat(club.id, club.username); };
+          div.innerHTML = '<div style="font-weight: 600; color: #2563EB;">' + club.username + '</div>' +
+                          '<div style="color: #6B7280; font-size: 0.9rem;">Click to chat</div>';
+          clubChatsList.appendChild(div);
+        });
+      } catch (err) {
+        console.error('Error loading subscriptions:', err);
+      }
+    }
+
+    function openClubChat(clubId, clubName) {
+      currentClubChat = clubId;
+      const chatInterface = document.getElementById('chat-interface');
+      chatInterface.innerHTML = '<div style="flex: 1; overflow-y: auto; background: #F9FAFB; border-radius: 8px; margin-bottom: 1rem; padding: 1rem; min-height: 300px;"><div style="text-align: center; color: #6B7280; padding: 2rem;">Chatting with ' + clubName + '</div></div><div style="display: flex; gap: 0.5rem;"><input type="text" id="student-message-input" placeholder="Type your message..." style="flex: 1; padding: 0.75rem; border: 2px solid #E5E7EB; border-radius: 8px; font-size: 0.95rem;"><button id="student-send-button" class="btn" style="padding: 0.75rem 1.5rem;"><i class="fas fa-paper-plane"></i></button></div>';
+
+      loadClubMessages(clubId);
+
+      // Bind send functionality
+      document.getElementById('student-send-button').addEventListener('click', function() { sendClubMessage(clubId); });
+      document.getElementById('student-message-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendClubMessage(clubId);
+      });
+    }
+
+    async function loadClubMessages(clubId) {
+      try {
+        const response = await fetch('/messages/student/' + studentId);
+        const messages = await response.json();
+
+        // Filter messages for current club
+        const clubMessages = messages.filter(function(msg) {
+          return msg.senderId === clubId || msg.receiverId === studentId || msg.clubId === clubId;
+        });
+
+        const chatMessages = document.querySelector('#chat-interface > div');
+        const messagesArea = chatMessages.querySelector('div');
+        messagesArea.innerHTML = '';
+
+        if (clubMessages.length === 0) {
+          messagesArea.innerHTML = '<div style="text-align: center; color: #6B7280; padding: 2rem;">No messages yet. Start chatting!</div>';
+          return;
+        }
+
+        clubMessages.forEach(function(msg) {
+          const messageDiv = document.createElement('div');
+          const isSent = msg.senderId === studentId;
+          messageDiv.style.cssText = 'margin-bottom: 1rem; padding: 0.75rem; border-radius: 8px; max-width: 70%; ' +
+                                    (isSent ? 'margin-left: auto; background: #2563EB; color: #FFFFFF;' : 'background: #FFFFFF; color: #111827;');
+          messageDiv.innerHTML = '<div style="font-weight: 600; margin-bottom: 0.25rem;">' + msg.senderName + '</div>' +
+                                '<div>' + msg.message + '</div>' +
+                                '<div style="font-size: 0.8rem; opacity: 0.8;">' + new Date(msg.timestamp).toLocaleString() + '</div>';
+          messagesArea.appendChild(messageDiv);
+        });
+
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+      } catch (err) {
+        console.error('Error loading messages:', err);
+      }
+    }
+
+    function sendClubMessage(clubId) {
+      const input = document.getElementById('student-message-input');
+      const message = input.value.trim();
+
+      if (!message) return;
+
+      socket.emit('send-message', {
+        senderId: studentId,
+        receiverId: null,
+        clubId: clubId,
+        message: message
+      });
+
+      input.value = '';
+    }
+
+    // Socket.IO message event listeners
+    socket.on('new-message', function(msg) {
+      if (currentClubChat) {
+        loadClubMessages(currentClubChat);
+      }
+    });
+
+    socket.on('error', function(data) {
+      showToast(data.message, 'error');
+    });
   </script>
   <style>
     #toast-container { z-index:9999; position:fixed; top:32px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; }

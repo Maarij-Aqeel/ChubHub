@@ -489,7 +489,7 @@
         const adminDiv = document.createElement('div');
         adminDiv.className = 'club-item';
         adminDiv.onclick = function() { selectAdminMessages(); };
-        adminDiv.innerHTML = '<h3>📢 Admin Broadcasts</h3><p>System announcements</p>';
+        adminDiv.innerHTML = '<h3>📢 Admin Messages</h3><p>System announcements</p>';
         container.appendChild(adminDiv);
       } catch (err) {
         console.error('Error loading clubs:', err);
@@ -529,7 +529,7 @@
       event.target.closest('.club-item').classList.add('active');
 
       // Update chat header
-      const headerContent = '<h2>📢 Admin Broadcasts</h2><p>System announcements and important updates</p>';
+      const headerContent = '<h2>📢 Admin Messages</h2><p>System announcements and important updates</p>';
       document.getElementById('chat-header').innerHTML = headerContent;
 
       // Hide chat input (students can't reply to admin broadcasts)
@@ -554,7 +554,7 @@
         messagesContainer.innerHTML = '';
 
         if (adminMessages.length === 0) {
-          messagesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-bullhorn"></i><h3>No Broadcasts Yet</h3><p>Admin announcements will appear here when sent</p></div>';
+          messagesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-bullhorn"></i><h3>No Messages Yet</h3><p>Admin announcements will appear here when sent</p></div>';
           return;
         }
 
@@ -566,7 +566,7 @@
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       } catch (err) {
         console.error('Error loading admin messages:', err);
-        showToast('Failed to load admin broadcasts', 'error');
+        showToast('Failed to load admin messages', 'error');
       }
     }
 

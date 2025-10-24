@@ -1223,7 +1223,7 @@
     const socket = io();
 
     function switchTab(tabName) {
-      // Hide all tab contents
+      // Hide all tab contents  
       const tabContents = document.querySelectorAll('.tab-content');
       tabContents.forEach(tab => tab.classList.remove('active'));
 
@@ -1363,7 +1363,7 @@
           const div = document.createElement('div');
           div.style.cssText = 'padding: 1rem; border-radius: 8px; background: #FFFFFF; margin-bottom: 0.5rem; cursor: pointer; border: 2px solid #E5E7EB; transition: all 0.3s ease;';
           div.onclick = function() { loadConversation(key, convMsgs); };
-          const displayKey = key === 'broadcast' ? '📢 Broadcast Messages' : 'Club Conversations';
+          const displayKey = key === 'broadcast' ? '📢 All Messages' : 'Club Conversations';
           div.innerHTML = '<div style="font-weight: 600; color: #2563EB;">' + displayKey + '</div>' +
                           '<div style="color: #6B7280; font-size: 0.9rem;">' + latestMsg.message.slice(0, 50) + (latestMsg.message.length > 50 ? '...' : '') + '</div>' +
                           '<div style="color: #9CA3AF; font-size: 0.8rem;">' + new Date(latestMsg.timestamp).toLocaleString() + '</div>';

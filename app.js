@@ -442,26 +442,21 @@ app.post("/login", async (req, res) => {
 
 // ===== Password Reset =====
 app.get("/forgot-password", (req, res) => {
-  res.render("login", { error: null, message: null });
+  res.render("forgot-password", { error: null, message: null });
 });
 
 app.post("/forgot-password", async (req, res) => {
   const email = (req.body.email || "").trim().toLowerCase();
   const user = await User.findOne({ where: { email } });
-  if (!user)
-    return res.render("login", {
-      error: null,
-      message: "If the email exists, a reset link was sent.",
-    });
   const token = crypto.randomBytes(20).toString("hex");
-  user.resetToken = token;
-  user.resetTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
-  await user.save();
-  await sendPasswordResetEmail(user.email, token);
-  res.render("login", {
-    error: null,
-    message: "If the email exists, a reset link was sent.",
-  });
+  if (user) {
+    user.resetToken = token;
+    user.resetTokenExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    await user.save();
+    await sendPasswordResetEmail(user.email, token);
+  }
+  setFlash(req, "message", "Password reset link sent! Please check your email.");
+  res.redirect("/forgot-password");
 });
 
 app.get("/reset-password", async (req, res) => {
@@ -474,9 +469,10 @@ app.get("/reset-password", async (req, res) => {
     user.resetTokenExpiresAt < new Date()
   )
     return res.render("login", { error: "Reset link expired or invalid." });
-  res.render("signup", {
+  res.render("reset-password", {
+    token,
     error: null,
-    message: "Enter new password on the form.",
+    message: null,
   });
 });
 

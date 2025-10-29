@@ -921,17 +921,7 @@ app.post(
     if (!club || club.role !== "club")
       return res.status(404).send("Club not found");
 
-    // Check if student is a member (has accepted application)
-    const membership = await Application.findOne({
-      where: {
-        studentId: req.session.user.id,
-        clubId: club.id,
-        status: "accepted",
-      },
-    });
-    if (!membership) {
-      return res.status(403).send("You must be a member to subscribe to notifications.");
-    }
+
 
     await Subscription.findOrCreate({
       where: { studentId: req.session.user.id, clubId: club.id },

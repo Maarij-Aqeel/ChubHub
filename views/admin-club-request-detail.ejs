@@ -613,24 +613,39 @@
     </div>
 
     <!-- Actions -->
-    <div class="actions-section">
-      <form action="/admin/club-requests/<%= clubRequest.id %>/approve" method="POST">
-        <button class="btn btn-approve" type="submit">
-          <i class="fas fa-check-circle"></i>
-          <span>Approve Request</span>
-        </button>
-      </form>
-      <form action="/admin/club-requests/<%= clubRequest.id %>/reject" method="POST">
-        <button class="btn btn-reject" type="submit">
-          <i class="fas fa-times-circle"></i>
-          <span>Reject Request</span>
-        </button>
-      </form>
-      <a href="/admin/club-requests" class="btn btn-back">
-        <i class="fas fa-arrow-left"></i>
-        <span>Back to Requests</span>
-      </a>
-    </div>
+<div class="actions-section">
+  <% if (viewerRole === 'admin' && clubRequest.status === 'pending') { %>
+    <form action="/admin/club-requests/<%= clubRequest.id %>/approve" method="POST">
+      <button class="btn btn-approve" type="submit">
+        <i class="fas fa-check-circle"></i>
+        <span>Approve Request</span>
+      </button>
+    </form>
+    <form action="/admin/club-requests/<%= clubRequest.id %>/reject" method="POST">
+      <button class="btn btn-reject" type="submit">
+        <i class="fas fa-times-circle"></i>
+        <span>Reject Request</span>
+      </button>
+    </form>
+  <% } else if (viewerRole === 'dean' && clubRequest.status === 'admin_approved') { %>
+    <form action="/dean/club-requests/<%= clubRequest.id %>/approve" method="POST">
+      <button class="btn btn-approve" type="submit">
+        <i class="fas fa-check-circle"></i>
+        <span>Approve Request</span>
+      </button>
+    </form>
+    <form action="/dean/club-requests/<%= clubRequest.id %>/reject" method="POST">
+      <button class="btn btn-reject" type="submit">
+        <i class="fas fa-times-circle"></i>
+        <span>Reject Request</span>
+      </button>
+    </form>
+  <% } %>
+  <a href="<%= viewerRole === 'dean' ? '/dean/club-requests' : '/admin/club-requests' %>" class="btn btn-back">
+    <i class="fas fa-arrow-left"></i>
+    <span>Back to Requests</span>
+  </a>
+</div>
 
   </div>
 

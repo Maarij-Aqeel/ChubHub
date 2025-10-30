@@ -79,18 +79,12 @@ const Event = sequelize.define(
       defaultValue: [],
     },
 
-    // ===== Approval Information (Optional) =====
-    // These fields would typically be updated by admin actions, but if the form serves
-    // as a record of what was submitted initially, you can include them.
-    // clubAdvisorNameSubmitted: { type: DataTypes.STRING, allowNull: true },
-    // clubAdvisorSignatureSubmitted: { type: DataTypes.STRING, allowNull: true },
-    // clubAdvisorCommentsSubmitted: { type: DataTypes.TEXT, allowNull: true },
-    // collegeDeanNameSubmitted: { type: DataTypes.STRING, allowNull: true },
-    // collegeDeanSignatureSubmitted: { type: DataTypes.STRING, allowNull: true },
-    // collegeDeanCommentsSubmitted: { type: DataTypes.TEXT, allowNull: true },
-    // dsaNameSubmitted: { type: DataTypes.STRING, allowNull: true },
-    // dsaSignatureSubmitted: { type: DataTypes.STRING, allowNull: true },
-    // dsaCommentsSubmitted: { type: DataTypes.TEXT, allowNull: true },
+    // ===== Approval Tracking =====
+    approvedByAdmin: { type: DataTypes.BOOLEAN, defaultValue: false },
+    approvedByDean: { type: DataTypes.BOOLEAN, defaultValue: false },
+    deanNotes: { type: DataTypes.TEXT, allowNull: true },
+    adminApprovalDate: { type: DataTypes.DATE, allowNull: true },
+    deanApprovalDate: { type: DataTypes.DATE, allowNull: true },
   },
   { tableName: 'events', timestamps: true }
 );

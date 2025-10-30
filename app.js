@@ -69,13 +69,20 @@ try {
   Subscription.belongsTo(User, { as: "student", foreignKey: "studentId" });
   Subscription.belongsTo(User, { as: "club", foreignKey: "clubId" });
 } catch (e) {
-  console.warn("Association setup warning (Subscription→User):", e?.message || e);
+  console.warn(
+    "Association setup warning (Subscription→User):",
+    e?.message || e
+  );
 }
 
 // Message associations
 try {
   Message.belongsTo(User, { as: "sender", foreignKey: "senderId" });
-  Message.belongsTo(User, { as: "receiver", foreignKey: "receiverId", allowNull: true });
+  Message.belongsTo(User, {
+    as: "receiver",
+    foreignKey: "receiverId",
+    allowNull: true,
+  });
 } catch (e) {
   console.warn("Association setup warning (Message→User):", e?.message || e);
 }
@@ -190,6 +197,8 @@ app.get("/", (req, res) => {
       return res.redirect(`/club/${req.session.user.id}`);
     else if (req.session.user.role === "admin")
       return res.redirect(`/admin/dashboard`);
+    else if (req.session.user.role === "dean")
+      return res.redirect(`/dean/dashboard`);
   }
   res.redirect("/landing");
 });
@@ -202,7 +211,7 @@ app.get("/signup", (req, res) =>
   res.render("signup", { error: null, message: null })
 );
 
-app.post("/signup", async (req, res) => {
+app.post("/signup", upload.single("clubLogo"), async (req, res) => {
   const { role } = req.body;
   let username, email, password, confirmPassword, profileData;
 
@@ -281,9 +290,37 @@ app.post("/signup", async (req, res) => {
       // === Club signup → save as ClubRequest instead of User ===
       const {
         clubName,
-        clubEmail,
+        clubKind,
+        clubStatus,
         clubDescription,
         representativeName,
+        clubVision,
+        clubActivities,
+        presidentName,
+        presidentStudentID,
+        presidentPhone,
+        presidentCollege,
+        vpName,
+        vpStudentID,
+        vpPhone,
+        member1,
+        member2,
+        member3,
+        member4,
+        member5,
+        advisorName,
+        advisorEmail,
+        advisorSignature,
+        clubEmail,
+        clubSocials,
+        clubMembersCount,
+        clubFair,
+        deanName,
+        deanSignature,
+        deanApprovalDate,
+        dsaName,
+        dsaSignature,
+        dsaApprovalDate,
         clubPassword,
         clubConfirmPassword,
       } = req.body;
@@ -347,12 +384,47 @@ app.post("/signup", async (req, res) => {
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
+      // Handle file upload for clubLogo
+      let clubLogoPath = null;
+      if (req.file) {
+        clubLogoPath = "/uploads/" + req.file.filename;
+      }
+
       await ClubRequest.create({
         clubName: username,
         clubEmail: email,
         passwordHash: hashedPassword,
         clubDescription,
         representativeName,
+        clubKind,
+        clubStatus,
+        clubVision,
+        clubActivities,
+        presidentName,
+        presidentStudentID,
+        presidentPhone,
+        presidentCollege,
+        vpName,
+        vpStudentID,
+        vpPhone,
+        member1,
+        member2,
+        member3,
+        member4,
+        member5,
+        advisorName,
+        advisorEmail,
+        advisorSignature,
+        clubSocials,
+        clubMembersCount: clubMembersCount ? parseInt(clubMembersCount) : null,
+        clubFair,
+        clubLogo: clubLogoPath,
+        deanName,
+        deanSignature,
+        deanApprovalDate: deanApprovalDate ? new Date(deanApprovalDate) : null,
+        dsaName,
+        dsaSignature,
+        dsaApprovalDate: dsaApprovalDate ? new Date(dsaApprovalDate) : null,
         status: "pending",
       });
       setFlash(
@@ -366,6 +438,7 @@ app.post("/signup", async (req, res) => {
       return res.redirect("/signup");
     }
   } catch (err) {
+    console.error("Club signup error:", err);
     setFlash(req, "error", "Something went wrong!");
     return res.redirect("/signup");
   }
@@ -433,6 +506,7 @@ app.post("/login", async (req, res) => {
       return res.redirect(`/student/${user.id}/home`);
     else if (user.role === "club") return res.redirect(`/club/${user.id}`);
     else if (user.role === "admin") return res.redirect(`/admin/dashboard`);
+    else if (user.role === "dean") return res.redirect(`/dean/dashboard`);
   } catch (err) {
     console.error(err);
     setFlash(req, "error", "Something went wrong!");
@@ -455,7 +529,11 @@ app.post("/forgot-password", async (req, res) => {
     await user.save();
     await sendPasswordResetEmail(user.email, token);
   }
-  setFlash(req, "message", "Password reset link sent! Please check your email.");
+  setFlash(
+    req,
+    "message",
+    "Password reset link sent! Please check your email."
+  );
   res.redirect("/forgot-password");
 });
 
@@ -515,7 +593,7 @@ app.get("/admin/club-requests", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
     return res.status(403).send("Forbidden");
   const requests = await ClubRequest.findAll({
-    where: { status: "pending" },
+    where: { status: ["pending", "admin_approved"] },
     order: [["createdAt", "ASC"]],
   });
   res.render("admin-club-request", { requests });
@@ -530,45 +608,52 @@ app.post("/admin/club-requests/:id/approve", requireLogin, async (req, res) => {
   if (!creq) return res.status(404).send("Not found");
 
   try {
-    // Uniqueness checks to avoid DB constraint errors
-    const existingByEmail = await User.findOne({
-      where: { email: creq.clubEmail },
-    });
-    if (existingByEmail) {
-      return res
-        .status(400)
-        .send("Cannot approve: email already in use by another account.");
-    }
-    const existingClubName = await User.findOne({
-      where: { username: creq.clubName, role: "club" },
-    });
-    if (existingClubName) {
-      return res.status(400).send("Cannot approve: club name already taken.");
-    }
-
-    await sequelize.transaction(async (t) => {
-      await User.create(
-        {
-          username: creq.clubName,
-          email: creq.clubEmail,
-          password: creq.passwordHash,
-          role: "club",
-          isVerified: true, // Clubs are verified by admin approval
-          profile_data: {
-            clubDescription: creq.clubDescription,
-            representativeName: creq.representativeName,
+    if (creq.clubKind === "Academic") {
+      creq.status = "admin_approved";
+      creq.approvedByAdmin = true;
+      creq.adminApprovalDate = new Date();
+      await creq.save();
+    } else {
+      // Non-academic clubs are approved directly by admin
+      const existingByEmail = await User.findOne({
+        where: { email: creq.clubEmail },
+      });
+      if (existingByEmail) {
+        return res
+          .status(400)
+          .send("Cannot approve: email already in use by another account.");
+      }
+      const existingClubName = await User.findOne({
+        where: { username: creq.clubName, role: "club" },
+      });
+      if (existingClubName) {
+        return res.status(400).send("Cannot approve: club name already taken.");
+      }
+      await sequelize.transaction(async (t) => {
+        await User.create(
+          {
+            username: creq.clubName,
+            email: creq.clubEmail,
+            password: creq.passwordHash,
+            role: "club",
+            isVerified: true,
+            profile_data: {
+              clubKind: creq.clubKind,
+              clubDescription: creq.clubDescription,
+              representativeName: creq.representativeName,
+            },
           },
-        },
-        { transaction: t }
-      );
-
-      creq.status = "approved";
-      await creq.save({ transaction: t });
-    });
-
+          { transaction: t }
+        );
+        creq.status = "approved";
+        creq.approvedByAdmin = true;
+        creq.adminApprovalDate = new Date();
+        await creq.save({ transaction: t });
+      });
+    }
     res.redirect("/admin/club-requests");
   } catch (err) {
-    console.error("Approve club request failed:", err);
+    console.error("Admin approve club request failed:", err);
     return res.status(500).send("Failed to approve club request.");
   }
 });
@@ -592,7 +677,16 @@ app.get("/admin/club-requests/:id", requireLogin, async (req, res) => {
     return res.status(403).send("Forbidden");
   const clubRequest = await ClubRequest.findByPk(req.params.id);
   if (!clubRequest) return res.status(404).send("Club request not found");
-  res.render("admin-club-request-detail", { clubRequest });
+  res.render("admin-club-request-detail", { clubRequest, viewerRole: "admin" });
+});
+
+// Dean view single club request detail
+app.get("/dean/club-requests/:id", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "dean")
+    return res.status(403).send("Forbidden");
+  const clubRequest = await ClubRequest.findByPk(req.params.id);
+  if (!clubRequest) return res.status(404).send("Club request not found");
+  res.render("admin-club-request-detail", { clubRequest, viewerRole: "dean" });
 });
 
 // ===== Post Approval =====
@@ -619,7 +713,7 @@ app.post("/admin/posts/:id/approve", requireLogin, async (req, res) => {
     where: { clubId: post.clubId },
     include: [{ model: User, as: "student", attributes: ["email"] }],
   });
-  const subscribedEmails = subscriptions.map(s => s.student.email);
+  const subscribedEmails = subscriptions.map((s) => s.student.email);
 
   const club = await User.findByPk(post.clubId, { attributes: ["username"] });
 
@@ -741,24 +835,29 @@ app.get("/student/:id/home", requireLogin, async (req, res) => {
 });
 
 // ===== API Routes =====
-app.get('/api/subscriptions/club/:clubId', function(req, res) {
-  return requireLogin(async function(req, res) {
-    if (req.session.user.role !== 'club' || req.session.user.id != req.params.clubId)
-      return res.status(403).json({ error: 'Forbidden' });
+app.get("/api/subscriptions/club/:clubId", function (req, res) {
+  return requireLogin(async function (req, res) {
+    if (
+      req.session.user.role !== "club" ||
+      req.session.user.id != req.params.clubId
+    )
+      return res.status(403).json({ error: "Forbidden" });
 
     try {
       const subscriptions = await Subscription.findAll({
         where: { clubId: req.params.clubId },
-        include: [{
-          model: User,
-          as: 'student',
-          attributes: ['id', 'username', 'profile_data']
-        }]
+        include: [
+          {
+            model: User,
+            as: "student",
+            attributes: ["id", "username", "profile_data"],
+          },
+        ],
       });
       res.json(subscriptions);
     } catch (err) {
       console.error(err);
-      res.status(500).json({ error: 'Server error' });
+      res.status(500).json({ error: "Server error" });
     }
   })(req, res);
 });
@@ -916,8 +1015,6 @@ app.post(
     const club = await User.findByPk(req.params.clubId);
     if (!club || club.role !== "club")
       return res.status(404).send("Club not found");
-
-
 
     await Subscription.findOrCreate({
       where: { studentId: req.session.user.id, clubId: club.id },
@@ -1401,37 +1498,64 @@ app.post("/admin/events/:eventId/approve", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
     return res.status(403).send("Forbidden");
 
-  const event = await Event.findByPk(req.params.eventId);
+  const event = await Event.findByPk(req.params.eventId, {
+    include: [
+      {
+        model: User,
+        as: "club",
+        attributes: ["id", "username", "profile_data"],
+      },
+    ],
+  });
   if (!event) return res.status(404).send("Event not found");
 
-  event.status = "approved";
-  await event.save();
+  const clubKind = event.club?.profile_data?.clubKind || "Academic"; // Default to academic if not set
 
-  // Send notifications to subscribed students
-  const subscriptions = await Subscription.findAll({
-    where: { clubId: event.clubId },
-    include: [{ model: User, as: "student", attributes: ["email"] }],
-  });
-  const subscribedEmails = subscriptions.map(s => s.student.email);
+  event.approvedByAdmin = true;
+  event.adminApprovalDate = new Date();
 
-  const club = await User.findByPk(event.clubId, { attributes: ["username"] });
+  if (clubKind === "Non Academic") {
+    event.status = "approved";
+    event.approvedByDean = true; // Override, no dean needed
 
-  const eventDescription = `Location: ${event.location || 'TBA'}\nStarts: ${event.startsAt ? new Date(event.startsAt).toLocaleString() : 'TBA'}\nEnds: ${event.endsAt ? new Date(event.endsAt).toLocaleString() : 'TBA'}\nCapacity: ${event.capacity || 'Unlimited'}\n\n${event.description || ''}`;
+    // Send notifications to subscribed students
+    const subscriptions = await Subscription.findAll({
+      where: { clubId: event.clubId },
+      include: [{ model: User, as: "student", attributes: ["email"] }],
+    });
+    const subscribedEmails = subscriptions.map((s) => s.student.email);
 
-  for (const email of subscribedEmails) {
-    try {
-      await sendNotificationEmail(
-        email,
-        club.username,
-        "event",
-        event.title,
-        eventDescription
-      );
-    } catch (error) {
-      console.error(`Failed to send event notification to ${email}:`, error);
+    const club = await User.findByPk(event.clubId, {
+      attributes: ["username"],
+    });
+
+    const eventDescription = `Location: ${event.location || "TBA"}\nStarts: ${
+      event.startsAt ? new Date(event.startsAt).toLocaleString() : "TBA"
+    }\nEnds: ${
+      event.endsAt ? new Date(event.endsAt).toLocaleString() : "TBA"
+    }\nCapacity: ${event.capacity || "Unlimited"}\n\n${
+      event.description || ""
+    }`;
+
+    for (const email of subscribedEmails) {
+      try {
+        await sendNotificationEmail(
+          email,
+          club.username,
+          "event",
+          event.title,
+          eventDescription
+        );
+      } catch (error) {
+        console.error(`Failed to send event notification to ${email}:`, error);
+      }
     }
+  } else {
+    // Academic: status remains 'pending' until dean approves
+    // No notifications yet
   }
 
+  await event.save();
   res.redirect("/admin/events");
 });
 
@@ -1696,6 +1820,214 @@ app.post(
   }
 );
 
+// ===== Dean Profile =====
+app.get("/dean/dashboard", requireLogin, async (req, res) => {
+  const user = await User.findByPk(req.session.user.id);
+  if (!user || user.role !== "dean")
+    return res.status(404).send("Dean not found");
+
+  const studentCount = await User.count({ where: { role: "student" } });
+  const clubCount = await User.count({ where: { role: "club" } });
+  const postsCount = await Post.count();
+  const recentLogs = await AuditLog.findAll({
+    order: [["createdAt", "DESC"]],
+    limit: 10,
+  });
+
+  const allEvents = await Event.findAll({
+    include: [
+      { model: User, as: "club", attributes: ["username", "profile_data"] },
+    ],
+    order: [["startsAt", "ASC"]],
+  });
+
+  res.render("deanProfile", {
+    user,
+    stats: {
+      students: studentCount,
+      clubs: clubCount,
+      posts: postsCount,
+    },
+    recentLogs,
+    allEvents,
+  });
+});
+
+// Dean club requests
+app.get("/dean/club-requests", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "dean") {
+    console.log(req.session.user.role);
+    return res.status(403).send("Forbidden");
+  }
+  const requests = await ClubRequest.findAll({
+    where: { status: "admin_approved" },
+    order: [["createdAt", "ASC"]],
+  });
+  console.log(
+    `Dean club requests: found ${requests.length} admin_approved clubs`
+  );
+  requests.forEach((r) =>
+    console.log(
+      `  Club: ${r.clubName}, status: ${r.status}, clubKind: ${r.clubKind}`
+    )
+  );
+  res.render("dean-club-requests", { requests });
+});
+
+// Dean approve club
+app.post("/dean/club-requests/:id/approve", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "dean")
+    return res.status(403).send("Forbidden");
+  const reqId = req.params.id;
+  const creq = await ClubRequest.findByPk(reqId);
+  if (!creq) return res.status(404).send("Not found");
+
+  try {
+    // Uniqueness checks to avoid DB constraint errors
+    const existingByEmail = await User.findOne({
+      where: { email: creq.clubEmail },
+    });
+    if (existingByEmail) {
+      return res
+        .status(400)
+        .send("Cannot approve: email already in use by another account.");
+    }
+    const existingClubName = await User.findOne({
+      where: { username: creq.clubName, role: "club" },
+    });
+    if (existingClubName) {
+      return res.status(400).send("Cannot approve: club name already taken.");
+    }
+
+    await sequelize.transaction(async (t) => {
+      await User.create(
+        {
+          username: creq.clubName,
+          email: creq.clubEmail,
+          password: creq.passwordHash,
+          role: "club",
+          isVerified: true, // Clubs are verified by admin/dean approval
+          profile_data: {
+            clubDescription: creq.clubDescription,
+            representativeName: creq.representativeName,
+          },
+        },
+        { transaction: t }
+      );
+
+      creq.deanApprovalDate = new Date();
+      creq.status = "approved";
+      await creq.save({ transaction: t });
+    });
+
+    res.redirect("/dean/club-requests");
+  } catch (err) {
+    console.error("Approve club request failed:", err);
+    return res.status(500).send("Failed to approve club request.");
+  }
+});
+
+// Dean reject club
+app.post("/dean/club-requests/:id/reject", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "dean")
+    return res.status(403).send("Forbidden");
+  const reqId = req.params.id;
+  const creq = await ClubRequest.findByPk(reqId);
+  if (!creq) return res.status(404).send("Not found");
+  creq.status = "rejected";
+  creq.deanNotes = req.body.deanNotes || "";
+  await creq.save();
+  res.redirect("/dean/club-requests");
+});
+
+// Dean view pending events (only academic clubs)
+app.get("/dean/events", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "dean")
+    return res.status(403).send("Forbidden");
+
+  const allPendingEvents = await Event.findAll({
+    where: { status: "pending", approvedByAdmin: true, approvedByDean: false },
+    include: [
+      {
+        model: User,
+        as: "club",
+        attributes: ["id", "username", "email", "profile_data"],
+      },
+    ],
+    order: [["createdAt", "ASC"]],
+  });
+
+  // Filter only academic clubs
+  const pendingEvents = allPendingEvents.filter(
+    (event) => event.club?.profile_data?.clubKind === "Academic"
+  );
+  res.render("DeanEvents", { pendingEvents });
+});
+
+// Dean approve event
+app.post("/dean/events/:eventId/approve", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "dean")
+    return res.status(403).send("Forbidden");
+
+  const event = await Event.findByPk(req.params.eventId);
+  if (!event) return res.status(404).send("Event not found");
+  if (!event.approvedByAdmin)
+    return res.status(400).send("Admin approval required first");
+
+  event.approvedByDean = true;
+  event.deanApprovalDate = new Date();
+  event.status = "approved";
+  await event.save();
+
+  // Send notifications to subscribed students
+  const subscriptions = await Subscription.findAll({
+    where: { clubId: event.clubId },
+    include: [{ model: User, as: "student", attributes: ["email"] }],
+  });
+  const subscribedEmails = subscriptions.map((s) => s.student.email);
+
+  const club = await User.findByPk(event.clubId, { attributes: ["username"] });
+
+  const eventDescription = `Location: ${event.location || "TBA"}\nStarts: ${
+    event.startsAt ? new Date(event.startsAt).toLocaleString() : "TBA"
+  }\nEnds: ${
+    event.endsAt ? new Date(event.endsAt).toLocaleString() : "TBA"
+  }\nCapacity: ${event.capacity || "Unlimited"}\n\n${event.description || ""}`;
+
+  for (const email of subscribedEmails) {
+    try {
+      await sendNotificationEmail(
+        email,
+        club.username,
+        "event",
+        event.title,
+        eventDescription
+      );
+    } catch (error) {
+      console.error(`Failed to send event notification to ${email}:`, error);
+    }
+  }
+
+  res.redirect("/dean/events");
+});
+
+// Dean reject event
+app.post("/dean/events/:eventId/reject", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "dean")
+    return res.status(403).send("Forbidden");
+
+  const event = await Event.findByPk(req.params.eventId);
+  if (!event) return res.status(404).send("Event not found");
+
+  event.approvedByDean = false;
+  event.deanNotes = req.body.deanNotes || "";
+  event.status = "rejected";
+  event.deanApprovalDate = new Date();
+  await event.save();
+
+  res.redirect("/dean/events");
+});
+
 // ===== Admin Profile =====
 app.get("/admin/dashboard", requireLogin, async (req, res) => {
   const user = await User.findByPk(req.session.user.id);
@@ -1896,18 +2228,24 @@ app.get("/club/:clubId/applications", requireLogin, async (req, res) => {
 });
 
 app.get("/api/subscriptions/:studentId", requireLogin, async (req, res) => {
-  if (req.session.user.role !== "student" || req.session.user.id != req.params.studentId) {
+  if (
+    req.session.user.role !== "student" ||
+    req.session.user.id != req.params.studentId
+  ) {
     return res.status(403).json({ error: "Forbidden" });
   }
 
   try {
     const subscriptions = await Subscription.findAll({
       where: { studentId: req.params.studentId },
-      include: [{ model: User, as: "student" }, {
-        model: User,
-        as: "club",
-        attributes: ["id", "username"]
-      }]
+      include: [
+        { model: User, as: "student" },
+        {
+          model: User,
+          as: "club",
+          attributes: ["id", "username"],
+        },
+      ],
     });
     res.json(subscriptions);
   } catch (err) {
@@ -1931,17 +2269,19 @@ app.get("/messages/club/:clubId", requireLogin, async (req, res) => {
     if (user.role === "student") {
       // Students can see messages from clubs they are subscribed to
       const subscription = await Subscription.findOne({
-        where: { studentId: user.id, clubId }
+        where: { studentId: user.id, clubId },
       });
       if (!subscription) {
-        return res.status(403).json({ error: "You are not subscribed to this club" });
+        return res
+          .status(403)
+          .json({ error: "You are not subscribed to this club" });
       }
       whereCondition = {
         [Op.or]: [
           { senderId: user.id, clubId },
           { senderId: clubId, clubId },
-          { senderId: clubId, receiverId: user.id }
-        ]
+          { senderId: clubId, receiverId: user.id },
+        ],
       };
     } else if (user.role === "club") {
       // Clubs can see messages in their room or broadcasts
@@ -1952,9 +2292,9 @@ app.get("/messages/club/:clubId", requireLogin, async (req, res) => {
         [Op.or]: [
           { clubId },
           { senderId: user.id, receiverId: null },
-          { receiverId: user.id }
+          { receiverId: user.id },
           // Remove { clubId: null, receiverId: null } - admin broadcasts will be shown in separate UI sections
-        ]
+        ],
       };
     } else if (user.role === "admin") {
       // Admin can see all messages
@@ -1965,21 +2305,19 @@ app.get("/messages/club/:clubId", requireLogin, async (req, res) => {
 
     const messages = await Message.findAll({
       where: whereCondition,
-      include: [
-        { model: User, as: "sender", attributes: ["username"] }
-      ],
-      order: [["timestamp", "ASC"]]
+      include: [{ model: User, as: "sender", attributes: ["username"] }],
+      order: [["timestamp", "ASC"]],
     });
 
     // Format messages with sender name
-    const formattedMessages = messages.map(msg => ({
+    const formattedMessages = messages.map((msg) => ({
       id: msg.id,
       senderId: msg.senderId,
       senderName: msg.sender.username,
       receiverId: msg.receiverId,
       clubId: msg.clubId,
       message: msg.message,
-      timestamp: msg.timestamp
+      timestamp: msg.timestamp,
     }));
 
     res.json(formattedMessages);
@@ -1996,20 +2334,18 @@ app.get("/messages/admin", requireLogin, async (req, res) => {
 
   try {
     const messages = await Message.findAll({
-      include: [
-        { model: User, as: "sender", attributes: ["username"] }
-      ],
-      order: [["timestamp", "ASC"]]
+      include: [{ model: User, as: "sender", attributes: ["username"] }],
+      order: [["timestamp", "ASC"]],
     });
 
-    const formattedMessages = messages.map(msg => ({
+    const formattedMessages = messages.map((msg) => ({
       id: msg.id,
       senderId: msg.senderId,
       senderName: msg.sender.username,
       receiverId: msg.receiverId,
       clubId: msg.clubId,
       message: msg.message,
-      timestamp: msg.timestamp
+      timestamp: msg.timestamp,
     }));
 
     res.json(formattedMessages);
@@ -2021,7 +2357,10 @@ app.get("/messages/admin", requireLogin, async (req, res) => {
 
 // Get admin broadcasts for clubs
 app.get("/messages/admin/club/:clubId", requireLogin, async (req, res) => {
-  if (req.session.user.role !== "club" || req.session.user.id != req.params.clubId)
+  if (
+    req.session.user.role !== "club" ||
+    req.session.user.id != req.params.clubId
+  )
     return res.status(403).json({ error: "Forbidden" });
 
   try {
@@ -2033,22 +2372,20 @@ app.get("/messages/admin/club/:clubId", requireLogin, async (req, res) => {
       where: {
         clubId: null,
         receiverId: null,
-        senderId: { [Op.ne]: req.params.clubId } // Exclude club's own messages
+        senderId: { [Op.ne]: req.params.clubId }, // Exclude club's own messages
       },
-      include: [
-        { model: User, as: "sender", attributes: ["username"] }
-      ],
-      order: [["timestamp", "ASC"]]
+      include: [{ model: User, as: "sender", attributes: ["username"] }],
+      order: [["timestamp", "ASC"]],
     });
 
-    const formattedMessages = messages.map(msg => ({
+    const formattedMessages = messages.map((msg) => ({
       id: msg.id,
       senderId: msg.senderId,
       senderName: msg.sender.username,
       receiverId: msg.receiverId,
       clubId: msg.clubId,
       message: msg.message,
-      timestamp: msg.timestamp
+      timestamp: msg.timestamp,
     }));
 
     res.json(formattedMessages);
@@ -2071,10 +2408,10 @@ app.get("/messages/student/:studentId", requireLogin, async (req, res) => {
 
     // Get all clubs the student is subscribed to
     const subscriptions = await Subscription.findAll({
-      where: { studentId }
+      where: { studentId },
     });
 
-    const subscribedClubIds = subscriptions.map(sub => sub.clubId);
+    const subscribedClubIds = subscriptions.map((sub) => sub.clubId);
 
     const messages = await Message.findAll({
       where: {
@@ -2082,23 +2419,21 @@ app.get("/messages/student/:studentId", requireLogin, async (req, res) => {
           { clubId: { [Op.in]: subscribedClubIds }, receiverId: null }, // Messages sent to club's room
           { receiverId: studentId }, // Direct messages
           { senderId: studentId }, // Messages sent by student
-          { clubId: null, receiverId: null, adminTarget: 'students' } // Admin broadcasts to students only
-        ]
+          { clubId: null, receiverId: null, adminTarget: "students" }, // Admin broadcasts to students only
+        ],
       },
-      include: [
-        { model: User, as: "sender", attributes: ["username"] }
-      ],
-      order: [["timestamp", "ASC"]]
+      include: [{ model: User, as: "sender", attributes: ["username"] }],
+      order: [["timestamp", "ASC"]],
     });
 
-    const formattedMessages = messages.map(msg => ({
+    const formattedMessages = messages.map((msg) => ({
       id: msg.id,
       senderId: msg.senderId,
       senderName: msg.sender.username,
       receiverId: msg.receiverId,
       clubId: msg.clubId,
       message: msg.message,
-      timestamp: msg.timestamp
+      timestamp: msg.timestamp,
     }));
 
     res.json(formattedMessages);
@@ -2160,8 +2495,8 @@ const server = http.createServer(app);
 const io = socketio(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"]
-  }
+    methods: ["GET", "POST"],
+  },
 });
 
 // Middleware to share session data with Socket.IO
@@ -2175,133 +2510,143 @@ io.use((socket, next) => {
 });
 
 // Socket.IO event handlers
-io.on('connection', async (socket) => {
-  console.log('User connected:', socket.id);
+io.on("connection", async (socket) => {
+  console.log("User connected:", socket.id);
 
-  socket.on('join-rooms', async (data) => {
+  socket.on("join-rooms", async (data) => {
     const { userId, role } = data;
 
     try {
       const user = await User.findByPk(userId);
       if (!user) {
-        socket.emit('error', { message: 'User not found' });
+        socket.emit("error", { message: "User not found" });
         return;
       }
 
-      if (role === 'student') {
+      if (role === "student") {
         // Students join rooms for clubs they are subscribed to
-        const subscriptions = await Subscription.findAll({ where: { studentId: user.id } });
-        subscriptions.forEach(sub => {
+        const subscriptions = await Subscription.findAll({
+          where: { studentId: user.id },
+        });
+        subscriptions.forEach((sub) => {
           const room = `club_${sub.clubId}`;
           socket.join(room);
           console.log(`Student ${userId} joined room ${room}`);
         });
 
         // Students join student broadcast room for admin announcements
-        socket.join('student_broadcast');
+        socket.join("student_broadcast");
         console.log(`Student ${userId} joined student_broadcast room`);
-      } else if (role === 'club') {
+      } else if (role === "club") {
         // Clubs join their own room
         const room = `club_${user.id}`;
         socket.join(room);
         console.log(`Club ${userId} joined room ${room}`);
 
         // Clubs join club broadcast room for admin announcements
-        socket.join('club_broadcast');
+        socket.join("club_broadcast");
         console.log(`Club ${userId} joined club_broadcast room`);
-      } else if (role === 'admin') {
+      } else if (role === "admin") {
         // Admin joins broadcast rooms for monitoring
-        socket.join('student_broadcast');
-        socket.join('club_broadcast');
+        socket.join("student_broadcast");
+        socket.join("club_broadcast");
         console.log(`Admin ${userId} joined broadcast rooms`);
 
         // Admin also joins all club rooms for monitoring
-        const clubs = await User.findAll({ where: { role: 'club' } });
-        clubs.forEach(club => {
+        const clubs = await User.findAll({ where: { role: "club" } });
+        clubs.forEach((club) => {
           socket.join(`club_${club.id}`);
         });
       }
     } catch (err) {
-      console.error('Error joining rooms:', err);
-      socket.emit('error', { message: 'Failed to join rooms' });
+      console.error("Error joining rooms:", err);
+      socket.emit("error", { message: "Failed to join rooms" });
     }
   });
 
-  socket.on('send-message', async (data) => {
+  socket.on("send-message", async (data) => {
     const { senderId, receiverId, clubId, message, target } = data;
 
     try {
       const sender = await User.findByPk(senderId);
       if (!sender) {
-        socket.emit('error', { message: 'Sender not found' });
+        socket.emit("error", { message: "Sender not found" });
         return;
       }
 
       // Validate permissions based on role
-      if (sender.role === 'student') {
+      if (sender.role === "student") {
         // Students can only message clubs they are subscribed to
         if (!clubId) {
-          socket.emit('error', { message: 'Students can only message subscribed clubs' });
+          socket.emit("error", {
+            message: "Students can only message subscribed clubs",
+          });
           return;
         }
         const subscription = await Subscription.findOne({
-          where: { studentId: senderId, clubId }
+          where: { studentId: senderId, clubId },
         });
         if (!subscription) {
-          socket.emit('error', { message: 'You are not subscribed to this club' });
+          socket.emit("error", {
+            message: "You are not subscribed to this club",
+          });
           return;
         }
-      } else if (sender.role === 'club') {
+      } else if (sender.role === "club") {
         // Clubs can message subscribed students or admin
         if (receiverId) {
           // Check if receiver is admin
           const receiver = await User.findByPk(receiverId);
-          if (!receiver || receiver.role !== 'admin') {
+          if (!receiver || receiver.role !== "admin") {
             // Check if student is subscribed to this club
             const subscription = await Subscription.findOne({
-              where: { studentId: receiverId, clubId: senderId }
+              where: { studentId: receiverId, clubId: senderId },
             });
             if (!subscription) {
-              socket.emit('error', { message: 'You can only message subscribed students or admin' });
+              socket.emit("error", {
+                message: "You can only message subscribed students or admin",
+              });
               return;
             }
           }
         }
-      } else if (sender.role === 'admin') {
+      } else if (sender.role === "admin") {
         // Admin can message approved clubs or verified students
         if (receiverId) {
           const receiver = await User.findByPk(receiverId);
           if (!receiver) {
-            socket.emit('error', { message: 'Recipient not found' });
+            socket.emit("error", { message: "Recipient not found" });
             return;
           }
-          if (receiver.role === 'club') {
+          if (receiver.role === "club") {
             // All clubs in User table are approved, so okay
-          } else if (receiver.role === 'student') {
+          } else if (receiver.role === "student") {
             if (!receiver.isVerified) {
-              socket.emit('error', { message: 'Can only message verified students' });
+              socket.emit("error", {
+                message: "Can only message verified students",
+              });
               return;
             }
           } else {
-            socket.emit('error', { message: 'Invalid recipient' });
+            socket.emit("error", { message: "Invalid recipient" });
             return;
           }
         } else {
           // For broadcasts, target should be specified
-          if (!target || !['students', 'clubs'].includes(target)) {
-            socket.emit('error', { message: 'Invalid broadcast target' });
+          if (!target || !["students", "clubs"].includes(target)) {
+            socket.emit("error", { message: "Invalid broadcast target" });
             return;
           }
           // Broadcasts go to all approved clubs or verified students automatically
         }
       } else {
-        socket.emit('error', { message: 'Invalid user role' });
+        socket.emit("error", { message: "Invalid user role" });
         return;
       }
 
       // Determine target audience for broadcasts
       let adminTarget = null;
-      if (sender.role === 'admin' && !receiverId && !clubId) {
+      if (sender.role === "admin" && !receiverId && !clubId) {
         adminTarget = target; // 'students' or 'clubs'
       }
 
@@ -2312,7 +2657,7 @@ io.on('connection', async (socket) => {
         clubId: clubId || null,
         message,
         adminTarget,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
 
       // Emit to appropriate rooms
@@ -2324,44 +2669,44 @@ io.on('connection', async (socket) => {
         clubId: newMessage.clubId,
         message: newMessage.message,
         timestamp: newMessage.timestamp,
-        adminTarget: newMessage.adminTarget
+        adminTarget: newMessage.adminTarget,
       };
 
-      if (clubId && sender.role === 'student') {
+      if (clubId && sender.role === "student") {
         // Student to club: send to club room
-        socket.to(`club_${clubId}`).emit('new-message', messageData);
-      } else if (receiverId && sender.role === 'club') {
+        socket.to(`club_${clubId}`).emit("new-message", messageData);
+      } else if (receiverId && sender.role === "club") {
         // Club to admin: send to admin room (but admin joins all rooms, so this works)
         // Club to student: send to club room for that student (but since receiver is specified, it should go to the receiver)
         // For now, since we don't have private rooms, we rely on front-end filtering
-        socket.emit('new-message', messageData); // Echo back to sender
-      } else if (sender.role === 'admin' && receiverId) {
+        socket.emit("new-message", messageData); // Echo back to sender
+      } else if (sender.role === "admin" && receiverId) {
         // Admin direct message to specific user
         // Since rooms are club-based, we need to send to appropriate rooms
         const receiver = await User.findByPk(receiverId);
-        if (receiver.role === 'club') {
-          socket.to(`club_${receiverId}`).emit('new-message', messageData);
-        } else if (receiver.role === 'student') {
+        if (receiver.role === "club") {
+          socket.to(`club_${receiverId}`).emit("new-message", messageData);
+        } else if (receiver.role === "student") {
           // Send to all club rooms the student is subscribed to, or create a special admin room
           // For simplicity, since front-end loads via API, we'll emit to student broadcast for now
-          socket.to('student_broadcast').emit('new-message', messageData);
+          socket.to("student_broadcast").emit("new-message", messageData);
         }
       } else if (!receiverId) {
         // Broadcasts
-        if (adminTarget === 'students') {
-          socket.to('student_broadcast').emit('new-message', messageData);
-        } else if (adminTarget === 'clubs') {
-          socket.to('club_broadcast').emit('new-message', messageData);
+        if (adminTarget === "students") {
+          socket.to("student_broadcast").emit("new-message", messageData);
+        } else if (adminTarget === "clubs") {
+          socket.to("club_broadcast").emit("new-message", messageData);
         }
       }
     } catch (err) {
-      console.error('Error sending message:', err);
-      socket.emit('error', { message: 'Failed to send message' });
+      console.error("Error sending message:", err);
+      socket.emit("error", { message: "Failed to send message" });
     }
   });
 
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
   });
 });
 
@@ -2370,7 +2715,7 @@ io.on('connection', async (socket) => {
   try {
     await sequelize.authenticate();
     console.log("Database connected!");
-    await sequelize.sync(); // Use existing table structure
+    await sequelize.sync({ alter: true }); // Update table structure
     console.log("All models synced!");
 
     // Seed default admin
@@ -2389,6 +2734,24 @@ io.on('connection', async (socket) => {
         profile_data: { fullName: "Super Admin" },
       });
       console.log("Default admin created!");
+    }
+
+    // Seed default dean
+    const deanEmail = process.env.DEAN_EMAIL;
+    let dean = await User.findOne({ where: { email: deanEmail } });
+
+    if (!dean) {
+      const hashedPassword = await bcrypt.hash(process.env.DEAN_PASS, 10);
+      dean = await User.create({
+        username: "College Dean",
+        email: deanEmail,
+        password: hashedPassword,
+        verificationToken: crypto.randomBytes(20).toString("hex"),
+        role: "dean",
+        isVerified: true,
+        profile_data: { fullName: "College Dean" },
+      });
+      console.log("Default dean created!");
     }
 
     server.listen(3000, () =>

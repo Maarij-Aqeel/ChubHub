@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dean - Pending Academic Club Requests</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <style>
+    /* ===== Reset & Base ===== */
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body { 
+      background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+      color: #111827;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ===== Navbar ===== */
+    .navbar {
+      width: 100%;
+      background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
+    }
+    
+    .navbar-left {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+    
+    .navbar-brand {
+      color: #FFFFFF;
+      font-size: 1.3rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    
+    .navbar-brand i {
+      font-size: 1.5rem;
+    }
+    
+    .navbar a:not(.navbar-brand) {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      padding: 0.5rem 1.5rem;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .navbar a:not(.navbar-brand)::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      transition: left 0.3s ease;
+    }
+    
+    .navbar a:not(.navbar-brand):hover::before {
+      left: 0;
+    }
+    
+    .navbar a:not(.navbar-brand):hover { 
+      transform: translateY(-2px);
+    }
+    
+    .navbar a i { 
+      font-size: 1.5rem;
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+    
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* ===== Container ===== */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 3rem;
+    }
+
+    /* ===== Page Header ===== */
+    .page-header {
+      background: #FFFFFF;
+      padding: 2rem;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .page-title i {
+      font-size: 2.5rem;
+      color: #F59E0B;
+    }
+    
+    .page-title h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1E3A8A;
+    }
+
+    .pending-count {
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+      color: #FFFFFF;
+      padding: 0.75rem 1.5rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    }
+
+    /* ===== Requests Table ===== */
+    .requests-list {
+      background: #FFFFFF;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    .requests-list table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .requests-list th {
+      background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+      color: #FFFFFF;
+      padding: 1.25rem;
+      text-align: left;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .requests-list td {
+      padding: 1.25rem;
+      border-bottom: 1px solid #F3F4F6;
+      color: #374151;
+    }
+
+    .requests-list tbody tr {
+      transition: all 0.3s ease;
+    }
+
+    .requests-list tbody tr:hover {
+      background: #F9FAFB;
+    }
+
+    .requests-list tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status-badge {
+      background: #FEF3C7;
+      color: #92400E;
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: 2px solid #FDE68A;
+      display: inline-block;
+    }
+
+    .view-btn {
+      color: #FFFFFF;
+      background: linear-gradient(135deg, #2563EB 0%, #1E40AF 100%);
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .view-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: left 0.3s ease;
+    }
+
+    .view-btn:hover::before {
+      left: 0;
+    }
+
+    .view-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+    }
+
+    /* ===== Empty State ===== */
+    .empty-state {
+      text-align: center;
+      padding: 5rem 2rem;
+      background: #FFFFFF;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .empty-state i {
+      font-size: 5rem;
+      color: #D1D5DB;
+      margin-bottom: 1.5rem;
+    }
+
+    .empty-state h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1E3A8A;
+      margin-bottom: 0.75rem;
+    }
+
+    .empty-state p {
+      font-size: 1.1rem;
+      color: #6B7280;
+      margin-bottom: 2rem;
+    }
+
+    .empty-state .btn-back {
+      background: linear-gradient(135deg, #2563EB 0%, #1E40AF 100%);
+      color: #FFFFFF;
+      text-decoration: none;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    }
+
+    .empty-state .btn-back:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+      }
+      
+      .navbar-left {
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        align-items: center;
+      }
+      
+      .navbar-brand {
+        font-size: 1.1rem;
+      }
+      
+      .navbar a:not(.navbar-brand) {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+      }
+
+      .page-header {
+        padding: 1.5rem;
+      }
+
+      .page-title {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .page-title i {
+        font-size: 2rem;
+      }
+
+      .page-title h1 {
+        font-size: 1.5rem;
+      }
+
+      .pending-count {
+        align-self: flex-start;
+      }
+
+      .requests-list table {
+        font-size: 0.9rem;
+      }
+
+      .requests-list th,
+      .requests-list td {
+        padding: 0.75rem;
+      }
+
+      .view-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+      }
+
+      .empty-state {
+        padding: 3rem 1.5rem;
+      }
+
+      .empty-state i {
+        font-size: 3.5rem;
+      }
+
+      .empty-state h2 {
+        font-size: 1.4rem;
+      }
+
+      .empty-state p {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== Navbar ===== -->
+  <div class="navbar">
+    <div class="navbar-left">
+      <a href="/dean/dashboard" class="navbar-brand">
+        <i class="fas fa-gavel"></i>
+        <span>Dean Portal</span>
+      </a>
+      <a href="/dean/dashboard">
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="/dean/club-requests">
+        <i class="fas fa-user-clock"></i>
+        <span>Club Requests</span>
+      </a>
+      <a href="/dean/events">
+        <i class="fas fa-calendar-check"></i>
+        <span>Events</span>
+      </a>
+    </div>
+    <a href="/dean/dashboard" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span>Back to Dashboard</span>
+    </a>
+  </div>
+
+  <div class="container">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-title">
+        <i class="fas fa-user-clock"></i>
+        <h1>Pending Academic Club Requests</h1>
+      </div>
+      <% if (requests.length > 0) { %>
+        <div class="pending-count">
+          <%= requests.length %> Request<%= requests.length !== 1 ? 's' : '' %> Awaiting Review
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Requests List -->
+    <% if (requests.length > 0) { %>
+      <div class="requests-list">
+        <table>
+          <thead>
+            <tr>
+              <th>Club Name</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Request Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% requests.forEach(r => { %>
+              <tr>
+                <td><strong><%= r.clubName %></strong></td>
+                <td><%= r.clubEmail %></td>
+                <td>
+                  <span class="status-badge">
+                    <i class="fas fa-hourglass-half"></i>
+                    <%= r.status.charAt(0).toUpperCase() + r.status.slice(1) %>
+                  </span>
+                </td>
+                <td><%= r.createdAt.toLocaleDateString ? r.createdAt.toLocaleDateString() : new Date(r.createdAt).toLocaleDateString() %></td>
+                <td>
+                  <a href="/dean/club-requests/<%= r.id %>" class="view-btn">
+                    <i class="fas fa-eye"></i>
+                    <span>View</span>
+                  </a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        <i class="fas fa-check-double"></i>
+        <h2>All Caught Up!</h2>
+        <p>There are no pending academic club requests to review at this time.</p>
+        <a href="/dean/dashboard" class="btn-back">
+          <i class="fas fa-arrow-left"></i>
+          <span>Back to Dashboard</span>
+        </a>
+      </div>
+    <% } %>
+  </div>
+
+</body>
+</html>

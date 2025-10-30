@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dean - Pending Academic Events</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/css/events.css" />
+  </head>
+    <body>
+    <!-- ===== Navbar ===== -->
+    <div class="navbar">
+      <div class="navbar-left">
+        <a href="/dean/dashboard" class="navbar-brand">
+          <i class="fas fa-gavel"></i>
+          <span>Dean Portal</span>
+        </a>
+        <a href="/dean/dashboard"
+          ><i class="fas fa-home"></i><span>Dashboard</span></a
+        >
+        <a href="/dean/club-requests"
+          ><i class="fas fa-user-clock"></i><span>Club Requests</span></a
+        >
+        <a href="/dean/events"
+          ><i class="fas fa-calendar-check"></i><span>Events</span></a
+        >
+      </div>
+      <a href="/dean/dashboard" class="back-btn">
+        <i class="fas fa-arrow-left"></i>
+        <span>Back to Dashboard</span>
+      </a>
+    </div>
+
+    <!-- ===== Container ===== -->
+    <div class="container">
+      <div class="page-header">
+        <div class="page-title">
+          <i class="fas fa-calendar-check"></i>
+          <h1>Pending Academic Events</h1>
+        </div>
+        <% if (pendingEvents && pendingEvents.length > 0) { %>
+        <div class="pending-count">
+          <%= pendingEvents.length %> Event<%= pendingEvents.length !== 1 ? 's'
+          : '' %> Awaiting Review
+        </div>
+        <% } %>
+      </div>
+
+      <% if (pendingEvents && pendingEvents.length > 0) { %>
+      <div class="events-grid">
+        <% pendingEvents.forEach(event => { %>
+        <div
+          class="event-card clickable"
+          data-event='<%- JSON.stringify(event).replace(/'/g, "\\'") %>'
+
+        >
+          <div class="event-top">
+            <div>
+              <h2><i class="fas fa-calendar-star"></i> <%= event.title %></h2>
+              <div class="club-info">
+                <i class="fas fa-users"></i> <%= event.club?.username ||
+                'Unknown Club' %>
+              </div>
+            </div>
+            <div class="event-status">
+              <i class="fas fa-hourglass-half"></i> Pending Dean Approval
+            </div>
+          </div>
+
+          <div class="event-summary">
+            <% if (event.location) { %>
+            <div>
+              <i class="fas fa-map-marker-alt"></i> <%= event.location %>
+            </div>
+            <% } %> <% if (event.startsAt) { %>
+            <div>
+              <i class="fas fa-calendar-day"></i> <%= new
+              Date(event.startsAt).toLocaleDateString() %>
+            </div>
+            <% } %> <% if (event.endsAt) { %>
+            <div>
+              <i class="fas fa-calendar-times"></i> <%= new
+              Date(event.endsAt).toLocaleDateString() %>
+            </div>
+            <% } %>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+      <% } else { %>
+      <div class="empty-state">
+        <i class="fas fa-check-double"></i>
+        <h2>All Caught Up!</h2>
+        <p>No pending academic events to review at this time.</p>
+        <a href="/dean/dashboard" class="btn-back">
+          <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+      </div>
+      <% } %>
+    </div>
+
+    <!-- ===== Event Modal ===== -->
+    <div id="eventModal" class="modal hidden">
+      <div class="modal-content">
+        <span class="modal-close"><i class="fas fa-times"></i></span>
+        <div class="modal-header">
+          <h2 id="modalTitle"></h2>
+          <div class="modal-club"></div>
+        </div>
+        <div class="modal-body">
+          <div class="modal-details" id="modalDetails">
+
+          </div>
+        </div>
+        <div class="modal-actions">
+          <form id="approveForm" method="POST">
+            <button class="btn btn-approve">
+              <i class="fas fa-check-circle"></i> Approve
+            </button>
+          </form>
+          <form id="rejectForm" method="POST" class="reject-form">
+            <textarea
+              name="deanNotes"
+              placeholder="Reason for rejection (optional)"
+            ></textarea>
+            <button class="btn btn-reject">
+              <i class="fas fa-times-circle"></i> Reject
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+     const modal = document.getElementById("eventModal");
+const modalClose = document.querySelector(".modal-close");
+
+modalClose.addEventListener("click", () => modal.classList.add("hidden"));
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) modal.classList.add("hidden");
+});
+
+document.querySelectorAll(".event-card.clickable").forEach(card => {
+  card.addEventListener("click", () => {
+    const event = JSON.parse(card.dataset.event);
+    
+
+    // ----- header -----
+    document.getElementById("modalTitle").textContent = event.title;
+    document.querySelector(".modal-club").textContent =
+      event.club?.username || "Unknown Club";
+ // ----- helper -----
+    const cleanList = (str) =>
+      (str || '')
+        .split('\n')
+        .map(l => l.replace(/^-\s*/, '').trim())
+        .filter(Boolean)
+        .join(', ') || null;
+
+    // ----- details -----
+    const modalDetails = document.getElementById("modalDetails");
+    modalDetails.innerHTML = "";
+     const fields = [
+      { label: "Location", icon: "fa-map-marker-alt", value: event.location },
+      { label: "Starts At", icon: "fa-calendar-day", value: event.startsAt ? new Date(event.startsAt).toLocaleString() : null },
+      { label: "Ends At", icon: "fa-calendar-times", value: event.endsAt ? new Date(event.endsAt).toLocaleString() : null },
+      { label: "Target Audience", icon: "fa-users", value: event.targetAudience },
+      { label: "Speaker", icon: "fa-user-tie", value: event.hasSpeaker ? event.speakerNamePosition : null },
+      { label: "Activity Type", icon: "fa-tags", value: event.activityType },
+      { label: "Workshop", icon: "fa-chalkboard-teacher", value: event.isWorkshop ? "Yes" : null },
+      { label: "Topic", icon: "fa-lightbulb", value: event.topic },
+      { label: "Expected Attendees", icon: "fa-users", value: event.expectedAttendees },
+      { label: "Goals", icon: "fa-bullseye", value: cleanList(event.goals) },
+      { label: "Requests", icon: "fa-hand-holding", value: cleanList(event.requests) }
+    ];
+
+    fields.forEach(f => {
+      if (f.value) {
+        const p = document.createElement("p");
+        p.innerHTML = `<i class="fas ${f.icon}"></i> <strong>${f.label}:</strong> ${f.value}`;
+        modalDetails.appendChild(p);
+      }
+    });
+
+    // ----- actions -----
+    document.getElementById("approveForm").action = `/dean/events/${event.id}/approve`;
+    document.getElementById("rejectForm").action = `/dean/events/${event.id}/reject`;
+
+    modal.classList.remove("hidden");
+  });
+});
+    </script>
+  </body>
+</html>

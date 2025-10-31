@@ -56,6 +56,9 @@ deanApprovalDate: { type: DataTypes.DATE, allowNull: true },
 deanApproved: { type: DataTypes.BOOLEAN, defaultValue: false },
 deanNotes: { type: DataTypes.TEXT, allowNull: true },
 
+isVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
+verificationToken: { type: DataTypes.STRING(42), allowNull: true },
+
 dsaName: { type: DataTypes.STRING(150), allowNull: true },
 dsaSignature: { type: DataTypes.TEXT, allowNull: true },
 dsaApprovalDate: { type: DataTypes.DATE, allowNull: true },

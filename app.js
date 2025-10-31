@@ -383,6 +383,7 @@ app.post("/signup", upload.single("clubLogo"), async (req, res) => {
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
+      const verificationToken = crypto.randomBytes(20).toString("hex");
 
       // Handle file upload for clubLogo
       let clubLogoPath = null;
@@ -394,10 +395,10 @@ app.post("/signup", upload.single("clubLogo"), async (req, res) => {
         clubName: username,
         clubEmail: email,
         passwordHash: hashedPassword,
-        clubDescription,
-        representativeName,
         clubKind,
         clubStatus,
+        clubDescription,
+        representativeName,
         clubVision,
         clubActivities,
         presidentName,
@@ -416,21 +417,23 @@ app.post("/signup", upload.single("clubLogo"), async (req, res) => {
         advisorEmail,
         advisorSignature,
         clubSocials,
-        clubMembersCount: clubMembersCount ? parseInt(clubMembersCount) : null,
+        clubMembersCount,
         clubFair,
         clubLogo: clubLogoPath,
         deanName,
         deanSignature,
-        deanApprovalDate: deanApprovalDate ? new Date(deanApprovalDate) : null,
         dsaName,
         dsaSignature,
-        dsaApprovalDate: dsaApprovalDate ? new Date(dsaApprovalDate) : null,
-        status: "pending",
+        status: 'pending',
+        isVerified: false,
+        verificationToken: verificationToken
       });
+
+      await sendVerificationEmail(email, verificationToken);
       setFlash(
         req,
         "message",
-        "Your club request has been submitted. Please wait for admin approval."
+        "A verification email has been sent to your email address. Please verify your email and then wait for admin approval."
       );
       return res.redirect("/signup");
     } else {
@@ -452,17 +455,30 @@ app.get("/verify-email", async (req, res) => {
 
   try {
     const user = await User.findOne({ where: { verificationToken: token } });
-    if (!user)
-      return res.render("login", { error: "Invalid verification link." });
+    if (user) {
+      user.isVerified = true;
+      user.verificationToken = null;
+      await user.save();
 
-    user.isVerified = true;
-    user.verificationToken = null;
-    await user.save();
+      res.render("login", {
+        error: null,
+        message: "Email verified successfully. You can now login.",
+      });
+    } else {
+      const clubRequest = await ClubRequest.findOne({ where: { verificationToken: token } });
+      if (clubRequest) {
+        clubRequest.isVerified = true;
+        clubRequest.verificationToken = null;
+        await clubRequest.save();
 
-    res.render("login", {
-      error: null,
-      message: "Email verified successfully. You can now login.",
-    });
+        res.render("login", {
+          error: null,
+          message: "Email verified successfully. Please wait for admin approval.",
+        });
+      } else {
+        res.render("login", { error: "Invalid verification link." });
+      }
+    }
   } catch (err) {
     console.error(err);
     res.render("login", { error: "Something went wrong!" });
@@ -593,7 +609,7 @@ app.get("/admin/club-requests", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
     return res.status(403).send("Forbidden");
   const requests = await ClubRequest.findAll({
-    where: { status: ["pending", "admin_approved"] },
+    where: { status: ["pending", "admin_approved"], isVerified: true },
     order: [["createdAt", "ASC"]],
   });
   res.render("admin-club-request", { requests });
@@ -1860,7 +1876,7 @@ app.get("/dean/club-requests", requireLogin, async (req, res) => {
     return res.status(403).send("Forbidden");
   }
   const requests = await ClubRequest.findAll({
-    where: { status: "admin_approved" },
+    where: { status: "admin_approved", isVerified: true },
     order: [["createdAt", "ASC"]],
   });
   console.log(

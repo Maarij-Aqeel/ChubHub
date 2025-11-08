@@ -5,6 +5,7 @@ const session = require("express-session");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
 const fs = require("fs");
+const sharp = require("sharp");
 const User = require("./models/user");
 const Post = require("./models/post");
 const { sequelize } = require("./config/database");
@@ -899,7 +900,20 @@ app.get("/student/:id", requireLogin, async (req, res) => {
   if (!user || user.role !== "student")
     return res.status(404).send("Student not found");
 
-  res.render("studentProfile", { user, posts: [] });
+  // Get subscribed clubs count
+  const subscribedCount = await Subscription.count({
+    where: { studentId: user.id },
+  });
+
+  // Get joined clubs count (accepted applications)
+  const joinedCount = await Application.count({
+    where: {
+      studentId: user.id,
+      status: "accepted"
+    },
+  });
+
+  res.render("studentProfile", { user, posts: [], subscribedCount, joinedCount });
 });
 
 // ===== Club Profile =====
@@ -1135,9 +1149,23 @@ app.post(
 
       if (req.file) {
         console.log("Uploaded file:", req.file); // debug
-        if (req.file.mimetype.startsWith("image/"))
-          image = "/uploads/" + req.file.filename;
-        else if (req.file.mimetype.startsWith("video/"))
+        if (req.file.mimetype.startsWith("image/")) {
+          // Resize image to max 800x600, maintain aspect ratio
+          const inputPath = path.join(__dirname, "uploads", req.file.filename);
+          const outputPath = path.join(__dirname, "uploads", "resized-" + req.file.filename);
+
+          await sharp(inputPath)
+            .resize(800, 600, {
+              fit: 'inside',
+              withoutEnlargement: true
+            })
+            .jpeg({ quality: 85 })
+            .toFile(outputPath);
+
+          // Remove original file and use resized version
+          fs.unlinkSync(inputPath);
+          image = "/uploads/resized-" + req.file.filename;
+        } else if (req.file.mimetype.startsWith("video/"))
           video = "/uploads/" + req.file.filename;
       }
 
@@ -2264,6 +2292,65 @@ app.get("/api/subscriptions/:studentId", requireLogin, async (req, res) => {
       ],
     });
     res.json(subscriptions);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// API endpoint for student's subscribed clubs
+app.get("/api/student/:studentId/subscribed-clubs", requireLogin, async (req, res) => {
+  if (
+    req.session.user.role !== "student" ||
+    req.session.user.id != req.params.studentId
+  ) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
+  try {
+    const subscriptions = await Subscription.findAll({
+      where: { studentId: req.params.studentId },
+      include: [
+        {
+          model: User,
+          as: "club",
+          attributes: ["id", "username", "profile_data"],
+        },
+      ],
+    });
+    const clubs = subscriptions.map(sub => sub.club);
+    res.json(clubs);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// API endpoint for student's joined clubs (accepted applications)
+app.get("/api/student/:studentId/joined-clubs", requireLogin, async (req, res) => {
+  if (
+    req.session.user.role !== "student" ||
+    req.session.user.id != req.params.studentId
+  ) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+
+  try {
+    const applications = await Application.findAll({
+      where: {
+        studentId: req.params.studentId,
+        status: "accepted"
+      },
+      include: [
+        {
+          model: User,
+          as: "club",
+          attributes: ["id", "username", "profile_data"],
+        },
+      ],
+    });
+    const clubs = applications.map(app => app.club);
+    res.json(clubs);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });

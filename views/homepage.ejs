@@ -484,7 +484,7 @@
           </div>
           <div class="post-content">
             <% if(post.text) { %><p><%= post.text %></p><% } %>
-            <% if(post.image) { %><img src="<%= post.image %>" alt="Post Image"><% } %>
+            <% if(post.image) { %><img src="<%= post.image %>" alt="Post Image" style="width: 100%; max-height: 450px; object-fit: contain;"><% } %>
             <% if(post.video) { %>
               <video controls>
                 <source src="<%= post.video %>" type="video/mp4">
@@ -517,7 +517,7 @@
           </div>
           <div class="post-content">
             <% if(post.text) { %><p><%= post.text %></p><% } %>
-            <% if(post.image) { %><img src="<%= post.image %>" alt="Post Image"><% } %>
+            <% if(post.image) { %><img src="<%= post.image %>" alt="Post Image" style="width: 100%; max-height: 450px; object-fit: contain;"><% } %>
             <% if(post.video) { %>
               <video controls>
                 <source src="<%= post.video %>" type="video/mp4">
@@ -663,7 +663,18 @@
             const props = info.event.extendedProps;
             const startTime = new Date(info.event.start).toLocaleString();
             const endTime = info.event.end ? new Date(info.event.end).toLocaleString() : 'TBD';
-            alert(`Event: ${info.event.title}\nStart: ${startTime}\nEnd: ${endTime}\nLocation: ${props.location || 'TBD'}\nActivity Type: ${props.activityType || 'N/A'}\nTarget Audience: ${props.targetAudience || 'N/A'}\nClub: ${props.clubName}\nDescription: ${props.description || 'N/A'}`);
+
+            // Show event modal
+            const modal = document.getElementById('eventModal');
+            document.getElementById('eventTitle').textContent = info.event.title;
+            document.getElementById('eventStart').textContent = startTime;
+            document.getElementById('eventEnd').textContent = endTime;
+            document.getElementById('eventLocation').textContent = props.location || 'TBD';
+            document.getElementById('eventActivityType').textContent = props.activityType || 'N/A';
+            document.getElementById('eventTargetAudience').textContent = props.targetAudience || 'N/A';
+            document.getElementById('eventClub').textContent = props.clubName;
+            document.getElementById('eventDescription').textContent = props.description || 'N/A';
+            modal.style.display = 'flex';
           },
           headerToolbar: {
             left: 'prev,next today',
@@ -700,12 +711,207 @@
       }, 3400);
     }
   </script>
+  <!-- Event Modal -->
+  <div class="modal" id="eventModal">
+    <div class="modal-content" style="max-width: 600px;">
+      <h3 id="eventTitle" style="margin-bottom: 1.5rem; color: #1E3A8A;">Event Details</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+        <div class="detail-item" style="margin: 0;">
+          <div class="detail-icon" style="margin-right: 0.75rem;">
+            <i class="fas fa-calendar"></i>
+          </div>
+          <div class="detail-content">
+            <div class="detail-label">Start Time</div>
+            <div class="detail-value" id="eventStart"></div>
+          </div>
+        </div>
+        <div class="detail-item" style="margin: 0;">
+          <div class="detail-icon" style="margin-right: 0.75rem;">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="detail-content">
+            <div class="detail-label">End Time</div>
+            <div class="detail-value" id="eventEnd"></div>
+          </div>
+        </div>
+        <div class="detail-item" style="margin: 0;">
+          <div class="detail-icon" style="margin-right: 0.75rem;">
+            <i class="fas fa-map-marker-alt"></i>
+          </div>
+          <div class="detail-content">
+            <div class="detail-label">Location</div>
+            <div class="detail-value" id="eventLocation"></div>
+          </div>
+        </div>
+        <div class="detail-item" style="margin: 0;">
+          <div class="detail-icon" style="margin-right: 0.75rem;">
+            <i class="fas fa-cubes"></i>
+          </div>
+          <div class="detail-content">
+            <div class="detail-label">Activity Type</div>
+            <div class="detail-value" id="eventActivityType"></div>
+          </div>
+        </div>
+        <div class="detail-item" style="margin: 0;">
+          <div class="detail-icon" style="margin-right: 0.75rem;">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="detail-content">
+            <div class="detail-label">Target Audience</div>
+            <div class="detail-value" id="eventTargetAudience"></div>
+          </div>
+        </div>
+        <div class="detail-item" style="margin: 0;">
+          <div class="detail-icon" style="margin-right: 0.75rem;">
+            <i class="fas fa-building"></i>
+          </div>
+          <div class="detail-content">
+            <div class="detail-label">Club</div>
+            <div class="detail-value" id="eventClub"></div>
+          </div>
+        </div>
+      </div>
+      <div class="detail-item" style="margin: 0 0 1.5rem 0;">
+        <div class="detail-icon" style="margin-right: 0.75rem;">
+          <i class="fas fa-info-circle"></i>
+        </div>
+        <div class="detail-content">
+          <div class="detail-label">Description</div>
+          <div class="detail-value" id="eventDescription" style="white-space: pre-wrap;"></div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn cancel-btn" onclick="closeEventModal()">
+          <i class="fas fa-times"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function closeEventModal() {
+      document.getElementById('eventModal').style.display = 'none';
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('eventModal');
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    }
+  </script>
+
   <style>
     #toast-container { z-index:9999; position:fixed; top:32px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; }
     .toast { opacity:0; min-width:250px; margin-top:12px; padding: 1em 2em; border-radius: 8px; background: #2563eb; color: #fff; box-shadow:0 4px 16px rgba(0,0,0,0.12); font-weight:500; transition:opacity 0.4s, transform 0.4s; transform:translateY(-25px) scale(0.95); transition:all 0.4s; pointer-events:none; }
     .toast.show { opacity: 1; transform:translateY(0) scale(1); }
     .toast-error { background:#e11d48; }
     .toast-success { background:#16a34a; }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(4px);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+      background: #FFFFFF;
+      padding: 2.5rem;
+      border-radius: 16px;
+      width: 500px;
+      max-width: 90%;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-content h3 {
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+      font-size: 1.8rem;
+      color: #1E3A8A;
+      font-weight: 700;
+    }
+
+    .detail-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      background: #F3F4F6;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .detail-item:hover {
+      background: #E5E7EB;
+      transform: translateX(5px);
+    }
+
+    .detail-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .detail-content {
+      flex: 1;
+    }
+
+    .detail-label {
+      font-size: 0.85rem;
+      color: #6B7280;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+
+    .detail-value {
+      font-size: 1rem;
+      color: #111827;
+      font-weight: 600;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .cancel-btn {
+      background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+    }
+
+    .cancel-btn:hover {
+      box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+    }
   </style>
 </body>
 </html>

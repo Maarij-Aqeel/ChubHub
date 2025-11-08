@@ -100,27 +100,83 @@
         <div class="management">
           <div class="section-header">
             <i class="fas fa-tasks"></i>
-            <h3>Quick Management</h3>
+            <h3>Management Dashboard</h3>
           </div>
-          <div class="manage-buttons">
-            <a href="/admin/club-requests">
-              <button class="warning">
-                <i class="fas fa-user-clock"></i>
-                <span>Pending Club Requests</span>
-              </button>
-            </a>
-            <a href="/admin/posts">
-              <button class="warning">
-                <i class="fas fa-file-circle-check"></i>
-                <span>Pending Posts</span>
-              </button>
-            </a>
-            <a href="/admin/events">
-              <button class="warning">
-                <i class="fas fa-calendar-check"></i>
-                <span>Pending Events</span>
-              </button>
-            </a>
+          <div class="manage-grid">
+            <!-- Club Requests -->
+            <div class="manage-category">
+              <h4><i class="fas fa-users"></i> Club Requests</h4>
+              <div class="category-buttons">
+                <a href="/admin/club-requests?status=pending">
+                  <button class="warning">
+                    <i class="fas fa-user-clock"></i>
+                    <span>Pending</span>
+                  </button>
+                </a>
+                <a href="/admin/club-requests?status=approved">
+                  <button class="success">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Approved</span>
+                  </button>
+                </a>
+                <a href="/admin/club-requests?status=rejected">
+                  <button class="danger">
+                    <i class="fas fa-times-circle"></i>
+                    <span>Rejected</span>
+                  </button>
+                </a>
+              </div>
+            </div>
+
+            <!-- Posts -->
+            <div class="manage-category">
+              <h4><i class="fas fa-newspaper"></i> Posts</h4>
+              <div class="category-buttons">
+                <a href="/admin/posts?status=pending">
+                  <button class="warning">
+                    <i class="fas fa-hourglass-half"></i>
+                    <span>Pending</span>
+                  </button>
+                </a>
+                <a href="/admin/posts?status=approved">
+                  <button class="success">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Approved</span>
+                  </button>
+                </a>
+                <a href="/admin/posts?status=rejected">
+                  <button class="danger">
+                    <i class="fas fa-times-circle"></i>
+                    <span>Rejected</span>
+                  </button>
+                </a>
+              </div>
+            </div>
+
+            <!-- Events -->
+            <div class="manage-category">
+              <h4><i class="fas fa-calendar-alt"></i> Events</h4>
+              <div class="category-buttons">
+                <a href="/admin/events?status=pending">
+                  <button class="warning">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending</span>
+                  </button>
+                </a>
+                <a href="/admin/events?status=approved">
+                  <button class="success">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Approved</span>
+                  </button>
+                </a>
+                <a href="/admin/events?status=rejected">
+                  <button class="danger">
+                    <i class="fas fa-times-circle"></i>
+                    <span>Rejected</span>
+                  </button>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -657,6 +713,122 @@
 
       .cancel-btn:hover {
         box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+      }
+
+      /* Management Dashboard Styles */
+      .manage-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 1.5rem;
+      }
+
+      .manage-category {
+        background: #FFFFFF;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+      }
+
+      .manage-category:hover {
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        transform: translateY(-4px);
+      }
+
+      .manage-category h4 {
+        color: #1E3A8A;
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .manage-category h4 i {
+        color: #2563EB;
+        font-size: 1.3rem;
+      }
+
+      .category-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.75rem;
+      }
+
+      .category-buttons a {
+        text-decoration: none;
+      }
+
+      .category-buttons button {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        color: #FFFFFF;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      }
+
+      .category-buttons button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      }
+
+      .category-buttons button i {
+        font-size: 1.2rem;
+      }
+
+      .category-buttons button.warning {
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+      }
+
+      .category-buttons button.warning:hover {
+        box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
+      }
+
+      .category-buttons button.success {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      }
+
+      .category-buttons button.success:hover {
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+      }
+
+      .category-buttons button.danger {
+        background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+      }
+
+      .category-buttons button.danger:hover {
+        box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+      }
+
+      @media (max-width: 768px) {
+        .manage-grid {
+          grid-template-columns: 1fr;
+          gap: 1rem;
+        }
+
+        .category-buttons {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .category-buttons button {
+          padding: 0.75rem 0.5rem;
+          font-size: 0.8rem;
+        }
+
+        .category-buttons button span {
+          font-size: 0.8rem;
+        }
       }
     </style>
   </body>

@@ -605,15 +605,33 @@ app.get("/logout", (req, res) => {
   res.redirect("/login");
 });
 
-// Admin - view pending club requests
+// Admin - view club requests by status
 app.get("/admin/club-requests", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
     return res.status(403).send("Forbidden");
+
+  const status = req.query.status || "pending";
+  let whereCondition = { isVerified: true };
+
+  switch (status) {
+    case "pending":
+      whereCondition.status = ["pending", "admin_approved"];
+      break;
+    case "approved":
+      whereCondition.status = "approved";
+      break;
+    case "rejected":
+      whereCondition.status = "rejected";
+      break;
+    default:
+      whereCondition.status = ["pending", "admin_approved"];
+  }
+
   const requests = await ClubRequest.findAll({
-    where: { status: ["pending", "admin_approved"], isVerified: true },
+    where: whereCondition,
     order: [["createdAt", "ASC"]],
   });
-  res.render("admin-club-request", { requests });
+  res.render("admin-club-request", { requests, currentStatus: status });
 });
 
 // Approve
@@ -710,11 +728,13 @@ app.get("/dean/club-requests/:id", requireLogin, async (req, res) => {
 app.get("/admin/posts", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
     return res.status(403).send("Forbidden");
+
+  const status = req.query.status || "pending";
   const posts = await Post.findAll({
-    where: { status: "pending" },
+    where: { status: status },
     order: [["createdAt", "ASC"]],
   });
-  res.render("adminPosts", { posts });
+  res.render("adminPosts", { posts, currentStatus: status });
 });
 
 app.post("/admin/posts/:id/approve", requireLogin, async (req, res) => {
@@ -928,6 +948,11 @@ app.get("/club/:id", requireLogin, async (req, res) => {
     order: [["createdAt", "DESC"]],
   });
 
+  // Count only approved posts for dashboard stats
+  const approvedPostsCount = await Post.count({
+    where: { clubId: user.id, status: 'approved' },
+  });
+
   // Fetch all events for this club (pending/approved/rejected)
   const events = await Event.findAll({
     where: { clubId: user.id },
@@ -963,6 +988,7 @@ app.get("/club/:id", requireLogin, async (req, res) => {
     events,
     eventsNeedingReports,
     pendingReportsCount: eventsNeedingReports.length,
+    approvedPostsCount,
   });
 });
 // Browse clubs
@@ -1521,20 +1547,21 @@ app.post("/club/:id/events/:eventId/delete", requireLogin, async (req, res) => {
   res.redirect(`/club/${req.params.id}`);
 });
 
-// Admin view pending events
+// Admin view events by status
 app.get("/admin/events", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
     return res.status(403).send("Forbidden");
 
-  const pendingEvents = await Event.findAll({
-    where: { status: "pending" },
+  const status = req.query.status || "pending";
+  const events = await Event.findAll({
+    where: { status: status },
     include: [
       { model: User, as: "club", attributes: ["id", "username", "email"] },
     ],
     order: [["createdAt", "ASC"]],
   });
 
-  res.render("AdminEvents", { pendingEvents });
+  res.render("AdminEvents", { events, currentStatus: status });
 });
 
 // Approve
@@ -1897,25 +1924,43 @@ app.get("/dean/dashboard", requireLogin, async (req, res) => {
   });
 });
 
-// Dean club requests
+// Dean club requests by status
 app.get("/dean/club-requests", requireLogin, async (req, res) => {
   if (req.session.user.role !== "dean") {
     console.log(req.session.user.role);
     return res.status(403).send("Forbidden");
   }
+
+  const status = req.query.status || "pending";
+  let whereCondition = { isVerified: true };
+
+  switch (status) {
+    case "pending":
+      whereCondition.status = "admin_approved";
+      break;
+    case "approved":
+      whereCondition.status = "approved";
+      break;
+    case "rejected":
+      whereCondition.status = "rejected";
+      break;
+    default:
+      whereCondition.status = "admin_approved";
+  }
+
   const requests = await ClubRequest.findAll({
-    where: { status: "admin_approved", isVerified: true },
+    where: whereCondition,
     order: [["createdAt", "ASC"]],
   });
   console.log(
-    `Dean club requests: found ${requests.length} admin_approved clubs`
+    `Dean club requests (${status}): found ${requests.length} clubs`
   );
   requests.forEach((r) =>
     console.log(
       `  Club: ${r.clubName}, status: ${r.status}, clubKind: ${r.clubKind}`
     )
   );
-  res.render("dean-club-requests", { requests });
+  res.render("dean-club-requests", { requests, currentStatus: status });
 });
 
 // Dean approve club
@@ -1984,13 +2029,33 @@ app.post("/dean/club-requests/:id/reject", requireLogin, async (req, res) => {
   res.redirect("/dean/club-requests");
 });
 
-// Dean view pending events (only academic clubs)
+// Dean view events by status (only academic clubs)
 app.get("/dean/events", requireLogin, async (req, res) => {
   if (req.session.user.role !== "dean")
     return res.status(403).send("Forbidden");
 
-  const allPendingEvents = await Event.findAll({
-    where: { status: "pending", approvedByAdmin: true, approvedByDean: false },
+  const status = req.query.status || "pending";
+  let whereCondition = { approvedByAdmin: true };
+
+  switch (status) {
+    case "pending":
+      whereCondition.status = "pending";
+      whereCondition.approvedByDean = false;
+      break;
+    case "approved":
+      whereCondition.status = "approved";
+      whereCondition.approvedByDean = true;
+      break;
+    case "rejected":
+      whereCondition.status = "rejected";
+      break;
+    default:
+      whereCondition.status = "pending";
+      whereCondition.approvedByDean = false;
+  }
+
+  const allEvents = await Event.findAll({
+    where: whereCondition,
     include: [
       {
         model: User,
@@ -2002,10 +2067,10 @@ app.get("/dean/events", requireLogin, async (req, res) => {
   });
 
   // Filter only academic clubs
-  const pendingEvents = allPendingEvents.filter(
+  const events = allEvents.filter(
     (event) => event.club?.profile_data?.clubKind === "Academic"
   );
-  res.render("DeanEvents", { pendingEvents });
+  res.render("DeanEvents", { events, currentStatus: status });
 });
 
 // Dean approve event

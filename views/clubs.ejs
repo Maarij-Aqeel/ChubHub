@@ -650,14 +650,14 @@
               <% if (c.isAccepted) { %>
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                   <% if (c.isSubscribed) { %>
-                    <form action="/student/<%= user.id %>/clubs/<%= c.id %>/unsubscribe" method="POST" style="display:inline;">
+                    <form action="/student/<%= user.id %>/clubs/<%= c.id %>/unsubscribe" method="POST" style="display:inline;" onsubmit="return confirmUnsubscribe('<%= c.username %>')">
                       <button type="submit" class="btn" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); font-size: 0.85rem;">
                         <i class="fas fa-bell-slash"></i>
                         Unsubscribe
                       </button>
                     </form>
                   <% } else { %>
-                    <form action="/student/<%= user.id %>/clubs/<%= c.id %>/subscribe" method="POST" style="display:inline;">
+                    <form action="/student/<%= user.id %>/clubs/<%= c.id %>/subscribe" method="POST" style="display:inline;" onsubmit="return confirmSubscribe('<%= c.username %>')">
                       <button type="submit" class="btn" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); font-size: 0.85rem;">
                         <i class="fas fa-bell"></i>
                         Subscribe
@@ -674,14 +674,14 @@
               <% } else { %>
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
                   <% if (c.isSubscribed) { %>
-                    <form action="/student/<%= user.id %>/clubs/<%= c.id %>/unsubscribe" method="POST" style="display:inline;">
+                    <form action="/student/<%= user.id %>/clubs/<%= c.id %>/unsubscribe" method="POST" style="display:inline;" onsubmit="return confirmUnsubscribe('<%= c.username %>')">
                       <button type="submit" class="btn" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); font-size: 0.85rem;">
                         <i class="fas fa-bell-slash"></i>
                         Unsubscribe
                       </button>
                     </form>
                   <% } else { %>
-                    <form action="/student/<%= user.id %>/clubs/<%= c.id %>/subscribe" method="POST" style="display:inline;">
+                    <form action="/student/<%= user.id %>/clubs/<%= c.id %>/subscribe" method="POST" style="display:inline;" onsubmit="return confirmSubscribe('<%= c.username %>')">
                       <button type="submit" class="btn" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); font-size: 0.85rem;">
                         <i class="fas fa-bell"></i>
                         Subscribe
@@ -783,6 +783,14 @@
       }
     }
 
+    function confirmSubscribe(clubName) {
+      return confirm(`Are you sure you want to subscribe to ${clubName}? You will receive notifications about their posts and events.`);
+    }
+
+    function confirmUnsubscribe(clubName) {
+      return confirm(`Are you sure you want to unsubscribe from ${clubName}? You will no longer receive notifications about their posts and events.`);
+    }
+
     const applicationModal = document.getElementById('applicationModal');
     const applicationForm = document.getElementById('applicationForm');
     const clubNameSpan = document.getElementById('clubName');
@@ -823,6 +831,13 @@
       if (!isValid) {
         e.preventDefault();
         showToast('Please fill in all required fields.', 'error');
+        return;
+      }
+
+      // Add confirmation for application submission
+      const clubName = document.getElementById('clubName').textContent;
+      if (!confirm(`Are you sure you want to apply to join ${clubName}? Your application will be reviewed by the club.`)) {
+        e.preventDefault();
       }
     });
 

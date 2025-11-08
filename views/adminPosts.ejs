@@ -135,6 +135,57 @@
             flex-wrap: wrap;
             gap: 1rem;
         }
+
+        /* ===== Status Tabs ===== */
+        .status-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #E5E7EB;
+            padding-bottom: 1rem;
+        }
+
+        .status-tab {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            color: #6B7280;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .status-tab:hover {
+            background: #F3F4F6;
+            color: #374151;
+        }
+
+        .status-tab.active {
+            background: linear-gradient(135deg, #2563EB 0%, #1E3A8A 100%);
+            color: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        .status-tab i {
+            font-size: 1rem;
+        }
+
+        .tab-count {
+            background: rgba(255, 255, 255, 0.2);
+            color: inherit;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-left: 4px;
+        }
+
+        .status-tab.active .tab-count {
+            background: rgba(255, 255, 255, 0.3);
+        }
         
         .page-title {
             display: flex;
@@ -521,13 +572,29 @@
         <div class="page-header">
             <div class="page-title">
                 <i class="fas fa-file-circle-question"></i>
-                <h1>Pending Posts</h1>
+                <h1>Posts Management</h1>
             </div>
             <% if (posts.length > 0) { %>
                 <div class="pending-count">
-                    <%= posts.length %> Post<%= posts.length !== 1 ? 's' : '' %> Awaiting Review
+                    <%= posts.length %> Post<%= posts.length !== 1 ? 's' : '' %> in <%= currentStatus %> status
                 </div>
             <% } %>
+        </div>
+
+        <!-- Status Tabs -->
+        <div class="status-tabs">
+            <a href="?status=pending" class="status-tab <%= currentStatus === 'pending' ? 'active' : '' %>">
+                <i class="fas fa-hourglass-half"></i>
+                <span>Pending</span>
+            </a>
+            <a href="?status=approved" class="status-tab <%= currentStatus === 'approved' ? 'active' : '' %>">
+                <i class="fas fa-check-circle"></i>
+                <span>Approved</span>
+            </a>
+            <a href="?status=rejected" class="status-tab <%= currentStatus === 'rejected' ? 'active' : '' %>">
+                <i class="fas fa-times-circle"></i>
+                <span>Rejected</span>
+            </a>
         </div>
 
         <!-- Posts List -->
@@ -555,7 +622,13 @@
                                 </div>
                             </div>
                             <div class="post-status">
-                                <i class="fas fa-hourglass-half"></i> Pending
+                                <% if (post.status === 'pending') { %>
+                                    <i class="fas fa-hourglass-half"></i> Pending
+                                <% } else if (post.status === 'approved') { %>
+                                    <i class="fas fa-check-circle"></i> Approved
+                                <% } else if (post.status === 'rejected') { %>
+                                    <i class="fas fa-times-circle"></i> Rejected
+                                <% } %>
                             </div>
                         </div>
 
@@ -574,6 +647,7 @@
                             </div>
                         </div>
 
+                        <% if (post.status === 'pending') { %>
                         <div class="post-actions">
                             <form class="action-form" action="/admin/posts/<%= post.id %>/approve" method="POST">
                                 <button type="submit" class="btn btn-approve">
@@ -588,14 +662,31 @@
                                 </button>
                             </form>
                         </div>
+                        <% } %>
                     </li>
                 <% }); %>
             </ul>
         <% } else { %>
             <div class="empty-state">
                 <i class="fas fa-check-double"></i>
-                <h2>All Caught Up!</h2>
-                <p>There are no pending posts to review at this time.</p>
+                <h2>
+                    <% if (currentStatus === 'pending') { %>
+                        All Caught Up!
+                    <% } else if (currentStatus === 'approved') { %>
+                        No Approved Posts
+                    <% } else if (currentStatus === 'rejected') { %>
+                        No Rejected Posts
+                    <% } %>
+                </h2>
+                <p>
+                    <% if (currentStatus === 'pending') { %>
+                        There are no pending posts to review at this time.
+                    <% } else if (currentStatus === 'approved') { %>
+                        There are no approved posts in the system.
+                    <% } else if (currentStatus === 'rejected') { %>
+                        There are no rejected posts in the system.
+                    <% } %>
+                </p>
                 <a href="/admin/dashboard" class="btn-back">
                     <i class="fas fa-arrow-left"></i>
                     <span>Back to Dashboard</span>

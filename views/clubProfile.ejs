@@ -763,7 +763,7 @@
               <i class="fas fa-newspaper"></i>
               Total Posts
             </div>
-            <div class="stat-value"><%= posts ? posts.length : 0 %></div>
+            <div class="stat-value"><%= approvedPostsCount || 0 %></div>
           </div>
           <div class="stat-card events">
             <div class="stat-label">
@@ -1211,12 +1211,30 @@
     </div>
   </div>
 
+  <!-- ===== Event Details Modal ===== -->
+  <div class="modal" id="eventModal">
+    <div class="modal-content">
+      <h3><i class="fas fa-calendar-star"></i> Event Details</h3>
+      <div class="modal-body">
+        <div id="eventDetails">
+          <!-- Event details will be populated here -->
+        </div>
+      </div>
+      <div style="padding: 1.5rem; border-top: 2px solid #F3F4F6; display: flex; gap: 1rem; justify-content: flex-end;">
+        <button type="button" class="btn btn-cancel" onclick="closeEventModal()">
+          <i class="fas fa-times"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script id="club-events-data" type="application/json"><%- JSON.stringify(events) %></script>
   <script src="/socket.io/socket.io.js"></script>
 
   <script>
     const editModal = document.getElementById('editModal');
     const postModal = document.getElementById('postModal');
+    const eventModal = document.getElementById('eventModal');
     const currentUserId = <%= user.id %>;
 
     // Socket.IO chat functionality
@@ -1250,6 +1268,9 @@
     function openPostModal() { postModal.style.display = 'flex'; }
     function closePostModal() { postModal.style.display = 'none'; }
 
+    function openEventModal() { eventModal.style.display = 'flex'; }
+    function closeEventModal() { eventModal.style.display = 'none'; }
+
     function initClubCalendar() {
       const calendarEl = document.getElementById('club-calendar');
       if (!calendarEl) return;
@@ -1282,7 +1303,68 @@
           const props = info.event.extendedProps;
           const startTime = new Date(info.event.start).toLocaleString();
           const endTime = info.event.end ? new Date(info.event.end).toLocaleString() : 'TBD';
-          alert(`Event: ${info.event.title}\nStatus: ${props.status}\nStart: ${startTime}\nEnd: ${endTime}\nLocation: ${props.location || 'TBD'}\nActivity Type: ${props.activityType || 'N/A'}\nTarget Audience: ${props.targetAudience || 'N/A'}\nClub: ${props.clubName}\nDescription: ${props.description || 'N/A'}`);
+
+          const eventDetails = document.getElementById('eventDetails');
+          eventDetails.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              <div style="background: #F3F4F6; padding: 1rem; border-radius: 8px; border-left: 4px solid #2563EB;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #1E3A8A; font-size: 1.2rem; font-weight: 700;">
+                  <i class="fas fa-calendar-star"></i> ${info.event.title}
+                </h4>
+                <p style="margin: 0; color: #6B7280; font-size: 0.9rem;">
+                  <strong>Status:</strong> <span class="status-badge status-${props.status}" style="font-size: 0.8rem; padding: 2px 8px;">${props.status}</span>
+                </p>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="event-info-item">
+                  <i class="fas fa-calendar-day"></i>
+                  <span><strong>Start:</strong> ${startTime}</span>
+                </div>
+                <div class="event-info-item">
+                  <i class="fas fa-calendar-times"></i>
+                  <span><strong>End:</strong> ${endTime}</span>
+                </div>
+              </div>
+
+              ${props.location ? `
+                <div class="event-info-item">
+                  <i class="fas fa-map-marker-alt"></i>
+                  <span><strong>Location:</strong> ${props.location}</span>
+                </div>
+              ` : ''}
+
+              ${props.activityType ? `
+                <div class="event-info-item">
+                  <i class="fas fa-cubes"></i>
+                  <span><strong>Activity Type:</strong> ${props.activityType}</span>
+                </div>
+              ` : ''}
+
+              ${props.targetAudience ? `
+                <div class="event-info-item">
+                  <i class="fas fa-users"></i>
+                  <span><strong>Target Audience:</strong> ${props.targetAudience}</span>
+                </div>
+              ` : ''}
+
+              <div class="event-info-item">
+                <i class="fas fa-building"></i>
+                <span><strong>Club:</strong> ${props.clubName}</span>
+              </div>
+
+              ${props.description ? `
+                <div style="background: #F9FAFB; padding: 1rem; border-radius: 8px; border-left: 4px solid #10B981;">
+                  <h5 style="margin: 0 0 0.5rem 0; color: #059669; font-size: 1rem; font-weight: 600;">
+                    <i class="fas fa-info-circle"></i> Description
+                  </h5>
+                  <p style="margin: 0; color: #374151; line-height: 1.5;">${props.description}</p>
+                </div>
+              ` : ''}
+            </div>
+          `;
+
+          openEventModal();
         },
         headerToolbar: {
           left: 'prev,next today',
@@ -1303,6 +1385,7 @@
     window.onclick = function(event) {
       if (event.target === editModal) closeEditModal();
       if (event.target === postModal) closePostModal();
+      if (event.target === eventModal) closeEventModal();
     }
 
     window.addEventListener('DOMContentLoaded', function() {

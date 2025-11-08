@@ -39,19 +39,19 @@
       <div class="page-header">
         <div class="page-title">
           <i class="fas fa-calendar-check"></i>
-          <h1>Pending Events</h1>
+          <h1><%= currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1) %> Events</h1>
         </div>
-        <% if (pendingEvents && pendingEvents.length > 0) { %>
+        <% if (events && events.length > 0) { %>
         <div class="pending-count">
-          <%= pendingEvents.length %> Event<%= pendingEvents.length !== 1 ? 's'
-          : '' %> Awaiting Review
+          <%= events.length %> Event<%= events.length !== 1 ? 's'
+          : '' %> in <%= currentStatus %> status
         </div>
         <% } %>
       </div>
 
-      <% if (pendingEvents && pendingEvents.length > 0) { %>
+      <% if (events && events.length > 0) { %>
       <div class="events-grid">
-        <% pendingEvents.forEach(event => { %>
+        <% events.forEach(event => { %>
         <div
           class="event-card clickable"
           data-event='<%- JSON.stringify(event).replace(/'/g, "&apos;") %>'
@@ -66,7 +66,13 @@
               </div>
             </div>
             <div class="event-status">
-              <i class="fas fa-hourglass-half"></i> Pending
+              <% if (event.status === 'pending') { %>
+                <i class="fas fa-hourglass-half"></i> Pending
+              <% } else if (event.status === 'approved') { %>
+                <i class="fas fa-check-circle"></i> Approved
+              <% } else if (event.status === 'rejected') { %>
+                <i class="fas fa-times-circle"></i> Rejected
+              <% } %>
             </div>
           </div>
 
@@ -93,8 +99,24 @@
       <% } else { %>
       <div class="empty-state">
         <i class="fas fa-check-double"></i>
-        <h2>All Caught Up!</h2>
-        <p>No pending events to review at this time.</p>
+        <h2>
+          <% if (currentStatus === 'pending') { %>
+            All Caught Up!
+          <% } else if (currentStatus === 'approved') { %>
+            No Approved Events
+          <% } else if (currentStatus === 'rejected') { %>
+            No Rejected Events
+          <% } %>
+        </h2>
+        <p>
+          <% if (currentStatus === 'pending') { %>
+            No pending events to review at this time.
+          <% } else if (currentStatus === 'approved') { %>
+            There are no approved events in the system.
+          <% } else if (currentStatus === 'rejected') { %>
+            There are no rejected events in the system.
+          <% } %>
+        </p>
         <a href="/admin/dashboard" class="btn-back">
           <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
@@ -115,21 +137,8 @@
 
           </div>
         </div>
-        <div class="modal-actions">
-          <form id="approveForm" method="POST">
-            <button class="btn btn-approve">
-              <i class="fas fa-check-circle"></i> Approve
-            </button>
-          </form>
-          <form id="rejectForm" method="POST" class="reject-form">
-            <textarea
-              name="adminNotes"
-              placeholder="Reason for rejection (optional)"
-            ></textarea>
-            <button class="btn btn-reject">
-              <i class="fas fa-times-circle"></i> Reject
-            </button>
-          </form>
+        <div class="modal-actions" id="modalActions">
+          <!-- Actions will be populated by JavaScript -->
         </div>
       </div>
     </div>
@@ -186,8 +195,24 @@ document.querySelectorAll(".event-card.clickable").forEach(card => {
     });
 
     // ----- actions -----
-    document.getElementById("approveForm").action = `/admin/events/${event.id}/approve`;
-    document.getElementById("rejectForm").action = `/admin/events/${event.id}/reject`;
+    const modalActions = document.getElementById("modalActions");
+    modalActions.innerHTML = "";
+
+    if (event.status === 'pending') {
+      modalActions.innerHTML = `
+        <form id="approveForm" method="POST" action="/admin/events/${event.id}/approve">
+          <button class="btn btn-approve">
+            <i class="fas fa-check-circle"></i> Approve
+          </button>
+        </form>
+        <form id="rejectForm" method="POST" action="/admin/events/${event.id}/reject" class="reject-form">
+          <textarea name="adminNotes" placeholder="Reason for rejection (optional)"></textarea>
+          <button class="btn btn-reject">
+            <i class="fas fa-times-circle"></i> Reject
+          </button>
+        </form>
+      `;
+    }
 
     modal.classList.remove("hidden");
   });

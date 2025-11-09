@@ -8,7 +8,7 @@ const fs = require("fs");
 const sharp = require("sharp");
 const User = require("./models/user");
 const Post = require("./models/post");
-const { sequelize } = require("./config/database");
+const sequelize  = require("./config/database");
 const { ClubRequest } = require("./models/clubRequest");
 const { Event } = require("./models/event");
 const { EventReport } = require("./models/eventReport");
@@ -2922,8 +2922,10 @@ io.on("connection", async (socket) => {
       console.log("Default dean created!");
     }
 
-    server.listen(3000, () =>
-      console.log("Server running at http://localhost:3000")
+    const PORT =process.env.PORT || 3000;
+
+    server.listen(PORT, () =>
+      console.log(`Server running at http://localhost:${PORT}`)
     );
   } catch (err) {
     console.error("Database connection error:", err);

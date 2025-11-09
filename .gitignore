@@ -60,4 +60,6 @@ local_settings.py
 *.temp
 clubHub_updated.zip
 
+node_modules
+
 *.zip

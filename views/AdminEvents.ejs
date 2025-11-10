@@ -172,24 +172,53 @@ document.querySelectorAll(".event-card.clickable").forEach(card => {
     // ----- details -----
     const modalDetails = document.getElementById("modalDetails");
     modalDetails.innerHTML = "";
-     const fields = [
+
+    // Helper functions
+    const formatArray = (arr) => arr && arr.length > 0 ? arr.join(', ') : null;
+    const formatMembers = (members) => {
+      if (!members || members.length === 0) return null;
+      return members.map(m => `${m.name} (${m.id})`).join(', ');
+    };
+    const hasFile = (file) => file ? 'Yes' : null;
+    const formatDescription = (desc) => {
+      if (!desc) return null;
+      // Replace **text** with <strong>text</strong> and handle line breaks
+      return desc
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1:</strong>')
+        .replace(/\n/g, '<br>')
+        .replace(/- /g, '• ');
+    };
+
+    const fields = [
+      { label: "Description", icon: "fa-file-alt", value: formatDescription(event.description), isHTML: true },
       { label: "Location", icon: "fa-map-marker-alt", value: event.location },
       { label: "Starts At", icon: "fa-calendar-day", value: event.startsAt ? new Date(event.startsAt).toLocaleString() : null },
       { label: "Ends At", icon: "fa-calendar-times", value: event.endsAt ? new Date(event.endsAt).toLocaleString() : null },
-      { label: "Target Audience", icon: "fa-users", value: event.targetAudience },
-      { label: "Speaker", icon: "fa-user-tie", value: event.hasSpeaker ? event.speakerNamePosition : null },
+      { label: "Capacity", icon: "fa-users", value: event.capacity },
       { label: "Activity Type", icon: "fa-tags", value: event.activityType },
-      { label: "Workshop", icon: "fa-chalkboard-teacher", value: event.isWorkshop ? "Yes" : null },
-      { label: "Topic", icon: "fa-lightbulb", value: event.topic },
-      { label: "Expected Attendees", icon: "fa-users", value: event.expectedAttendees },
-      { label: "Goals", icon: "fa-bullseye", value: cleanList(event.goals) },
-      { label: "Requests", icon: "fa-hand-holding", value: cleanList(event.requests) }
+      { label: "Target Audience", icon: "fa-users", value: event.targetAudience },
+      { label: "Expected Attendees", icon: "fa-user-friends", value: event.expectedAttendees },
+      { label: "Has Speaker", icon: "fa-microphone", value: event.hasSpeaker ? "Yes" : "No" },
+      { label: "Speaker Type", icon: "fa-user-tie", value: event.speakerType },
+      { label: "Speaker Name & Position", icon: "fa-user", value: event.speakerNamePosition },
+      { label: "Speaker CV", icon: "fa-file-pdf", value: hasFile(event.speakerCVFile) },
+      { label: "Office/Center Name", icon: "fa-building", value: event.officeCenterName },
+      { label: "Representative Name", icon: "fa-handshake", value: event.representativeNameOffice },
+      { label: "Role Type", icon: "fa-briefcase", value: event.roleType },
+      { label: "Required Tasks", icon: "fa-tasks", value: formatArray(event.requiredTasks) },
+      { label: "Responsible Members", icon: "fa-users-cog", value: formatMembers(event.responsibleMembers) },
+      { label: "Reservation Confirmation", icon: "fa-file-contract", value: hasFile(event.reservationConfirmationFile) },
+      { label: "Budget Files", icon: "fa-file-invoice-dollar", value: event.eventProposalBudgetFiles && event.eventProposalBudgetFiles.length > 0 ? `${event.eventProposalBudgetFiles.length} file(s)` : null }
     ];
 
     fields.forEach(f => {
-      if (f.value) {
+      if (f.value !== null && f.value !== undefined && f.value !== '') {
         const p = document.createElement("p");
-        p.innerHTML = `<i class="fas ${f.icon}"></i> <strong>${f.label}:</strong> ${f.value}`;
+        if (f.isHTML) {
+          p.innerHTML = `<i class="fas ${f.icon}"></i> <strong>${f.label}:</strong><br>${f.value}`;
+        } else {
+          p.innerHTML = `<i class="fas ${f.icon}"></i> <strong>${f.label}:</strong> ${f.value}`;
+        }
         modalDetails.appendChild(p);
       }
     });

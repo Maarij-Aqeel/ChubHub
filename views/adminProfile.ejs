@@ -76,17 +76,27 @@
       <!-- Dashboard Section -->
       <div id="dashboard" class="content-section active">
         <div class="dashboard-grid">
+          <a href="/admin/students" style="text-decoration: none; color: inherit;">
+            <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;">
+              <div class="stat-label">
+                <i class="fas fa-user-graduate"></i> Total Students
+              </div>
+              <div class="stat-value"><%= stats.students %></div>
+            </div>
+          </a>
+          <a href="/admin/clubs" style="text-decoration: none; color: inherit;">
+            <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;">
+              <div class="stat-label">
+                <i class="fas fa-users"></i> Total Clubs
+              </div>
+              <div class="stat-value"><%= stats.clubs %></div>
+            </div>
+          </a>
           <div class="stat-card">
             <div class="stat-label">
-              <i class="fas fa-user-graduate"></i> Total Students
+              <i class="fas fa-check-circle"></i> Total Approved Clubs
             </div>
-            <div class="stat-value"><%= stats.students %></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">
-              <i class="fas fa-users"></i> Total Clubs
-            </div>
-            <div class="stat-value"><%= stats.clubs %></div>
+            <div class="stat-value"><%= stats.approvedClubs %></div>
           </div>
           <div class="stat-card">
             <div class="stat-label">
@@ -809,6 +819,11 @@
 
       .category-buttons button.danger:hover {
         box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+      }
+
+      .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
       }
 
       @media (max-width: 768px) {

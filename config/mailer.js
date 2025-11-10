@@ -1,19 +1,13 @@
-require('dotenv').config(); 
+require('dotenv').config();
 
+const { Resend } = require('resend');
 
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendVerificationEmail = async (to, token) => {
-  const url = `http://localhost:3000/verify-email?token=${token}`;
-  await transporter.sendMail({
+  const url = `${process.env.APP_URL}/verify-email?token=${token}`;
+  await resend.emails.send({
+    from: 'UCclub <onboarding@resend.dev>',
     to,
     subject: 'Verify your email for UCclub',
     html: `Please click this link to verify your email: <a href="${url}">${url}</a>`,
@@ -21,8 +15,9 @@ const sendVerificationEmail = async (to, token) => {
 };
 
 const sendPasswordResetEmail = async (to, token) => {
-  const url = `http://localhost:3000/reset-password?token=${token}`;
-  await transporter.sendMail({
+  const url = `${process.env.APP_URL}/reset-password?token=${token}`;
+  await resend.emails.send({
+    from: 'admin@clubhub.com',
     to,
     subject: 'Reset your password - UCclub',
     html: `You requested a password reset. Click to reset: <a href="${url}">${url}</a>. If you didn't request this, ignore this email.`,
@@ -30,7 +25,8 @@ const sendPasswordResetEmail = async (to, token) => {
 };
 
 const sendRSVPEmail = async (to, event) => {
-  await transporter.sendMail({
+  await resend.emails.send({
+    from: 'admin@clubhub.com',
     to,
     subject: `RSVP Confirmed: ${event.title}`,
     html: `You RSVPed for <strong>${event.title}</strong> at ${event.location || 'TBA'} on ${event.startsAt ? new Date(event.startsAt).toLocaleString() : 'TBA'}.`,
@@ -50,7 +46,8 @@ const sendNotificationEmail = async (to, clubName, itemType, itemTitle, itemDesc
   html += `<p>Check it out on the platform!</p>`;
 
   try {
-    await transporter.sendMail({
+    await resend.emails.send({
+      from: 'admin@clubhub.com',
       to,
       subject,
       html,

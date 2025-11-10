@@ -167,7 +167,7 @@ body {
   background: #ffffff;
   border-radius: 16px;
   padding: 2rem;
-  width: 360px;
+  width: 420px;
 
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
@@ -532,7 +532,7 @@ body {
 /* ===== Improved Layout ===== */
 .events-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
   gap: 1.5rem;
 }
 

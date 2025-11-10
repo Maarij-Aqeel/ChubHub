@@ -1553,8 +1553,20 @@ app.get("/admin/events", requireLogin, async (req, res) => {
     return res.status(403).send("Forbidden");
 
   const status = req.query.status || "pending";
+  let whereCondition = {};
+
+  if (status === "pending") {
+    // Admin's pending queue should only show events that have not been admin-approved yet.
+    whereCondition = {
+      status: "pending",
+      approvedByAdmin: false,
+    };
+  } else {
+    whereCondition = { status: status };
+  }
+
   const events = await Event.findAll({
-    where: { status: status },
+    where: whereCondition,
     include: [
       { model: User, as: "club", attributes: ["id", "username", "email"] },
     ],
@@ -1622,8 +1634,43 @@ app.post("/admin/events/:eventId/approve", requireLogin, async (req, res) => {
       }
     }
   } else {
-    // Academic: status remains 'pending' until dean approves
-    // No notifications yet
+    // Academic: check if dean has approved
+    if (event.approvedByDean) {
+      event.status = "approved";
+
+      // Send notifications to subscribed students
+      const subscriptions = await Subscription.findAll({
+        where: { clubId: event.clubId },
+        include: [{ model: User, as: "student", attributes: ["email"] }],
+      });
+      const subscribedEmails = subscriptions.map((s) => s.student.email);
+
+      const club = await User.findByPk(event.clubId, {
+        attributes: ["username"],
+      });
+
+      const eventDescription = `Location: ${event.location || "TBA"}\nStarts: ${
+        event.startsAt ? new Date(event.startsAt).toLocaleString() : "TBA"
+      }\nEnds: ${
+        event.endsAt ? new Date(event.endsAt).toLocaleString() : "TBA"
+      }\nCapacity: ${event.capacity || "Unlimited"}\n\n${
+        event.description || ""
+      }`;
+
+      for (const email of subscribedEmails) {
+        try {
+          await sendNotificationEmail(
+            email,
+            club.username,
+            "event",
+            event.title,
+            eventDescription
+          );
+        } catch (error) {
+          console.error(`Failed to send event notification to ${email}:`, error);
+        }
+      }
+    }
   }
 
   await event.save();
@@ -2035,23 +2082,20 @@ app.get("/dean/events", requireLogin, async (req, res) => {
     return res.status(403).send("Forbidden");
 
   const status = req.query.status || "pending";
-  let whereCondition = { approvedByAdmin: true };
+  let whereCondition = { approvedByDean: false, status: "pending" };
 
   switch (status) {
     case "pending":
-      whereCondition.status = "pending";
-      whereCondition.approvedByDean = false;
+      whereCondition = { approvedByDean: false, status: "pending" };
       break;
     case "approved":
-      whereCondition.status = "approved";
-      whereCondition.approvedByDean = true;
+      whereCondition = { approvedByDean: true, status: "approved" };
       break;
     case "rejected":
-      whereCondition.status = "rejected";
+      whereCondition = { status: "rejected" };
       break;
     default:
-      whereCondition.status = "pending";
-      whereCondition.approvedByDean = false;
+      whereCondition = { approvedByDean: false, status: "pending" };
   }
 
   const allEvents = await Event.findAll({
@@ -2068,9 +2112,9 @@ app.get("/dean/events", requireLogin, async (req, res) => {
 
   // Filter only academic clubs
   const events = allEvents.filter(
-    (event) => event.club?.profile_data?.clubKind === "Academic"
+    (event) => event.club?.profile_data?.clubKind === "Academic" || !event.club?.profile_data?.clubKind
   );
-  res.render("DeanEvents", { events, currentStatus: status });
+  res.render("DeanEvents", { pendingEvents: events, currentStatus: status });
 });
 
 // Dean approve event
@@ -2080,12 +2124,12 @@ app.post("/dean/events/:eventId/approve", requireLogin, async (req, res) => {
 
   const event = await Event.findByPk(req.params.eventId);
   if (!event) return res.status(404).send("Event not found");
-  if (!event.approvedByAdmin)
-    return res.status(400).send("Admin approval required first");
 
   event.approvedByDean = true;
   event.deanApprovalDate = new Date();
-  event.status = "approved";
+  if (event.approvedByAdmin) {
+    event.status = "approved";
+  }
   await event.save();
 
   // Send notifications to subscribed students
@@ -2163,6 +2207,7 @@ app.get("/admin/dashboard", requireLogin, async (req, res) => {
     stats: {
       students: studentCount,
       clubs: clubCount,
+      approvedClubs: clubCount,
       posts: postsCount,
     },
     recentLogs,
@@ -2182,6 +2227,122 @@ app.get("/admin/reports", requireLogin, async (req, res) => {
     order: [["createdAt", "DESC"]],
   });
   res.render("adminReports", { reports });
+});
+
+// Admin Clubs List
+app.get("/admin/clubs", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "admin")
+    return res.status(403).send("Forbidden");
+
+  const clubs = await User.findAll({
+    where: { role: "club" },
+    order: [["username", "ASC"]],
+  });
+
+  // Get member counts for each club
+  const clubsWithCounts = await Promise.all(
+    clubs.map(async (club) => {
+      const memberCount = await Application.count({
+        where: { clubId: club.id, status: "accepted" },
+      });
+      const subscriberCount = await Subscription.count({
+        where: { clubId: club.id },
+      });
+      return {
+        ...club.toJSON(),
+        memberCount,
+        subscriberCount,
+      };
+    })
+  );
+
+  res.render("adminClubs", { clubs: clubsWithCounts });
+});
+
+// Admin Students List
+app.get("/admin/students", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "admin")
+    return res.status(403).send("Forbidden");
+
+  const students = await User.findAll({
+    where: { role: "student" },
+    order: [["username", "ASC"]],
+  });
+
+  // Get counts for each student
+  const studentsWithCounts = await Promise.all(
+    students.map(async (student) => {
+      const joinedCount = await Application.count({
+        where: { studentId: student.id, status: "accepted" },
+      });
+      const subscribedCount = await Subscription.count({
+        where: { studentId: student.id },
+      });
+      return {
+        ...student.toJSON(),
+        joinedCount,
+        subscribedCount,
+      };
+    })
+  );
+
+  res.render("adminStudents", { students: studentsWithCounts });
+});
+
+// Admin Club Detail
+app.get("/admin/clubs/:id", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "admin")
+    return res.status(403).send("Forbidden");
+
+  const club = await User.findByPk(req.params.id);
+  if (!club || club.role !== "club")
+    return res.status(404).send("Club not found");
+
+  // Get additional stats
+  const memberCount = await Application.count({
+    where: { clubId: club.id, status: "accepted" },
+  });
+  const subscriberCount = await Subscription.count({
+    where: { clubId: club.id },
+  });
+  const postCount = await Post.count({
+    where: { clubId: club.id },
+  });
+  const eventCount = await Event.count({
+    where: { clubId: club.id },
+  });
+
+  res.render("adminClubDetail", {
+    club,
+    memberCount,
+    subscriberCount,
+    postCount,
+    eventCount,
+  });
+});
+
+// Admin Student Detail
+app.get("/admin/students/:id", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "admin")
+    return res.status(403).send("Forbidden");
+
+  const student = await User.findByPk(req.params.id);
+  if (!student || student.role !== "student")
+    return res.status(404).send("Student not found");
+
+  // Get additional stats
+  const joinedCount = await Application.count({
+    where: { studentId: student.id, status: "accepted" },
+  });
+  const subscribedCount = await Subscription.count({
+    where: { studentId: student.id },
+  });
+
+  res.render("adminStudentDetail", {
+    student,
+    joinedCount,
+    subscribedCount,
+  });
 });
 
 // Admin Profile Settings Page

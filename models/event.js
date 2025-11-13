@@ -12,7 +12,7 @@ const Event = sequelize.define(
     startsAt: { type: DataTypes.DATE, allowNull: true }, 
     endsAt: { type: DataTypes.DATE, allowNull: true }, 
     capacity: { type: DataTypes.INTEGER, allowNull: true }, 
-    status: { type: DataTypes.ENUM('pending','approved','rejected'), defaultValue: 'pending' },
+    status: { type: DataTypes.ENUM('pending','approved','rejected','cancelled'), defaultValue: 'pending' },
     adminNotes: { type: DataTypes.TEXT, allowNull: true },
 
     activityType: {

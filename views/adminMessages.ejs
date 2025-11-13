@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Messages - UChub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    /* ===== Reset & Base ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+      color: #111827;
+      min-height: 100vh;
+    }
+
+    /* ===== Navbar ===== */
+    .navbar {
+      width: 100%;
+      background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 3rem;
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
+      margin-bottom: 2rem;
+    }
+
+    .navbar a {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      padding: 0.5rem 1.5rem;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .navbar a::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      transition: left 0.3s ease;
+    }
+
+    .navbar a:hover::before {
+      left: 0;
+    }
+
+    .navbar a:hover {
+      transform: translateY(-2px);
+    }
+
+    .navbar i {
+      font-size: 1.5rem;
+    }
+
+    .nav-link {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      padding: 0.5rem 1.5rem;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .nav-link.active {
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .logout-btn-nav {
+      background: rgba(220, 38, 38, 0.9);
+      color: #FFFFFF;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logout-btn-nav:hover {
+      background: #DC2626;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    }
+
+    /* ===== Page Container ===== */
+    .page-container {
+      max-width: 1400px;
+      margin: 0 auto 3rem;
+      padding: 0 1.5rem;
+    }
+
+    /* ===== Page Header ===== */
+    .page-header {
+      background: #FFFFFF;
+      padding: 2rem;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    .page-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1E3A8A;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+      color: #6B7280;
+      font-size: 1.05rem;
+    }
+
+    /* ===== Messages Layout ===== */
+    .messages-container {
+      display: flex;
+      gap: 2rem;
+      height: 600px;
+      background: #FFFFFF;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    /* ===== Recipients List ===== */
+    .recipients-list {
+      flex: 1;
+      background: #F9FAFB;
+      border-right: 1px solid #E5E7EB;
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+
+    .recipients-list h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1E3A8A;
+      margin-bottom: 1.5rem;
+    }
+
+    .recipient-item {
+      padding: 1rem;
+      border-radius: 12px;
+      background: #FFFFFF;
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      border: 2px solid #E5E7EB;
+      transition: all 0.3s ease;
+    }
+
+    .recipient-item:hover {
+      border-color: #2563EB;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+    }
+
+    .recipient-item.active {
+      border-color: #2563EB;
+      background: #EEF2FF;
+    }
+
+    .recipient-item h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #1E3A8A;
+      margin-bottom: 0.25rem;
+    }
+
+    .recipient-item p {
+      color: #6B7280;
+      font-size: 0.9rem;
+    }
+
+    /* ===== Chat Area ===== */
+    .chat-area {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      background: #FFFFFF;
+    }
+
+    .chat-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #E5E7EB;
+      background: #F9FAFB;
+    }
+
+    .chat-header h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1E3A8A;
+      margin-bottom: 0.25rem;
+    }
+
+    .chat-header p {
+      color: #6B7280;
+      font-size: 0.9rem;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      background: #F9FAFB;
+    }
+
+    .message {
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      max-width: 70%;
+      word-wrap: break-word;
+    }
+
+    .message.sent {
+      margin-left: auto;
+      background: linear-gradient(135deg, #2563EB 0%, #1E40AF 100%);
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    }
+
+    .message.received {
+      background: #FFFFFF;
+      color: #111827;
+      border: 1px solid #E5E7EB;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .message .sender {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      font-size: 0.9rem;
+    }
+
+    .message .text {
+      line-height: 1.4;
+    }
+
+    .message .time {
+      font-size: 0.75rem;
+      opacity: 0.8;
+      margin-top: 0.5rem;
+      text-align: right;
+    }
+
+    /* ===== Chat Input ===== */
+    .chat-input {
+      padding: 1.5rem;
+      border-top: 1px solid #E5E7EB;
+      background: #FFFFFF;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-end;
+    }
+
+    .chat-input textarea {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 2px solid #E5E7EB;
+      border-radius: 12px;
+      resize: none;
+      min-height: 50px;
+      max-height: 120px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: border-color 0.3s ease;
+    }
+
+    .chat-input textarea:focus {
+      outline: none;
+      border-color: #2563EB;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .send-btn {
+      background: linear-gradient(135deg, #2563EB 0%, #1E40AF 100%);
+      color: #FFFFFF;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    }
+
+    .send-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ===== Empty State ===== */
+    .empty-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      height: 100%;
+      color: #6B7280;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      color: #D1D5DB;
+      margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+
+    .empty-state p {
+      font-size: 1rem;
+      max-width: 400px;
+    }
+
+    /* ===== Select Recipient State ===== */
+    .select-recipient-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      height: 100%;
+      color: #6B7280;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .select-recipient-state i {
+      font-size: 3rem;
+      color: #D1D5DB;
+      margin-bottom: 1rem;
+    }
+
+    .select-recipient-state h3 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+
+    .select-recipient-state p {
+      font-size: 1rem;
+      max-width: 400px;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+      .navbar {
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      .navbar a {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+      }
+
+      .messages-container {
+        flex-direction: column;
+        height: auto;
+      }
+
+      .recipients-list {
+        border-right: none;
+        border-bottom: 1px solid #E5E7EB;
+        max-height: 300px;
+      }
+
+      .chat-input {
+        padding: 1rem;
+      }
+
+      .chat-input textarea {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast-container"></div>
+
+  <!-- ===== Navbar ===== -->
+  <div class="navbar">
+      <div class="navbar-left">
+          <a href="/admin/dashboard" class="navbar-brand">
+              <i class="fas fa-shield-halved"></i>
+              <span>Admin Portal</span>
+          </a>
+          <a href="/admin/dashboard" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+          </a>
+          <a href="/admin/club-requests" class="nav-link">
+              <i class="fas fa-user-clock"></i>
+              <span>Club Requests</span>
+          </a>
+          <a href="/admin/posts" class="nav-link">
+              <i class="fas fa-newspaper"></i>
+              <span>Posts</span>
+          </a>
+          <a href="/admin/events" class="nav-link">
+              <i class="fas fa-calendar-check"></i>
+              <span>Events</span>
+          </a>
+          <a href="/admin/clubs" class="nav-link">
+              <i class="fas fa-users"></i>
+              <span>Clubs</span>
+          </a>
+          <a href="/admin/students" class="nav-link">
+              <i class="fas fa-user-graduate"></i>
+              <span>Students</span>
+          </a>
+          <a href="/admin/messages" class="nav-link active">
+              <i class="fas fa-comments"></i>
+              <span>Messages</span>
+          </a>
+          <a href="/admin/reports" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Reports</span>
+          </a>
+          <a href="/admin/settings" class="nav-link">
+              <i class="fas fa-cog"></i>
+              <span>Settings</span>
+          </a>
+      </div>
+      <button class="logout-btn-nav" onclick="window.location='/logout'">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Log Out</span>
+      </button>
+  </div>
+
+  <!-- ===== Page Container ===== -->
+  <div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1><i class="fas fa-comments"></i> Admin Messages</h1>
+      <p>Communicate with all students and clubs</p>
+    </div>
+
+    <!-- Messages Container -->
+    <div class="messages-container">
+      <!-- Recipients List -->
+      <div class="recipients-list">
+        <h2>Recipients</h2>
+        <div id="recipients-container">
+          <!-- Recipients will be loaded here -->
+        </div>
+      </div>
+
+      <!-- Chat Area -->
+      <div class="chat-area">
+        <div class="chat-header" id="chat-header">
+          <div class="select-recipient-state">
+            <i class="fas fa-comments"></i>
+            <h3>Select a Recipient</h3>
+            <p>Choose who to message</p>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+          <div class="select-recipient-state">
+            <i class="fas fa-comments"></i>
+            <h3>Select a Recipient</h3>
+            <p>Choose who to message</p>
+          </div>
+        </div>
+
+        <div class="chat-input" id="chat-input" style="display: none;">
+          <textarea id="message-input" placeholder="Type your message..." rows="2"></textarea>
+          <button class="send-btn" id="send-button">
+            <i class="fas fa-paper-plane"></i>
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Admin Messages Page JavaScript
+    const socket = io();
+    const adminId = <%= user.id %>;
+    const adminUsername = 'Admin';
+    let currentRecipient = null;
+
+    // Initialize when page loads
+    window.addEventListener('DOMContentLoaded', function() {
+      socket.emit('join-rooms', { userId: adminId, role: 'admin' });
+      loadRecipients();
+    });
+
+    // Load recipients (all students and all clubs)
+    async function loadRecipients() {
+      try {
+        // Load all students
+        const studentsResponse = await fetch('/api/admin/students');
+        const students = await studentsResponse.json();
+
+        // Load all clubs
+        const clubsResponse = await fetch('/api/admin/clubs');
+        const clubs = await clubsResponse.json();
+
+        const container = document.getElementById('recipients-container');
+        container.innerHTML = '';
+
+        // Add broadcast options
+        const broadcastStudentsDiv = document.createElement('div');
+        broadcastStudentsDiv.className = 'recipient-item';
+        broadcastStudentsDiv.onclick = function() { selectRecipient('broadcast_students', 'Broadcast to All Students', 'Send message to all students'); };
+        broadcastStudentsDiv.innerHTML = '<h3>📢 Broadcast to Students</h3><p>Message all students</p>';
+        container.appendChild(broadcastStudentsDiv);
+
+        const broadcastClubsDiv = document.createElement('div');
+        broadcastClubsDiv.className = 'recipient-item';
+        broadcastClubsDiv.onclick = function() { selectRecipient('broadcast_clubs', 'Broadcast to All Clubs', 'Send message to all clubs'); };
+        broadcastClubsDiv.innerHTML = '<h3>🏛️ Broadcast to Clubs</h3><p>Message all clubs</p>';
+        container.appendChild(broadcastClubsDiv);
+
+        // Add individual students
+        students.forEach(function(student) {
+          const div = document.createElement('div');
+          div.className = 'recipient-item';
+          div.onclick = function() { selectRecipient(student.id, student.username, 'Individual student'); };
+          div.innerHTML = '<h3>' + student.username + '</h3><p>Student</p>';
+          container.appendChild(div);
+        });
+
+        // Add individual clubs
+        clubs.forEach(function(club) {
+          const div = document.createElement('div');
+          div.className = 'recipient-item';
+          div.onclick = function() { selectRecipient(club.id, club.username, 'Individual club'); };
+          div.innerHTML = '<h3>' + club.username + '</h3><p>Club</p>';
+          container.appendChild(div);
+        });
+
+        if (students.length === 0 && clubs.length === 0) {
+          container.innerHTML += '<div class="empty-state"><i class="fas fa-users"></i><h3>No Recipients</h3><p>No students or clubs available</p></div>';
+        }
+      } catch (err) {
+        console.error('Error loading recipients:', err);
+        showToast('Failed to load recipients', 'error');
+      }
+    }
+
+    // Select a recipient to chat with
+    function selectRecipient(recipientId, recipientName, description) {
+      currentRecipient = recipientId;
+
+      // Update active state
+      document.querySelectorAll('.recipient-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      event.target.closest('.recipient-item').classList.add('active');
+
+      // Update chat header
+      const headerContent = '<h2>Chatting with ' + recipientName + '</h2><p>' + description + '</p>';
+      document.getElementById('chat-header').innerHTML = headerContent;
+
+      // Show chat input
+      document.getElementById('chat-input').style.display = 'flex';
+
+      // Load messages based on recipient type
+      if (recipientId === 'broadcast_students') {
+        loadBroadcastMessages('students');
+      } else if (recipientId === 'broadcast_clubs') {
+        loadBroadcastMessages('clubs');
+      } else {
+        loadIndividualMessages(recipientId);
+      }
+    }
+
+    // Load broadcast messages
+    async function loadBroadcastMessages(target) {
+      try {
+        const response = await fetch('/messages/admin');
+        const messages = await response.json();
+
+        // Filter broadcast messages for this target
+        const broadcastMessages = messages.filter(function(msg) {
+          return msg.messageType === 'broadcast' && msg.adminTarget === target;
+        });
+
+        const messagesContainer = document.getElementById('chat-messages');
+        messagesContainer.innerHTML = '';
+
+        if (broadcastMessages.length === 0) {
+          messagesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-bullhorn"></i><h3>No Broadcast Messages</h3><p>Start the broadcast conversation</p></div>';
+          return;
+        }
+
+        broadcastMessages.forEach(function(msg) {
+          appendMessage(msg);
+        });
+
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      } catch (err) {
+        console.error('Error loading broadcast messages:', err);
+        showToast('Failed to load messages', 'error');
+      }
+    }
+
+    // Load individual messages
+    async function loadIndividualMessages(recipientId) {
+      try {
+        const response = await fetch('/messages/admin');
+        const messages = await response.json();
+
+        // Filter direct messages with this recipient
+        const individualMessages = messages.filter(function(msg) {
+          return msg.messageType === 'direct' &&
+                 ((msg.senderId == adminId && msg.receiverId == recipientId) ||
+                  (msg.senderId == recipientId && msg.receiverId == adminId));
+        });
+
+        const messagesContainer = document.getElementById('chat-messages');
+        messagesContainer.innerHTML = '';
+
+        if (individualMessages.length === 0) {
+          messagesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-user"></i><h3>No Messages Yet</h3><p>Start the conversation</p></div>';
+          return;
+        }
+
+        individualMessages.forEach(function(msg) {
+          appendMessage(msg);
+        });
+
+        // Scroll to bottom
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      } catch (err) {
+        console.error('Error loading individual messages:', err);
+        showToast('Failed to load messages', 'error');
+      }
+    }
+
+    // Append a message to chat
+    function appendMessage(msg) {
+      const messagesContainer = document.getElementById('chat-messages');
+      const messageDiv = document.createElement('div');
+      const isSent = msg.senderId == adminId;
+      messageDiv.className = 'message ' + (isSent ? 'sent' : 'received');
+
+      messageDiv.innerHTML = '<div class="sender">' + msg.senderName + '</div>' +
+                            '<div class="text">' + msg.message + '</div>' +
+                            '<div class="time">' + new Date(msg.timestamp).toLocaleString() + '</div>';
+
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // Send message
+    function sendMessage() {
+      const input = document.getElementById('message-input');
+      const message = input.value.trim();
+
+      if (!message || !currentRecipient) {
+        return;
+      }
+
+      // Optimistically add message to UI
+      const tempMsg = {
+        senderId: adminId,
+        senderName: adminUsername,
+        message: message,
+        timestamp: new Date()
+      };
+      appendMessage(tempMsg);
+
+      // Send to server
+      let messageData = {
+        senderId: adminId,
+        message: message
+      };
+
+      if (currentRecipient === 'broadcast_students') {
+        // Broadcast to all students
+        messageData.target = 'students';
+        messageData.messageType = 'broadcast';
+      } else if (currentRecipient === 'broadcast_clubs') {
+        // Broadcast to all clubs
+        messageData.target = 'clubs';
+        messageData.messageType = 'broadcast';
+      } else {
+        // Direct message to individual
+        messageData.receiverId = currentRecipient;
+        messageData.messageType = 'direct';
+      }
+
+      socket.emit('send-message', messageData);
+
+      input.value = '';
+      input.focus();
+    }
+
+    // Event listeners
+    document.getElementById('send-button').addEventListener('click', sendMessage);
+    document.getElementById('message-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Socket.IO events
+    socket.on('new-message', function(msg) {
+      // Only handle if we're chatting with the relevant recipient
+      if (currentRecipient === 'broadcast_students' && msg.messageType === 'broadcast' && msg.adminTarget === 'students') {
+        appendMessage(msg);
+      } else if (currentRecipient === 'broadcast_clubs' && msg.messageType === 'broadcast' && msg.adminTarget === 'clubs') {
+        appendMessage(msg);
+      } else if (currentRecipient == msg.senderId || currentRecipient == msg.receiverId) {
+        appendMessage(msg);
+      }
+    });
+
+    socket.on('error', function(data) {
+      showToast(data.message, 'error');
+    });
+
+    // Toast function
+    function showToast(msg, type) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + (type === 'error' ? 'toast-error' : 'toast-success');
+      toast.innerText = msg;
+      container.appendChild(toast);
+      setTimeout(() => { toast.classList.add('show'); }, 100);
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 500);
+      }, 3400);
+    }
+  </script>
+
+  <!-- Toast Styles -->
+  <style>
+    #toast-container {
+      z-index: 9999;
+      position: fixed;
+      top: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .toast {
+      opacity: 0;
+      min-width: 250px;
+      margin-top: 12px;
+      padding: 1em 2em;
+      border-radius: 8px;
+      background: #2563eb;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      font-weight: 500;
+      transition: opacity 0.4s, transform 0.4s;
+      transform: translateY(-25px) scale(0.95);
+      transition: all 0.4s;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    .toast-error {
+      background: #e11d48;
+    }
+    .toast-success {
+      background: #16a34a;
+    }
+  </style>
+</body>
+</html>

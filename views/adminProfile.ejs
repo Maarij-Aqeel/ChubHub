@@ -30,10 +30,10 @@
           <i class="fas fa-home"></i>
           <span>Dashboard</span>
         </button>
-        <button onclick="showSection('messages')" class="nav-link" id="nav-messages">
+        <a href="/admin/messages" class="nav-link" id="nav-messages">
           <i class="fas fa-comments"></i>
           <span>Messages</span>
-        </button>
+        </a>
         <button onclick="showSection('calendar')" class="nav-link" id="nav-calendar">
           <i class="fas fa-calendar-alt"></i>
           <span>Calendar</span>
@@ -359,7 +359,7 @@
       }
       function initAdminMessaging() {
         const socket = io();
-        const adminId = <%= user.id %>;
+        const adminId = '<%= user.id %>';
 
         // Join admin rooms
         socket.emit('join-rooms', { userId: adminId, role: 'admin' });

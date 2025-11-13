@@ -112,6 +112,54 @@
       font-size: 1.5rem;
     }
 
+    .nav-link {
+      color: #FFFFFF;
+      text-decoration: none;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      padding: 0.5rem 1.5rem;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .nav-link.active {
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .logout-btn-nav {
+      background: rgba(220, 38, 38, 0.9);
+      color: #FFFFFF;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logout-btn-nav:hover {
+      background: #DC2626;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    }
+
     .back-btn {
       background: rgba(255, 255, 255, 0.2);
       color: #FFFFFF;
@@ -678,28 +726,52 @@
 
   <!-- ===== Navbar ===== -->
   <div class="navbar">
-    <div class="navbar-left">
-      <a href="/admin/dashboard" class="navbar-brand">
-        <i class="fas fa-shield-halved"></i>
-        <span>Admin Portal</span>
-      </a>
-      <a href="/admin/dashboard">
-        <i class="fas fa-home"></i>
-        <span>Dashboard</span>
-      </a>
-      <a href="/admin/club-requests">
-        <i class="fas fa-user-clock"></i>
-        <span>Club Requests</span>
-      </a>
-      <a href="/admin/events">
-        <i class="fas fa-calendar-check"></i>
-        <span>Events</span>
-      </a>
-    </div>
-    <a href="/admin/dashboard" class="back-btn">
-      <i class="fas fa-arrow-left"></i>
-      <span>Back to Dashboard</span>
-    </a>
+      <div class="navbar-left">
+          <a href="/admin/dashboard" class="navbar-brand">
+              <i class="fas fa-shield-halved"></i>
+              <span>Admin Portal</span>
+          </a>
+          <a href="/admin/dashboard" class="nav-link">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+          </a>
+          <a href="/admin/club-requests" class="nav-link">
+              <i class="fas fa-user-clock"></i>
+              <span>Club Requests</span>
+          </a>
+          <a href="/admin/posts" class="nav-link">
+              <i class="fas fa-newspaper"></i>
+              <span>Posts</span>
+          </a>
+          <a href="/admin/events" class="nav-link">
+              <i class="fas fa-calendar-check"></i>
+              <span>Events</span>
+          </a>
+          <a href="/admin/clubs" class="nav-link active">
+              <i class="fas fa-users"></i>
+              <span>Clubs</span>
+          </a>
+          <a href="/admin/students" class="nav-link">
+              <i class="fas fa-user-graduate"></i>
+              <span>Students</span>
+          </a>
+          <a href="/admin/messages" class="nav-link">
+              <i class="fas fa-comments"></i>
+              <span>Messages</span>
+          </a>
+          <a href="/admin/reports" class="nav-link">
+              <i class="fas fa-chart-line"></i>
+              <span>Reports</span>
+          </a>
+          <a href="/admin/settings" class="nav-link">
+              <i class="fas fa-cog"></i>
+              <span>Settings</span>
+          </a>
+      </div>
+      <button class="logout-btn-nav" onclick="window.location='/logout'">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Log Out</span>
+      </button>
   </div>
 
   <div class="container">

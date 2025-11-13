@@ -16,6 +16,7 @@ const { Application } = require("./models/application");
 const { Subscription } = require("./models/subscription");
 const { RSVP } = require("./models/rsvp");
 const { Message } = require("./models/message");
+const { ChatRoom } = require("./models/chatRoom");
 const { Op } = require("sequelize");
 
 // ===== Model Associations =====
@@ -84,8 +85,21 @@ try {
     foreignKey: "receiverId",
     allowNull: true,
   });
+  Message.belongsTo(ChatRoom, {
+    as: "chatRoom",
+    foreignKey: "chatRoomId",
+    allowNull: true,
+  });
 } catch (e) {
-  console.warn("Association setup warning (Message→User):", e?.message || e);
+  console.warn("Association setup warning (Message→User/ChatRoom):", e?.message || e);
+}
+
+// ChatRoom associations
+try {
+  ChatRoom.belongsTo(User, { as: "creator", foreignKey: "createdBy" });
+  ChatRoom.hasMany(Message, { as: "messages", foreignKey: "chatRoomId" });
+} catch (e) {
+  console.warn("Association setup warning (ChatRoom→User/Message):", e?.message || e);
 }
 const {
   sendVerificationEmail,
@@ -318,10 +332,8 @@ app.post("/signup", upload.single("clubLogo"), async (req, res) => {
         clubFair,
         deanName,
         deanSignature,
-        deanApprovalDate,
         dsaName,
         dsaSignature,
-        dsaApprovalDate,
         clubPassword,
         clubConfirmPassword,
       } = req.body;
@@ -730,10 +742,24 @@ app.get("/admin/posts", requireLogin, async (req, res) => {
     return res.status(403).send("Forbidden");
 
   const status = req.query.status || "pending";
-  const posts = await Post.findAll({
+  const postsRaw = await Post.findAll({
     where: { status: status },
+    include: [
+      { model: User, as: "club", attributes: ["username", "profile_data"] },
+    ],
     order: [["createdAt", "ASC"]],
   });
+
+  // Format posts to include club information
+  const posts = postsRaw.map((post) => {
+    const postJSON = post.toJSON();
+    return {
+      ...postJSON,
+      clubName: postJSON.club?.username,
+      clubProfilePic: postJSON.club?.profile_data?.profilePic,
+    };
+  });
+
   res.render("adminPosts", { posts, currentStatus: status });
 });
 
@@ -872,31 +898,29 @@ app.get("/student/:id/home", requireLogin, async (req, res) => {
 });
 
 // ===== API Routes =====
-app.get("/api/subscriptions/club/:clubId", function (req, res) {
-  return requireLogin(async function (req, res) {
-    if (
-      req.session.user.role !== "club" ||
-      req.session.user.id != req.params.clubId
-    )
-      return res.status(403).json({ error: "Forbidden" });
+app.get("/api/subscriptions/club/:clubId", requireLogin, async (req, res) => {
+  if (
+    req.session.user.role !== "club" ||
+    req.session.user.id != req.params.clubId
+  )
+    return res.status(403).json({ error: "Forbidden" });
 
-    try {
-      const subscriptions = await Subscription.findAll({
-        where: { clubId: req.params.clubId },
-        include: [
-          {
-            model: User,
-            as: "student",
-            attributes: ["id", "username", "profile_data"],
-          },
-        ],
-      });
-      res.json(subscriptions);
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: "Server error" });
-    }
-  })(req, res);
+  try {
+    const subscriptions = await Subscription.findAll({
+      where: { clubId: req.params.clubId },
+      include: [
+        {
+          model: User,
+          as: "student",
+          attributes: ["id", "username", "profile_data"],
+        },
+      ],
+    });
+    res.json(subscriptions);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 // ===== Student Messages =====
@@ -912,6 +936,33 @@ app.get("/student/:id/messages", requireLogin, async (req, res) => {
     return res.status(404).send("Student not found");
 
   res.render("studentMessages", { user });
+});
+
+// ===== Club Messages =====
+app.get("/club/:id/messages", requireLogin, async (req, res) => {
+  if (
+    req.session.user.role !== "club" ||
+    req.session.user.id != req.params.id
+  )
+    return res.status(403).send("Forbidden");
+
+  const user = await User.findByPk(req.params.id);
+  if (!user || user.role !== "club")
+    return res.status(404).send("Club not found");
+
+  res.render("clubMessages", { user });
+});
+
+// ===== Admin Messages =====
+app.get("/admin/messages", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "admin")
+    return res.status(403).send("Forbidden");
+
+  const user = await User.findByPk(req.session.user.id);
+  if (!user || user.role !== "admin")
+    return res.status(404).send("Admin not found");
+
+  res.render("adminMessages", { user });
 });
 
 // ===== Student Profile =====
@@ -954,10 +1005,11 @@ app.get("/club/:id", requireLogin, async (req, res) => {
   });
 
   // Fetch all events for this club (pending/approved/rejected)
-  const events = await Event.findAll({
+  const eventsRaw = await Event.findAll({
     where: { clubId: user.id },
     order: [["startsAt", "ASC"]],
   });
+  const events = eventsRaw.map(e => e.toJSON());
 
   // Check for events that need reports (completed events without reports)
   const completedEventsWithoutReports = await Event.findAll({
@@ -1685,7 +1737,12 @@ app.post("/admin/events/:eventId/reject", requireLogin, async (req, res) => {
   const event = await Event.findByPk(req.params.eventId);
   if (!event) return res.status(404).send("Event not found");
 
-  event.status = "rejected";
+  event.approvedByAdmin = false;
+  if (!event.approvedByDean) {
+    event.status = "cancelled";
+  } else {
+    event.status = "rejected";
+  }
   event.adminNotes = req.body.adminNotes || "";
   await event.save();
 
@@ -2173,8 +2230,12 @@ app.post("/dean/events/:eventId/reject", requireLogin, async (req, res) => {
   if (!event) return res.status(404).send("Event not found");
 
   event.approvedByDean = false;
+  if (!event.approvedByAdmin) {
+    event.status = "cancelled";
+  } else {
+    event.status = "rejected";
+  }
   event.deanNotes = req.body.deanNotes || "";
-  event.status = "rejected";
   event.deanApprovalDate = new Date();
   await event.save();
 
@@ -2583,6 +2644,44 @@ app.get("/api/student/:studentId/joined-clubs", requireLogin, async (req, res) =
   }
 });
 
+// ===== API Routes for Admin =====
+
+// Get all students for admin
+app.get("/api/admin/students", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "admin")
+    return res.status(403).json({ error: "Forbidden" });
+
+  try {
+    const students = await User.findAll({
+      where: { role: "student" },
+      attributes: ["id", "username", "email", "profile_data"],
+      order: [["username", "ASC"]],
+    });
+    res.json(students);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Get all clubs for admin
+app.get("/api/admin/clubs", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "admin")
+    return res.status(403).json({ error: "Forbidden" });
+
+  try {
+    const clubs = await User.findAll({
+      where: { role: "club" },
+      attributes: ["id", "username", "email", "profile_data"],
+      order: [["username", "ASC"]],
+    });
+    res.json(clubs);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // ===== Chat API Routes =====
 
 // Get messages for a specific club
@@ -2596,7 +2695,7 @@ app.get("/messages/club/:clubId", requireLogin, async (req, res) => {
     let whereCondition = {};
 
     if (user.role === "student") {
-      // Students can see messages from clubs they are subscribed to
+      // Students can see group messages and direct messages from clubs they are subscribed to
       const subscription = await Subscription.findOne({
         where: { studentId: user.id, clubId },
       });
@@ -2607,45 +2706,57 @@ app.get("/messages/club/:clubId", requireLogin, async (req, res) => {
       }
       whereCondition = {
         [Op.or]: [
-          { senderId: user.id, clubId },
-          { senderId: clubId, clubId },
-          { senderId: clubId, receiverId: user.id },
+          { messageType: 'group', clubId }, // Group messages for this club
+          { messageType: 'direct', senderId: clubId, receiverId: user.id }, // Direct messages from club to this student
+          { messageType: 'direct', senderId: user.id, receiverId: clubId }, // Direct messages from student to club
         ],
       };
     } else if (user.role === "club") {
-      // Clubs can see messages in their room or broadcasts
+      // Clubs can see all messages related to them
       if (user.id !== clubId && user.role !== "admin") {
         return res.status(403).json({ error: "Access denied" });
       }
       whereCondition = {
         [Op.or]: [
-          { clubId },
-          { senderId: user.id, receiverId: null },
-          { receiverId: user.id },
-          // Remove { clubId: null, receiverId: null } - admin broadcasts will be shown in separate UI sections
+          { messageType: 'group', clubId }, // Group messages for this club
+          { messageType: 'direct', [Op.or]: [{ senderId: clubId }, { receiverId: clubId }] }, // Direct messages to/from this club
+          { messageType: 'broadcast', adminTarget: 'clubs' }, // Admin broadcasts to clubs
         ],
       };
     } else if (user.role === "admin") {
-      // Admin can see all messages
-      whereCondition = {};
+      // Admin can see all messages for this club
+      whereCondition = {
+        [Op.or]: [
+          { messageType: 'group', clubId },
+          { messageType: 'direct', [Op.or]: [{ senderId: clubId }, { receiverId: clubId }] },
+          { messageType: 'broadcast', adminTarget: 'clubs' },
+        ],
+      };
     } else {
       return res.status(403).json({ error: "Access denied" });
     }
 
     const messages = await Message.findAll({
       where: whereCondition,
-      include: [{ model: User, as: "sender", attributes: ["username"] }],
+      include: [
+        { model: User, as: "sender", attributes: ["username", "role"] },
+        { model: ChatRoom, as: "chatRoom", attributes: ["name", "type"] }
+      ],
       order: [["timestamp", "ASC"]],
     });
 
-    // Format messages with sender name
+    // Format messages with additional metadata
     const formattedMessages = messages.map((msg) => ({
       id: msg.id,
       senderId: msg.senderId,
       senderName: msg.sender.username,
+      senderRole: msg.sender.role,
       receiverId: msg.receiverId,
       clubId: msg.clubId,
+      chatRoomId: msg.chatRoomId,
+      chatRoomName: msg.chatRoom?.name,
       message: msg.message,
+      messageType: msg.messageType,
       timestamp: msg.timestamp,
     }));
 
@@ -2663,7 +2774,10 @@ app.get("/messages/admin", requireLogin, async (req, res) => {
 
   try {
     const messages = await Message.findAll({
-      include: [{ model: User, as: "sender", attributes: ["username"] }],
+      include: [
+        { model: User, as: "sender", attributes: ["username", "role"] },
+        { model: ChatRoom, as: "chatRoom", attributes: ["name", "type"] }
+      ],
       order: [["timestamp", "ASC"]],
     });
 
@@ -2671,10 +2785,15 @@ app.get("/messages/admin", requireLogin, async (req, res) => {
       id: msg.id,
       senderId: msg.senderId,
       senderName: msg.sender.username,
+      senderRole: msg.sender.role,
       receiverId: msg.receiverId,
       clubId: msg.clubId,
+      chatRoomId: msg.chatRoomId,
+      chatRoomName: msg.chatRoom?.name,
       message: msg.message,
+      messageType: msg.messageType,
       timestamp: msg.timestamp,
+      adminTarget: msg.adminTarget,
     }));
 
     res.json(formattedMessages);
@@ -2745,13 +2864,15 @@ app.get("/messages/student/:studentId", requireLogin, async (req, res) => {
     const messages = await Message.findAll({
       where: {
         [Op.or]: [
-          { clubId: { [Op.in]: subscribedClubIds }, receiverId: null }, // Messages sent to club's room
-          { receiverId: studentId }, // Direct messages
-          { senderId: studentId }, // Messages sent by student
-          { clubId: null, receiverId: null, adminTarget: "students" }, // Admin broadcasts to students only
+          { messageType: 'group', clubId: { [Op.in]: subscribedClubIds } }, // Group messages from subscribed clubs
+          { messageType: 'direct', [Op.or]: [{ senderId: studentId }, { receiverId: studentId }] }, // Direct messages to/from student
+          { messageType: 'broadcast', adminTarget: "students" }, // Admin broadcasts to students
         ],
       },
-      include: [{ model: User, as: "sender", attributes: ["username"] }],
+      include: [
+        { model: User, as: "sender", attributes: ["username", "role"] },
+        { model: ChatRoom, as: "chatRoom", attributes: ["name", "type"] }
+      ],
       order: [["timestamp", "ASC"]],
     });
 
@@ -2759,9 +2880,13 @@ app.get("/messages/student/:studentId", requireLogin, async (req, res) => {
       id: msg.id,
       senderId: msg.senderId,
       senderName: msg.sender.username,
+      senderRole: msg.sender.role,
       receiverId: msg.receiverId,
       clubId: msg.clubId,
+      chatRoomId: msg.chatRoomId,
+      chatRoomName: msg.chatRoom?.name,
       message: msg.message,
+      messageType: msg.messageType,
       timestamp: msg.timestamp,
     }));
 
@@ -2894,7 +3019,7 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("send-message", async (data) => {
-    const { senderId, receiverId, clubId, message, target } = data;
+    const { senderId, receiverId, clubId, message, target, messageType } = data;
 
     try {
       const sender = await User.findByPk(senderId);
@@ -2903,88 +3028,132 @@ io.on("connection", async (socket) => {
         return;
       }
 
-      // Validate permissions based on role
+      let finalMessageType = messageType || 'direct';
+      let finalReceiverId = receiverId;
+      let finalClubId = clubId;
+      let chatRoomId = null;
+      let adminTarget = null;
+
+      // Validate permissions and determine message type based on sender role and rules
       if (sender.role === "student") {
-        // Students can only message clubs they are subscribed to
+        // Students can only send group messages to clubs they are subscribed to
         if (!clubId) {
-          socket.emit("error", {
-            message: "Students can only message subscribed clubs",
-          });
+          socket.emit("error", { message: "Students can only message subscribed clubs" });
           return;
         }
         const subscription = await Subscription.findOne({
           where: { studentId: senderId, clubId },
         });
         if (!subscription) {
-          socket.emit("error", {
-            message: "You are not subscribed to this club",
-          });
+          socket.emit("error", { message: "You are not subscribed to this club" });
           return;
         }
-      } else if (sender.role === "club") {
-        // Clubs can message subscribed students or admin
-        if (receiverId) {
-          // Check if receiver is admin
-          const receiver = await User.findByPk(receiverId);
-          if (!receiver || receiver.role !== "admin") {
-            // Check if student is subscribed to this club
-            const subscription = await Subscription.findOne({
-              where: { studentId: receiverId, clubId: senderId },
-            });
-            if (!subscription) {
-              socket.emit("error", {
-                message: "You can only message subscribed students or admin",
-              });
-              return;
-            }
-          }
+        finalMessageType = 'group';
+        // Find or create group chat room for this club
+        let chatRoom = await ChatRoom.findOne({
+          where: { clubId, type: 'club_group', isActive: true }
+        });
+        if (!chatRoom) {
+          chatRoom = await ChatRoom.create({
+            name: `Club ${clubId} Group Chat`,
+            type: 'club_group',
+            clubId,
+            createdBy: clubId, // Club creates the room
+            isActive: true
+          });
         }
-      } else if (sender.role === "admin") {
-        // Admin can message approved clubs or verified students
+        chatRoomId = chatRoom.id;
+        // Update last message timestamp
+        chatRoom.lastMessageAt = new Date();
+        await chatRoom.save();
+
+      } else if (sender.role === "club") {
         if (receiverId) {
+          // Direct message to individual
           const receiver = await User.findByPk(receiverId);
           if (!receiver) {
             socket.emit("error", { message: "Recipient not found" });
             return;
           }
-          if (receiver.role === "club") {
-            // All clubs in User table are approved, so okay
+          if (receiver.role === "admin") {
+            // Club to admin: allowed
+            finalMessageType = 'direct';
           } else if (receiver.role === "student") {
-            if (!receiver.isVerified) {
-              socket.emit("error", {
-                message: "Can only message verified students",
-              });
+            // Club to student: check if student is subscribed
+            const subscription = await Subscription.findOne({
+              where: { studentId: receiverId, clubId: senderId },
+            });
+            if (!subscription) {
+              socket.emit("error", { message: "You can only message subscribed students" });
               return;
             }
+            finalMessageType = 'direct';
           } else {
-            socket.emit("error", { message: "Invalid recipient" });
+            socket.emit("error", { message: "Invalid recipient type" });
+            return;
+          }
+        } else if (messageType === 'direct') {
+          // Special case: club to admin message (receiverId is null)
+          finalMessageType = 'direct';
+          finalReceiverId = null;
+        } else {
+          // Group message to all subscribed students
+          finalMessageType = 'group';
+          // Find or create group chat room for this club
+          let chatRoom = await ChatRoom.findOne({
+            where: { clubId: senderId, type: 'club_group', isActive: true }
+          });
+          if (!chatRoom) {
+            chatRoom = await ChatRoom.create({
+              name: `Club ${senderId} Group Chat`,
+              type: 'club_group',
+              clubId: senderId,
+              createdBy: senderId,
+              isActive: true
+            });
+          }
+          chatRoomId = chatRoom.id;
+          // Update last message timestamp
+          chatRoom.lastMessageAt = new Date();
+          await chatRoom.save();
+        }
+
+      } else if (sender.role === "admin") {
+        if (receiverId) {
+          // Direct message to individual club or student
+          const receiver = await User.findByPk(receiverId);
+          if (!receiver) {
+            socket.emit("error", { message: "Recipient not found" });
+            return;
+          }
+          if (receiver.role === "club" || (receiver.role === "student" && receiver.isVerified)) {
+            finalMessageType = 'direct';
+          } else {
+            socket.emit("error", { message: "Can only message approved clubs or verified students" });
             return;
           }
         } else {
-          // For broadcasts, target should be specified
+          // Broadcast to all students or all clubs
           if (!target || !["students", "clubs"].includes(target)) {
             socket.emit("error", { message: "Invalid broadcast target" });
             return;
           }
-          // Broadcasts go to all approved clubs or verified students automatically
+          finalMessageType = 'broadcast';
+          adminTarget = target;
         }
       } else {
         socket.emit("error", { message: "Invalid user role" });
         return;
       }
 
-      // Determine target audience for broadcasts
-      let adminTarget = null;
-      if (sender.role === "admin" && !receiverId && !clubId) {
-        adminTarget = target; // 'students' or 'clubs'
-      }
-
       // Save message to database
       const newMessage = await Message.create({
         senderId,
-        receiverId: receiverId || null,
-        clubId: clubId || null,
+        receiverId: finalReceiverId,
+        clubId: finalClubId,
+        chatRoomId,
         message,
+        messageType: finalMessageType,
         adminTarget,
         timestamp: new Date(),
       });
@@ -2996,31 +3165,47 @@ io.on("connection", async (socket) => {
         senderName: sender.username,
         receiverId: newMessage.receiverId,
         clubId: newMessage.clubId,
+        chatRoomId: newMessage.chatRoomId,
         message: newMessage.message,
+        messageType: newMessage.messageType,
         timestamp: newMessage.timestamp,
         adminTarget: newMessage.adminTarget,
       };
 
-      if (clubId && sender.role === "student") {
-        // Student to club: send to club room
-        socket.to(`club_${clubId}`).emit("new-message", messageData);
-      } else if (receiverId && sender.role === "club") {
-        // Club to admin: send to admin room (but admin joins all rooms, so this works)
-        // Club to student: send to club room for that student (but since receiver is specified, it should go to the receiver)
-        // For now, since we don't have private rooms, we rely on front-end filtering
-        socket.emit("new-message", messageData); // Echo back to sender
-      } else if (sender.role === "admin" && receiverId) {
-        // Admin direct message to specific user
-        // Since rooms are club-based, we need to send to appropriate rooms
-        const receiver = await User.findByPk(receiverId);
-        if (receiver.role === "club") {
-          socket.to(`club_${receiverId}`).emit("new-message", messageData);
-        } else if (receiver.role === "student") {
-          // Send to all club rooms the student is subscribed to, or create a special admin room
-          // For simplicity, since front-end loads via API, we'll emit to student broadcast for now
-          socket.to("student_broadcast").emit("new-message", messageData);
+      if (finalMessageType === 'group' && chatRoomId) {
+        // Group messages: send to all subscribers of the club
+        socket.to(`club_${finalClubId || senderId}`).emit("new-message", messageData);
+      } else if (finalMessageType === 'direct') {
+        if (sender.role === "club") {
+          if (finalReceiverId) {
+            // Club to individual: send to receiver's room
+            const receiver = await User.findByPk(finalReceiverId);
+            if (receiver.role === "admin") {
+              // Send to admin broadcast room (admin joins all rooms)
+              socket.to("club_broadcast").emit("new-message", messageData);
+            } else if (receiver.role === "student") {
+              // Send to student's subscribed club rooms
+              const subscriptions = await Subscription.findAll({
+                where: { studentId: finalReceiverId },
+              });
+              subscriptions.forEach((sub) => {
+                socket.to(`club_${sub.clubId}`).emit("new-message", messageData);
+              });
+            }
+          } else {
+            // Club to admin: special case where receiverId is null
+            socket.to("club_broadcast").emit("new-message", messageData);
+          }
+        } else if (sender.role === "admin" && finalReceiverId) {
+          // Admin to individual
+          const receiver = await User.findByPk(finalReceiverId);
+          if (receiver.role === "club") {
+            socket.to(`club_${finalReceiverId}`).emit("new-message", messageData);
+          } else if (receiver.role === "student") {
+            socket.to("student_broadcast").emit("new-message", messageData);
+          }
         }
-      } else if (!receiverId) {
+      } else if (finalMessageType === 'broadcast') {
         // Broadcasts
         if (adminTarget === "students") {
           socket.to("student_broadcast").emit("new-message", messageData);
@@ -3028,6 +3213,10 @@ io.on("connection", async (socket) => {
           socket.to("club_broadcast").emit("new-message", messageData);
         }
       }
+
+      // Always echo back to sender
+      socket.emit("new-message", messageData);
+
     } catch (err) {
       console.error("Error sending message:", err);
       socket.emit("error", { message: "Failed to send message" });

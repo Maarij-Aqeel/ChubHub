@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Club Messages - UChub</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/css/student_nav.css" />
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="nav-spacer"></div>
+      <div class="nav-tabs">
+        <a href="/student/<%= user.id %>/home">
+          <i class="fas fa-home"></i>
+          <span>Home</span>
+        </a>
+        <a href="/student/<%= user.id %>/clubs">
+          <i class="fas fa-layer-group"></i>
+          <span>Clubs</span>
+        </a>
+        <a href="/student/<%= user.id %>/messages">
+          <i class="fas fa-comments"></i>
+          <span>Messages</span>
+        </a>
+        <a href="/student/<%= user.id %>">
+          <i class="fas fa-user"></i>
+          <span>Profile</span>
+        </a>
+      </div>
+      <div id="logout-container" style="display: none;">
+        <button class="logout-btn" onclick="window.location='/logout'">
+          <i class="fas fa-sign-out-alt"></i>
+          Log Out
+        </button>
+      </div>
+    </div>
+    <script>
+      if (window.location.pathname === '/student/<%= user.id %>') {
+        document.getElementById('logout-container').style.display = 'flex';
+      }
+    </script>
+  </body>
+</html>

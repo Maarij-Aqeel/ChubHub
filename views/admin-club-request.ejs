@@ -384,30 +384,7 @@
 <body>
 
   <!-- ===== Navbar ===== -->
-  <div class="navbar">
-    <div class="navbar-left">
-      <a href="/admin/dashboard" class="navbar-brand">
-        <i class="fas fa-shield-halved"></i>
-        <span>Admin Portal</span>
-      </a>
-      <a href="/admin/dashboard">
-        <i class="fas fa-home"></i>
-        <span>Dashboard</span>
-      </a>
-      <a href="/admin/club-requests">
-        <i class="fas fa-user-clock"></i>
-        <span>Club Requests</span>
-      </a>
-      <a href="/admin/events">
-        <i class="fas fa-calendar-check"></i>
-        <span>Events</span>
-      </a>
-    </div>
-    <a href="/admin/dashboard" class="back-btn">
-      <i class="fas fa-arrow-left"></i>
-      <span>Back to Dashboard</span>
-    </a>
-  </div>
+   <%- include('partial/admin_nav') %>
 
   <div class="container">
     <!-- Page Header -->

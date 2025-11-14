@@ -23,60 +23,7 @@
         min-height: 100vh;
       }
 
-      /* ===== Navbar ===== */
-      .navbar {
-        width: 100%;
-        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 3rem;
-        padding: 1rem 2rem;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
-        margin-bottom: 2rem;
-      }
-
-      .navbar a {
-        color: #ffffff;
-        text-decoration: none;
-        font-weight: 600;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-        padding: 0.5rem 1.5rem;
-        border-radius: 8px;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .navbar a::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.1);
-        transition: left 0.3s ease;
-      }
-
-      .navbar a:hover::before {
-        left: 0;
-      }
-
-      .navbar a:hover {
-        transform: translateY(-2px);
-      }
-
-      .navbar i {
-        font-size: 1.5rem;
-      }
+   
 
       /* ===== Profile Container ===== */
       .profile-container {
@@ -530,20 +477,7 @@
   <body>
     <div id="toast-container"></div>
     <!-- ===== Navbar ===== -->
-    <div class="navbar">
-      <a href="/admin/dashboard">
-        <i class="fas fa-home"></i>
-        <span>Dashboard</span>
-      </a>
-      <a href="/admin/reports">
-        <i class="fas fa-chart-line"></i>
-        <span>Reports</span>
-      </a>
-      <a href="/admin/settings">
-        <i class="fas fa-cog"></i>
-        <span>Profile Settings</span>
-      </a>
-    </div>
+     <%- include('partial/admin_nav') %>
 
     <!-- ===== Profile Container ===== -->
     <div class="profile-container">

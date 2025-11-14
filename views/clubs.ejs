@@ -575,20 +575,8 @@
 <body>
 
   <!-- ===== Navbar ===== -->
-  <div class="navbar">
-    <a href="/student/<%= user.id %>/home">
-      <i class="fas fa-home"></i>
-      <span>Home</span>
-    </a>
-    <a href="/student/<%= user.id %>/clubs">
-      <i class="fas fa-layer-group"></i>
-      <span>Clubs</span>
-    </a>
-    <a href="/student/<%= user.id %>">
-      <i class="fas fa-user"></i>
-      <span>Profile</span>
-    </a>
-  </div>
+   <%- include('partial/student_nav') %>
+
 
   <div class="container">
     <!-- ===== Header ===== -->

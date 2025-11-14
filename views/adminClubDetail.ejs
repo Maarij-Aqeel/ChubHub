@@ -21,78 +21,7 @@
       overflow-x: hidden;
     }
 
-    /* ===== Navbar ===== */
-    .navbar {
-      width: 100%;
-      background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
-    }
-
-    .navbar-left {
-      display: flex;
-      gap: 2rem;
-      align-items: center;
-    }
-
-    .navbar-brand {
-      color: #FFFFFF;
-      font-size: 1.3rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-    }
-
-    .navbar-brand i {
-      font-size: 1.5rem;
-    }
-
-    .navbar a:not(.navbar-brand) {
-      color: #FFFFFF;
-      text-decoration: none;
-      font-weight: 600;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
-      padding: 0.5rem 1.5rem;
-      border-radius: 8px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .navbar a:not(.navbar-brand)::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.1);
-      transition: left 0.3s ease;
-    }
-
-    .navbar a:not(.navbar-brand):hover::before {
-      left: 0;
-    }
-
-    .navbar a:not(.navbar-brand):hover {
-      transform: translateY(-2px);
-    }
-
-    .navbar a i {
-      font-size: 1.5rem;
-    }
+  
 
     .back-btn {
       background: rgba(255, 255, 255, 0.2);
@@ -420,30 +349,8 @@
 <body>
 
   <!-- ===== Navbar ===== -->
-  <div class="navbar">
-    <div class="navbar-left">
-      <a href="/admin/dashboard" class="navbar-brand">
-        <i class="fas fa-shield-halved"></i>
-        <span>Admin Portal</span>
-      </a>
-      <a href="/admin/dashboard">
-        <i class="fas fa-home"></i>
-        <span>Dashboard</span>
-      </a>
-      <a href="/admin/clubs">
-        <i class="fas fa-users"></i>
-        <span>Clubs</span>
-      </a>
-      <a href="/admin/students">
-        <i class="fas fa-user-graduate"></i>
-        <span>Students</span>
-      </a>
-    </div>
-    <a href="/admin/clubs" class="back-btn">
-      <i class="fas fa-arrow-left"></i>
-      <span>Back to Clubs</span>
-    </a>
-  </div>
+   <%- include('partial/admin_nav') %>
+
 
   <div class="container">
 

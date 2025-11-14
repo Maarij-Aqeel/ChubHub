@@ -20,40 +20,7 @@
       style="display: none"
     ></div>
     <!-- ===== Navbar ===== -->
-    <div class="navbar">
-      <div class="navbar-left">
-        <div class="navbar-brand">
-          <i class="fas fa-shield-halved"></i>
-          <span>Admin Portal</span>
-        </div>
-        <button onclick="showSection('dashboard')" class="nav-link active" id="nav-dashboard">
-          <i class="fas fa-home"></i>
-          <span>Dashboard</span>
-        </button>
-        <a href="/admin/messages" class="nav-link" id="nav-messages">
-          <i class="fas fa-comments"></i>
-          <span>Messages</span>
-        </a>
-        <button onclick="showSection('calendar')" class="nav-link" id="nav-calendar">
-          <i class="fas fa-calendar-alt"></i>
-          <span>Calendar</span>
-        </button>
-        <a href="/admin/reports">
-          <i class="fas fa-chart-line"></i>
-          <span>Reports</span>
-        </a>
-        <a href="/admin/settings">
-          <i class="fas fa-cog"></i>
-          <span>Profile Settings</span>
-        </a>
-      </div>
-      <a href="/logout">
-        <button class="logout-btn-nav">
-          <i class="fas fa-sign-out-alt"></i>
-          <span>Log Out</span>
-        </button>
-      </a>
-    </div>
+<%- include('partial/admin_nav') %>
 
     <div class="container">
       <!-- Page Header -->

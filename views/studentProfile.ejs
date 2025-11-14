@@ -21,67 +21,7 @@
       min-height: 100vh;
     }
 
-    /* ===== Navbar ===== */
-    .navbar {
-      width: 100%;
-      background: linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 3rem;
-      padding: 1rem 2rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
-      margin-bottom: 2rem;
-    }
     
-    .navbar a {
-      color: #FFFFFF;
-      text-decoration: none;
-      font-weight: 600;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
-      padding: 0.5rem 1.5rem;
-      border-radius: 8px;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .navbar a::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.1);
-      transition: left 0.3s ease;
-    }
-    
-    .navbar a:hover::before {
-      left: 0;
-    }
-    
-    .navbar a:hover { 
-      transform: translateY(-2px);
-    }
-    
-    .navbar i { 
-      font-size: 1.5rem;
-    }
-
-    /* ===== Profile Container ===== */
-    .profile-container {
-      max-width: 1000px;
-      margin: 0 auto 3rem;
-      padding: 0 1.5rem;
-    }
 
     /* ===== Banner Section ===== */
     .banner {
@@ -121,32 +61,9 @@
       0%, 100% { transform: translateY(0) translateX(0); }
       50% { transform: translateY(-15px) translateX(15px); }
     }
+    
 
-    /* ===== Logout Button ===== */
-    .logout-btn {
-      position: absolute;
-      top: 1.5rem;
-      right: 1.5rem;
-      background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
-      padding: 0.8rem 1.5rem;
-      border-radius: 10px;
-      color: #fff;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: 600;
-      border: none;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .logout-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
-    }
+   
 
     /* ===== Profile Card ===== */
     .profile-card {
@@ -499,95 +416,17 @@
       box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
     }
 
-    /* ===== Responsive ===== */
-    @media (max-width: 768px) {
-      .navbar {
-        gap: 1rem;
-        padding: 1rem;
-      }
 
-      .navbar a {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.8rem;
-      }
-
-      .navbar i {
-        font-size: 1.2rem;
-      }
-
-      .profile-header {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        padding: 1.5rem;
-      }
-
-      .profile-pic {
-        width: 120px;
-        height: 120px;
-        font-size: 2.5rem;
-      }
-
-      .profile-info h2 {
-        font-size: 1.8rem;
-      }
-
-      .stats {
-        flex-direction: column;
-        gap: 1rem;
-      }
-
-      .stat-item {
-        text-align: center;
-      }
-
-      .details-section {
-        padding: 1.5rem;
-      }
-
-      .details-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .logout-btn {
-        top: 1rem;
-        right: 1rem;
-        padding: 0.6rem 1rem;
-        font-size: 0.85rem;
-      }
-    }
   </style>
 </head>
 <body>
   <div id="toast-container"></div>
   <!-- ===== Navbar ===== -->
-  <div class="navbar">
-    <a href="/student/<%= user.id %>/home">
-      <i class="fas fa-home"></i>
-      <span>Home</span>
-    </a>
-    <a href="/student/<%= user.id %>/clubs">
-      <i class="fas fa-layer-group"></i>
-      <span>Clubs</span>
-    </a>
-    <a href="/student/<%= user.id %>/messages">
-      <i class="fas fa-comments"></i>
-      <span>Messages</span>
-    </a>
-    <a href="/student/<%= user.id %>">
-      <i class="fas fa-user"></i>
-      <span>Profile</span>
-    </a>
-  </div>
-
+   <%- include('partial/student_nav') %>
   <!-- ===== Profile Container ===== -->
   <div class="profile-container">
     <!-- Banner -->
     <div class="banner">
-      <button class="logout-btn" onclick="window.location='/logout'">
-        <i class="fas fa-sign-out-alt"></i>
-        Log Out
-      </button>
     </div>
 
     <!-- Profile Card -->

@@ -57,4 +57,31 @@ const sendNotificationEmail = async (to, clubName, itemType, itemTitle, itemDesc
   }
 };
 
-module.exports = { sendVerificationEmail, sendPasswordResetEmail, sendRSVPEmail, sendNotificationEmail };
+const sendApprovalEmail = async (to, itemType, status, notes) => {
+  const subject = `${itemType} ${status.charAt(0).toUpperCase() + status.slice(1)} Notification`;
+  let html = `<p>Hello,</p>`;
+
+  if (status === 'approved') {
+    html += `<p>Your ${itemType} has been approved.</p>`;
+  } else {
+    html += `<p>Your ${itemType} has been rejected.</p>`;
+    if (notes) html += `<p><strong>Admin Notes:</strong> ${notes}</p>`;
+  }
+
+  html += `<p>Regards,<br>ChubHub Admin</p>`;
+
+  console.log(`Sending ${status} email for ${itemType} to ${to}`);
+  try {
+    await resend.emails.send({
+      from: process.env.ADMIN_EMAIL,
+      to,
+      subject,
+      html,
+    });
+    console.log(`Successfully sent ${status} email for ${itemType} to ${to}`);
+  } catch (error) {
+    console.error(`Failed to send approval email to ${to}:`, error);
+  }
+};
+
+module.exports = { sendVerificationEmail, sendPasswordResetEmail, sendRSVPEmail, sendNotificationEmail, sendApprovalEmail };

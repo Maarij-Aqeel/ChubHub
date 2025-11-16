@@ -106,6 +106,7 @@ const {
   sendPasswordResetEmail,
   sendRSVPEmail,
   sendNotificationEmail,
+  sendApprovalEmail,
 } = require("./config/mailer");
 const { AuditLog } = require("./models/auditLog");
 const crypto = require("crypto");
@@ -660,6 +661,7 @@ app.post("/admin/club-requests/:id/approve", requireLogin, async (req, res) => {
       creq.approvedByAdmin = true;
       creq.adminApprovalDate = new Date();
       await creq.save();
+      // No email yet for academic clubs until dean approves
     } else {
       // Non-academic clubs are approved directly by admin
       const existingByEmail = await User.findOne({
@@ -697,6 +699,7 @@ app.post("/admin/club-requests/:id/approve", requireLogin, async (req, res) => {
         creq.adminApprovalDate = new Date();
         await creq.save({ transaction: t });
       });
+      await sendApprovalEmail(creq.clubEmail, 'account', 'approved');
     }
     res.redirect("/admin/club-requests");
   } catch (err) {
@@ -715,6 +718,7 @@ app.post("/admin/club-requests/:id/reject", requireLogin, async (req, res) => {
   creq.status = "rejected";
   creq.adminNotes = req.body.adminNotes || "";
   await creq.save();
+  await sendApprovalEmail(creq.clubEmail, 'account', 'rejected', req.body.adminNotes);
   res.redirect("/admin/club-requests");
 });
 
@@ -778,13 +782,13 @@ app.post("/admin/posts/:id/approve", requireLogin, async (req, res) => {
   });
   const subscribedEmails = subscriptions.map((s) => s.student.email);
 
-  const club = await User.findByPk(post.clubId, { attributes: ["username"] });
+  const clubObj = await User.findByPk(post.clubId, { attributes: ["username", "email"] });
 
   for (const email of subscribedEmails) {
     try {
       await sendNotificationEmail(
         email,
-        club.username,
+        clubObj.username,
         "post",
         null, // no title for posts
         post.text
@@ -794,6 +798,8 @@ app.post("/admin/posts/:id/approve", requireLogin, async (req, res) => {
     }
   }
 
+  console.log(`Post approved: post ID ${post.id}, club ID ${post.clubId}, club email ${clubObj.email}`);
+  await sendApprovalEmail(clubObj.email, 'post', 'approved');
   res.redirect("/admin/posts");
 });
 
@@ -803,7 +809,11 @@ app.post("/admin/posts/:id/reject", requireLogin, async (req, res) => {
   const post = await Post.findByPk(req.params.id);
   if (!post) return res.status(404).send("Not found");
   post.status = "rejected";
+  post.adminNotes = req.body.adminNotes || "";
   await post.save();
+  const club = await User.findByPk(post.clubId);
+  console.log(`Post rejected: post ID ${post.id}, club ID ${post.clubId}, club email ${club.email}, notes: "${req.body.adminNotes}"`);
+  await sendApprovalEmail(club.email, 'post', 'rejected', req.body.adminNotes);
   res.redirect("/admin/posts");
 });
 
@@ -1653,16 +1663,19 @@ app.post("/admin/events/:eventId/approve", requireLogin, async (req, res) => {
     event.status = "approved";
     event.approvedByDean = true; // Override, no dean needed
 
-    // Send notifications to subscribed students
-    const subscriptions = await Subscription.findAll({
-      where: { clubId: event.clubId },
-      include: [{ model: User, as: "student", attributes: ["email"] }],
-    });
-    const subscribedEmails = subscriptions.map((s) => s.student.email);
+  // Send notifications to subscribed students
+  const subscriptions = await Subscription.findAll({
+    where: { clubId: event.clubId },
+    include: [{ model: User, as: "student", attributes: ["email"] }],
+  });
+  const subscribedEmails = subscriptions.map((s) => s.student.email);
 
-    const club = await User.findByPk(event.clubId, {
-      attributes: ["username"],
-    });
+  const club = await User.findByPk(event.clubId, {
+    attributes: ["username", "email"],
+  });
+
+  console.log(`Event approved: event ID ${event.id}, club ID ${event.clubId}, club email ${club.email}`);
+  await sendApprovalEmail(club.email, 'event', 'approved');
 
     const eventDescription = `Location: ${event.location || "TBA"}\nStarts: ${
       event.startsAt ? new Date(event.startsAt).toLocaleString() : "TBA"
@@ -1745,6 +1758,9 @@ app.post("/admin/events/:eventId/reject", requireLogin, async (req, res) => {
   }
   event.adminNotes = req.body.adminNotes || "";
   await event.save();
+
+  const club = await User.findByPk(event.clubId);
+  await sendApprovalEmail(club.email, 'event', 'rejected', req.body.adminNotes);
 
   res.redirect("/admin/events");
 });
@@ -2113,6 +2129,7 @@ app.post("/dean/club-requests/:id/approve", requireLogin, async (req, res) => {
       await creq.save({ transaction: t });
     });
 
+    await sendApprovalEmail(creq.clubEmail, 'account', 'approved');
     res.redirect("/dean/club-requests");
   } catch (err) {
     console.error("Approve club request failed:", err);
@@ -2130,6 +2147,7 @@ app.post("/dean/club-requests/:id/reject", requireLogin, async (req, res) => {
   creq.status = "rejected";
   creq.deanNotes = req.body.deanNotes || "";
   await creq.save();
+  await sendApprovalEmail(creq.clubEmail, 'account', 'rejected', req.body.deanNotes);
   res.redirect("/dean/club-requests");
 });
 
@@ -2218,6 +2236,9 @@ app.post("/dean/events/:eventId/approve", requireLogin, async (req, res) => {
     }
   }
 
+  console.log(`Dean approved event: event ID ${event.id}, club ID ${event.clubId}, club email ${event.club.email}`);
+  await sendApprovalEmail(event.club.email, 'event', 'approved');
+
   res.redirect("/dean/events");
 });
 
@@ -2238,6 +2259,9 @@ app.post("/dean/events/:eventId/reject", requireLogin, async (req, res) => {
   event.deanNotes = req.body.deanNotes || "";
   event.deanApprovalDate = new Date();
   await event.save();
+
+  const club = await User.findByPk(event.clubId);
+  await sendApprovalEmail(club.email, 'event', 'rejected', req.body.deanNotes);
 
   res.redirect("/dean/events");
 });
@@ -3233,7 +3257,7 @@ io.on("connection", async (socket) => {
   try {
     await sequelize.authenticate();
     console.log("Database connected!");
-    await sequelize.sync({ alter: true }); // Update table structure
+    await sequelize.sync({alter:false}); // Update table structure
     console.log("All models synced!");
 
     // Seed default admin

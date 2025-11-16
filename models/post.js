@@ -30,6 +30,10 @@ const Post = sequelize.define(
       defaultValue: 'pending',
       allowNull: false,
     },
+    adminNotes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
   },
   {
     tableName: "posts",

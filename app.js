@@ -3257,7 +3257,7 @@ io.on("connection", async (socket) => {
   try {
     await sequelize.authenticate();
     console.log("Database connected!");
-    await sequelize.sync({alter:false}); // Update table structure
+    await sequelize.sync({alter:true}); // Update table structure
     console.log("All models synced!");
 
     // Seed default admin

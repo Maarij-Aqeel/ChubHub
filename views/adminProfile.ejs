@@ -269,6 +269,10 @@
             flash.error ? "error" : "success"
           );
         }
+        // Check for calendar hash on load
+        if (window.location.hash === '#calendar') {
+          showSection('calendar');
+        }
       });
 
       function initAdminCalendar() {

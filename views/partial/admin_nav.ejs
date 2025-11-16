@@ -18,8 +18,8 @@
           <span>Admin Portal</span>
         </div>
         <button
-          onclick="showSection('dashboard')"
-          class="nav-link active"
+          onclick="if (typeof showSection !== 'undefined') showSection('dashboard'); else window.location='/admin/dashboard';"
+          class="nav-link"
           id="nav-dashboard"
         >
           <i class="fas fa-home"></i>
@@ -30,18 +30,18 @@
           <span>Messages</span>
         </a>
         <button
-          onclick="showSection('calendar')"
+          onclick="if (typeof showSection !== 'undefined') showSection('calendar'); else window.location='/admin/dashboard#calendar';"
           class="nav-link"
           id="nav-calendar"
         >
           <i class="fas fa-calendar-alt"></i>
           <span>Calendar</span>
         </button>
-        <a href="/admin/reports">
+        <a href="/admin/reports" class="nav-link" id="nav-reports">
           <i class="fas fa-chart-line"></i>
           <span>Reports</span>
         </a>
-        <a href="/admin/settings">
+        <a href="/admin/settings" class="nav-link" id="nav-settings">
           <i class="fas fa-cog"></i>
           <span>Profile Settings</span>
         </a>
@@ -53,5 +53,30 @@
         </button>
       </a>
     </div>
+    <script>
+      // Set active nav link based on current page
+      document.addEventListener('DOMContentLoaded', function() {
+        const path = window.location.pathname;
+        // Remove all active classes first
+        document.querySelectorAll('.nav-link').forEach(link => {
+          link.classList.remove('active');
+        });
+        // Set active based on path
+        if (path === '/admin/dashboard') {
+          const hash = window.location.hash;
+          if (hash === '#calendar') {
+            document.getElementById('nav-calendar').classList.add('active');
+          } else {
+            document.getElementById('nav-dashboard').classList.add('active');
+          }
+        } else if (path === '/admin/messages') {
+          document.getElementById('nav-messages').classList.add('active');
+        } else if (path === '/admin/reports') {
+          document.getElementById('nav-reports').classList.add('active');
+        } else if (path === '/admin/settings') {
+          document.getElementById('nav-settings').classList.add('active');
+        }
+      });
+    </script>
   </body>
 </html>

@@ -2214,7 +2214,7 @@ app.post("/dean/events/:eventId/approve", requireLogin, async (req, res) => {
   });
   const subscribedEmails = subscriptions.map((s) => s.student.email);
 
-  const club = await User.findByPk(event.clubId, { attributes: ["username"] });
+  const club = await User.findByPk(event.clubId, { attributes: ["username", "email"] });
 
   const eventDescription = `Location: ${event.location || "TBA"}\nStarts: ${
     event.startsAt ? new Date(event.startsAt).toLocaleString() : "TBA"
@@ -2236,8 +2236,8 @@ app.post("/dean/events/:eventId/approve", requireLogin, async (req, res) => {
     }
   }
 
-  console.log(`Dean approved event: event ID ${event.id}, club ID ${event.clubId}, club email ${event.club.email}`);
-  await sendApprovalEmail(event.club.email, 'event', 'approved');
+  console.log(`Dean approved event: event ID ${event.id}, club ID ${event.clubId}, club email ${club.email}`);
+  await sendApprovalEmail(club.email, 'event', 'approved');
 
   res.redirect("/dean/events");
 });

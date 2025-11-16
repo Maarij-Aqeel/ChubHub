@@ -31,17 +31,12 @@
           <span>Profile</span>
         </a>
       </div>
-      <div id="logout-container" style="display: none;">
-        <button class="logout-btn" onclick="window.location='/logout'">
+      <a href="/logout">
+        <button class="logout-btn">
           <i class="fas fa-sign-out-alt"></i>
           Log Out
         </button>
-      </div>
+      </a>
     </div>
-    <script>
-      if (window.location.pathname === '/student/<%= user.id %>') {
-        document.getElementById('logout-container').style.display = 'flex';
-      }
-    </script>
   </body>
 </html>

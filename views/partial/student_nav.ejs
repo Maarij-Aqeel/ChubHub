@@ -13,6 +13,7 @@
   <body>
     <div class="navbar">
       <div class="nav-spacer"></div>
+
       <div class="nav-tabs">
         <a href="/student/<%= user.id %>/home">
           <i class="fas fa-home"></i>
@@ -31,12 +32,15 @@
           <span>Profile</span>
         </a>
       </div>
-      <a href="/logout">
-        <button class="logout-btn">
-          <i class="fas fa-sign-out-alt"></i>
-          Log Out
-        </button>
-      </a>
+
+      <div class="nav-right">
+        <a href="/logout">
+          <button class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            Log Out
+          </button>
+        </a>
+      </div>
     </div>
   </body>
 </html>

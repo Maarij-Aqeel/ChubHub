@@ -798,7 +798,28 @@
         box-shadow: 0 8px 25px rgba(0,0,0,0.15);
       }
 
+      /* Dashboard Grid Styles */
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
       @media (max-width: 768px) {
+        .dashboard-grid {
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+          gap: 0.75rem;
+        }
+
+        .stat-card {
+          padding: 1rem;
+        }
+
+        .stat-card h3 {
+          font-size: 1.5rem;
+        }
+
         .manage-grid {
           grid-template-columns: 1fr;
           gap: 1rem;
@@ -815,6 +836,17 @@
 
         .category-buttons button span {
           font-size: 0.8rem;
+        }
+
+        /* Messaging section responsive */
+        .messages-layout {
+          flex-direction: column;
+          height: auto;
+        }
+
+        .messages-layout .messages-list, .messages-layout .compose-message {
+          width: 100%;
+          height: 300px;
         }
       }
     </style>

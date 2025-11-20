@@ -8,13 +8,17 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
-  <link rel="stylesheet" href="/css/landing.css">
+    <link rel="stylesheet" href="/css/landing.css" />
 
-    <link rel="icon" href="/favicon.png" type="image/png">
+    <link rel="icon" href="/favicon.png" type="image/png" />
   </head>
   <body>
     <nav id="navbar" class="fade-in">
-      <div class="logo"><i class="fas fa-layer-group"></i>UChub</div>
+      <div class="logo">
+        <img src="images/new_logo.png" alt="Logo" class="logo-img" />
+        UChub
+      </div>
+
       <button class="mobile-menu-btn" id="mobileMenuBtn">
         <i class="fas fa-bars"></i>
       </button>
@@ -32,11 +36,17 @@
     <!-- Hero -->
     <section class="hero">
       <div class="hero-content">
-        <h1 class="fade-in-up" style="animation-delay: 0.2s;">Your Gateway to PSU Clubs & Events</h1>
-        <p class="hero-tagline fade-in-up" style="animation-delay: 0.6s;">
+        <h1 class="fade-in-up" style="animation-delay: 0.2s">
+          Your Gateway to PSU Clubs & Events
+        </h1>
+        <p class="hero-tagline fade-in-up" style="animation-delay: 0.6s">
           Connect, engage, and thrive in your university community
         </p>
-        <a href="/login" class="hero-cta fade-in-up" style="animation-delay: 1s;">
+        <a
+          href="/login"
+          class="hero-cta fade-in-up"
+          style="animation-delay: 1s"
+        >
           <i class="fas fa-sign-in-alt"></i> Login with @psu.edu
         </a>
       </div>
@@ -52,15 +62,16 @@
         <div class="about-text">
           <h3>Your Campus Community, Unified</h3>
           <p>
-            UChub is the exclusive platform for Prince Sultan University students to
-            explore, join, and actively participate in campus clubs and
-            organizations. We bridge the gap between students and opportunities,
-            making it easier than ever to find your place on campus.
+            UChub is the exclusive platform for Prince Sultan University
+            students to explore, join, and actively participate in campus clubs
+            and organizations. We bridge the gap between students and
+            opportunities, making it easier than ever to find your place on
+            campus.
           </p>
           <p>
             Whether you’re passionate about technology, sports, arts, or
-            community service, UChub connects you with like-minded students
-            and events that match your interests.
+            community service, UChub connects you with like-minded students and
+            events that match your interests.
           </p>
         </div>
         <div class="about-image">
@@ -147,13 +158,16 @@
     <section class="testimonials fade-in" id="testimonials">
       <h2 class="section-title">What Students Say</h2>
       <p class="section-subtitle">
-        Hear from students who have transformed their campus experience with UChub
+        Hear from students who have transformed their campus experience with
+        UChub
       </p>
       <div class="testimonials-grid">
         <div class="testimonial-card">
           <div class="testimonial-content">
             <p class="testimonial-quote">
-              "UChub completely changed how I experience university life. I discovered so many clubs I never knew existed and connected with amazing people who share my interests."
+              "UChub completely changed how I experience university life. I
+              discovered so many clubs I never knew existed and connected with
+              amazing people who share my interests."
             </p>
             <div class="testimonial-author">
               <div class="testimonial-info">
@@ -166,12 +180,16 @@
         <div class="testimonial-card">
           <div class="testimonial-content">
             <p class="testimonial-quote">
-              "The real-time updates kept me informed about all the events happening on campus. I've never missed an important club meeting or social event since joining UChub."
+              "The real-time updates kept me informed about all the events
+              happening on campus. I've never missed an important club meeting
+              or social event since joining UChub."
             </p>
             <div class="testimonial-author">
               <div class="testimonial-info">
                 <h4>Mohammed Al-Fayed</h4>
-                <span class="testimonial-role">Business Administration Student</span>
+                <span class="testimonial-role"
+                  >Business Administration Student</span
+                >
               </div>
             </div>
           </div>
@@ -179,12 +197,16 @@
         <div class="testimonial-card">
           <div class="testimonial-content">
             <p class="testimonial-quote">
-              "UChub made it so easy to find the perfect club for my passion in environmental awareness. I'm now part of the Green Campus Initiative and have made lifelong friends."
+              "UChub made it so easy to find the perfect club for my passion in
+              environmental awareness. I'm now part of the Green Campus
+              Initiative and have made lifelong friends."
             </p>
             <div class="testimonial-author">
               <div class="testimonial-info">
                 <h4>Fatima Khan</h4>
-                <span class="testimonial-role">Environmental Science Student</span>
+                <span class="testimonial-role"
+                  >Environmental Science Student</span
+                >
               </div>
             </div>
           </div>
@@ -298,12 +320,14 @@
         { threshold: 0.1 }
       );
 
-      document.querySelectorAll(".feature-card, .testimonial-card").forEach((el) => {
-        el.style.opacity = "0";
-        el.style.transform = "translateY(20px)";
-        el.style.transition = "opacity .6s,transform .6s";
-        cardObs.observe(el);
-      });
+      document
+        .querySelectorAll(".feature-card, .testimonial-card")
+        .forEach((el) => {
+          el.style.opacity = "0";
+          el.style.transform = "translateY(20px)";
+          el.style.transition = "opacity .6s,transform .6s";
+          cardObs.observe(el);
+        });
     </script>
   </body>
 </html>

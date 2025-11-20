@@ -621,7 +621,7 @@ app.get("/logout", (req, res) => {
 // Admin - view club requests by status
 app.get("/admin/club-requests", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const status = req.query.status || "pending";
   let whereCondition = { isVerified: true };
@@ -650,7 +650,7 @@ app.get("/admin/club-requests", requireLogin, async (req, res) => {
 // Approve
 app.post("/admin/club-requests/:id/approve", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   const reqId = req.params.id;
   const creq = await ClubRequest.findByPk(reqId);
   if (!creq) return res.status(404).send("Not found");
@@ -711,7 +711,7 @@ app.post("/admin/club-requests/:id/approve", requireLogin, async (req, res) => {
 // Reject
 app.post("/admin/club-requests/:id/reject", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   const reqId = req.params.id;
   const creq = await ClubRequest.findByPk(reqId);
   if (!creq) return res.status(404).send("Not found");
@@ -725,7 +725,7 @@ app.post("/admin/club-requests/:id/reject", requireLogin, async (req, res) => {
 // Admin view single club request detail
 app.get("/admin/club-requests/:id", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   const clubRequest = await ClubRequest.findByPk(req.params.id);
   if (!clubRequest) return res.status(404).send("Club request not found");
   res.render("admin-club-request-detail", { clubRequest, viewerRole: "admin" });
@@ -734,7 +734,7 @@ app.get("/admin/club-requests/:id", requireLogin, async (req, res) => {
 // Dean view single club request detail
 app.get("/dean/club-requests/:id", requireLogin, async (req, res) => {
   if (req.session.user.role !== "dean")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   const clubRequest = await ClubRequest.findByPk(req.params.id);
   if (!clubRequest) return res.status(404).send("Club request not found");
   res.render("admin-club-request-detail", { clubRequest, viewerRole: "dean" });
@@ -743,7 +743,7 @@ app.get("/dean/club-requests/:id", requireLogin, async (req, res) => {
 // ===== Post Approval =====
 app.get("/admin/posts", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const status = req.query.status || "pending";
   const postsRaw = await Post.findAll({
@@ -769,7 +769,7 @@ app.get("/admin/posts", requireLogin, async (req, res) => {
 
 app.post("/admin/posts/:id/approve", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   const post = await Post.findByPk(req.params.id);
   if (!post) return res.status(404).send("Not found");
   post.status = "approved";
@@ -805,7 +805,7 @@ app.post("/admin/posts/:id/approve", requireLogin, async (req, res) => {
 
 app.post("/admin/posts/:id/reject", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   const post = await Post.findByPk(req.params.id);
   if (!post) return res.status(404).send("Not found");
   post.status = "rejected";
@@ -939,7 +939,7 @@ app.get("/student/:id/messages", requireLogin, async (req, res) => {
     req.session.user.role !== "student" ||
     req.session.user.id != req.params.id
   )
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const user = await User.findByPk(req.params.id);
   if (!user || user.role !== "student")
@@ -954,7 +954,7 @@ app.get("/club/:id/messages", requireLogin, async (req, res) => {
     req.session.user.role !== "club" ||
     req.session.user.id != req.params.id
   )
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const user = await User.findByPk(req.params.id);
   if (!user || user.role !== "club")
@@ -966,7 +966,7 @@ app.get("/club/:id/messages", requireLogin, async (req, res) => {
 // ===== Admin Messages =====
 app.get("/admin/messages", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const user = await User.findByPk(req.session.user.id);
   if (!user || user.role !== "admin")
@@ -1059,7 +1059,7 @@ app.get("/student/:id/clubs", requireLogin, async (req, res) => {
     req.session.user.role !== "student" ||
     req.session.user.id != req.params.id
   )
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   const user = await User.findByPk(req.params.id);
   const q = (req.query.q || "").trim().toLowerCase();
   const clubs = await User.findAll({
@@ -1129,7 +1129,7 @@ app.post(
       req.session.user.role !== "student" ||
       req.session.user.id != req.params.id
     )
-      return res.status(403).send("Forbidden");
+      return res.redirect("/login");
     const club = await User.findByPk(req.params.clubId);
     if (!club || club.role !== "club")
       return res.status(404).send("Club not found");
@@ -1149,7 +1149,7 @@ app.post(
       req.session.user.role !== "student" ||
       req.session.user.id != req.params.id
     )
-      return res.status(403).send("Forbidden");
+      return res.redirect("/login");
     await Subscription.destroy({
       where: { studentId: req.session.user.id, clubId: req.params.clubId },
     });
@@ -1166,7 +1166,7 @@ app.post(
       req.session.user.role !== "student" ||
       req.session.user.id != req.params.id
     )
-      return res.status(403).send("Forbidden");
+      return res.redirect("/login");
     const { status } = req.body; // going | interested | not_going
     const event = await Event.findByPk(req.params.eventId);
     if (!event || event.status !== "approved")
@@ -1199,7 +1199,7 @@ app.post(
 // Admin: send reminders for events starting within next 24h
 app.post("/admin/events/:eventId/remind", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   const event = await Event.findByPk(req.params.eventId);
   if (!event || event.status !== "approved")
     return res.status(404).send("Event not found");
@@ -1275,7 +1275,7 @@ app.post(
 // Delete a post (Club only, any status)
 app.post("/club/:id/posts/:postId/delete", requireLogin, async (req, res) => {
   if (req.session.user.role !== "club" || req.session.user.id != req.params.id)
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   const post = await Post.findByPk(req.params.postId);
   if (!post || post.clubId != req.params.id)
     return res.status(404).send("Post not found");
@@ -1286,7 +1286,7 @@ app.post("/club/:id/posts/:postId/delete", requireLogin, async (req, res) => {
 // Club: show event creation form
 app.get("/club/:id/event/new", requireLogin, async (req, res) => {
   if (req.session.user.role !== "club" || req.session.user.id != req.params.id)
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const club = await User.findByPk(req.params.id);
   if (!club) return res.status(404).send("Club not found");
@@ -1583,7 +1583,7 @@ app.post(
 
 app.post("/club/:id/event/new", requireLogin, async (req, res) => {
   if (req.session.user.role !== "club" || req.session.user.id != req.params.id)
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   const { title, description, location, startsAt, endsAt, capacity } = req.body;
   await Event.create({
     clubId: req.session.user.id,
@@ -1601,7 +1601,7 @@ app.post("/club/:id/event/new", requireLogin, async (req, res) => {
 // Delete an event (Club only)
 app.post("/club/:id/events/:eventId/delete", requireLogin, async (req, res) => {
   if (req.session.user.role !== "club" || req.session.user.id != req.params.id)
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   const event = await Event.findByPk(req.params.eventId);
   if (!event || event.clubId != req.params.id)
     return res.status(404).send("Event not found");
@@ -1612,7 +1612,7 @@ app.post("/club/:id/events/:eventId/delete", requireLogin, async (req, res) => {
 // Admin view events by status
 app.get("/admin/events", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const status = req.query.status || "pending";
   let whereCondition = {};
@@ -1641,7 +1641,7 @@ app.get("/admin/events", requireLogin, async (req, res) => {
 // Approve
 app.post("/admin/events/:eventId/approve", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const event = await Event.findByPk(req.params.eventId, {
     include: [
@@ -1745,7 +1745,7 @@ app.post("/admin/events/:eventId/approve", requireLogin, async (req, res) => {
 // Reject
 app.post("/admin/events/:eventId/reject", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const event = await Event.findByPk(req.params.eventId);
   if (!event) return res.status(404).send("Event not found");
@@ -1768,7 +1768,7 @@ app.post("/admin/events/:eventId/reject", requireLogin, async (req, res) => {
 // show report form
 app.get("/club/:id/event/:eventId/report", requireLogin, async (req, res) => {
   if (req.session.user.role !== "club" || req.session.user.id != req.params.id)
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   const event = await Event.findByPk(req.params.eventId);
   if (!event) return res.status(404).send("Event not found");
   res.render("eventReportForm", {
@@ -1794,7 +1794,7 @@ app.post(
       req.session.user.role !== "club" ||
       req.session.user.id != req.params.id
     )
-      return res.status(403).send("Forbidden");
+      return res.redirect("/login");
 
     try {
       const {
@@ -2048,7 +2048,7 @@ app.get("/dean/dashboard", requireLogin, async (req, res) => {
 app.get("/dean/club-requests", requireLogin, async (req, res) => {
   if (req.session.user.role !== "dean") {
     console.log(req.session.user.role);
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   }
 
   const status = req.query.status || "pending";
@@ -2086,7 +2086,7 @@ app.get("/dean/club-requests", requireLogin, async (req, res) => {
 // Dean approve club
 app.post("/dean/club-requests/:id/approve", requireLogin, async (req, res) => {
   if (req.session.user.role !== "dean")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   const reqId = req.params.id;
   const creq = await ClubRequest.findByPk(reqId);
   if (!creq) return res.status(404).send("Not found");
@@ -2140,7 +2140,7 @@ app.post("/dean/club-requests/:id/approve", requireLogin, async (req, res) => {
 // Dean reject club
 app.post("/dean/club-requests/:id/reject", requireLogin, async (req, res) => {
   if (req.session.user.role !== "dean")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   const reqId = req.params.id;
   const creq = await ClubRequest.findByPk(reqId);
   if (!creq) return res.status(404).send("Not found");
@@ -2154,7 +2154,7 @@ app.post("/dean/club-requests/:id/reject", requireLogin, async (req, res) => {
 // Dean view events by status (only academic clubs)
 app.get("/dean/events", requireLogin, async (req, res) => {
   if (req.session.user.role !== "dean")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const status = req.query.status || "pending";
   let whereCondition = { approvedByDean: false, status: "pending" };
@@ -2195,7 +2195,7 @@ app.get("/dean/events", requireLogin, async (req, res) => {
 // Dean approve event
 app.post("/dean/events/:eventId/approve", requireLogin, async (req, res) => {
   if (req.session.user.role !== "dean")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const event = await Event.findByPk(req.params.eventId);
   if (!event) return res.status(404).send("Event not found");
@@ -2245,7 +2245,7 @@ app.post("/dean/events/:eventId/approve", requireLogin, async (req, res) => {
 // Dean reject event
 app.post("/dean/events/:eventId/reject", requireLogin, async (req, res) => {
   if (req.session.user.role !== "dean")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const event = await Event.findByPk(req.params.eventId);
   if (!event) return res.status(404).send("Event not found");
@@ -2303,7 +2303,7 @@ app.get("/admin/dashboard", requireLogin, async (req, res) => {
 // Admin Reports Page
 app.get("/admin/reports", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
   const reports = await EventReport.findAll({
     include: [
       { model: Event, as: "event" },
@@ -2317,7 +2317,7 @@ app.get("/admin/reports", requireLogin, async (req, res) => {
 // Admin Clubs List
 app.get("/admin/clubs", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const clubs = await User.findAll({
     where: { role: "club" },
@@ -2347,7 +2347,7 @@ app.get("/admin/clubs", requireLogin, async (req, res) => {
 // Admin Students List
 app.get("/admin/students", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const students = await User.findAll({
     where: { role: "student" },
@@ -2377,7 +2377,7 @@ app.get("/admin/students", requireLogin, async (req, res) => {
 // Admin Club Detail
 app.get("/admin/clubs/:id", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const club = await User.findByPk(req.params.id);
   if (!club || club.role !== "club")
@@ -2409,7 +2409,7 @@ app.get("/admin/clubs/:id", requireLogin, async (req, res) => {
 // Admin Student Detail
 app.get("/admin/students/:id", requireLogin, async (req, res) => {
   if (req.session.user.role !== "admin")
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const student = await User.findByPk(req.params.id);
   if (!student || student.role !== "student")
@@ -2444,7 +2444,7 @@ app.get("/student/:studentId/apply/:clubId", requireLogin, async (req, res) => {
     req.session.user.role !== "student" ||
     req.session.user.id != req.params.studentId
   )
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const club = await User.findByPk(req.params.clubId);
   if (!club || club.role !== "club")
@@ -2462,7 +2462,7 @@ app.post(
       req.session.user.role !== "student" ||
       req.session.user.id != req.params.studentId
     )
-      return res.status(403).send("Forbidden");
+      return res.redirect("/login");
 
     const club = await User.findByPk(req.params.clubId);
     if (!club || club.role !== "club")
@@ -2496,7 +2496,7 @@ app.post(
       req.session.user.role !== "student" ||
       req.session.user.id != req.params.studentId
     )
-      return res.status(403).send("Forbidden");
+      return res.redirect("/login");
 
     const club = await User.findByPk(req.params.clubId);
     if (!club || club.role !== "club")
@@ -2569,7 +2569,7 @@ app.get("/club/:clubId/applications", requireLogin, async (req, res) => {
     req.session.user.role !== "club" ||
     req.session.user.id != req.params.clubId
   )
-    return res.status(403).send("Forbidden");
+    return res.redirect("/login");
 
   const user = await User.findByPk(req.params.clubId);
   if (!user || user.role !== "club")
@@ -2930,7 +2930,7 @@ app.post(
       req.session.user.role !== "club" ||
       req.session.user.id != req.params.clubId
     )
-      return res.status(403).send("Forbidden");
+      return res.redirect("/login");
 
     const app = await Application.findByPk(req.params.appId);
     if (!app) return res.status(404).send("Application not found");
@@ -2955,7 +2955,7 @@ app.post(
       req.session.user.role !== "club" ||
       req.session.user.id != req.params.clubId
     )
-      return res.status(403).send("Forbidden");
+      return res.redirect("/login");
 
     const app = await Application.findByPk(req.params.appId);
     if (!app) return res.status(404).send("Application not found");

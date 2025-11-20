@@ -466,10 +466,9 @@
 
   <script>
     // Club Messages Page JavaScript
-    const socket = io();
-    const clubId = <%= user.id %>;
-    const clubUsername = '<%= user.username %>';
-    let currentRecipient = null;
+  const socket = io();
+  const clubId = <%= JSON.stringify(user.id) %>;
+  const clubUsername = <%= JSON.stringify(user.username) %>;
 
     // Initialize when page loads
     window.addEventListener('DOMContentLoaded', function() {
@@ -481,86 +480,154 @@
     async function loadRecipients() {
       try {
         // Load subscribed students
+        console.log('Loading subscriptions for clubId:', clubId);
         const subscriptionsResponse = await fetch('/api/subscriptions/club/' + clubId);
+        console.log('Subscriptions response status:', subscriptionsResponse.status);
+        
+        if (!subscriptionsResponse.ok) {
+          const errorData = await subscriptionsResponse.json();
+          console.error('Subscriptions API error:', errorData);
+          showToast('Error loading students: ' + errorData.error, 'error');
+          return;
+        }
+        
         const subscriptions = await subscriptionsResponse.json();
+        console.log('Subscriptions loaded:', subscriptions);
 
         const container = document.getElementById('recipients-container');
         container.innerHTML = '';
 
-        // Group Communication Section
-        const groupSection = document.createElement('div');
-        groupSection.className = 'recipients-section';
-        groupSection.innerHTML = '<h3>📢 Group Communication</h3>';
+        // ===== STUDENTS SECTION =====
+        const studentsSection = document.createElement('div');
+        studentsSection.className = 'recipients-section';
+        studentsSection.innerHTML = '<h3>Students</h3>';
 
         // Add group chat option
         const groupDiv = document.createElement('div');
         groupDiv.className = 'recipient-item';
-        groupDiv.onclick = function() { selectRecipient('group', 'Group Chat', 'Send messages to all subscribed students'); };
+        groupDiv.onclick = function() { selectRecipient('group', 'Group Chat', 'Send messages to all subscribed students', this, 'group'); };
         groupDiv.innerHTML = '<h3>📢 Group Chat</h3><p>Message all subscribed students</p>';
-        groupSection.appendChild(groupDiv);
+        studentsSection.appendChild(groupDiv);
 
-        container.appendChild(groupSection);
-
-        // Individual Communication Section
-        const individualSection = document.createElement('div');
-        individualSection.className = 'recipients-section';
-        individualSection.innerHTML = '<h3>💬 Individual Communication</h3>';
-
-        // Add admin option
-        const adminDiv = document.createElement('div');
-        adminDiv.className = 'recipient-item';
-        adminDiv.onclick = function() { selectRecipient('admin', 'Admin', 'Contact system administrator'); };
-        adminDiv.innerHTML = '<h3>👑 Admin</h3><p>System administrator</p>';
-        individualSection.appendChild(adminDiv);
+        // Add label for individual students
+        const studentListLabel = document.createElement('div');
+        studentListLabel.style.fontSize = '0.9rem';
+        studentListLabel.style.fontWeight = '600';
+        studentListLabel.style.color = '#6B7280';
+        studentListLabel.style.marginTop = '0.75rem';
+        studentListLabel.style.marginBottom = '0.5rem';
+        studentListLabel.style.paddingLeft = '0.5rem';
+        studentListLabel.innerText = 'Individual Students';
+        studentsSection.appendChild(studentListLabel);
 
         // Add individual students
-        subscriptions.forEach(function(sub) {
-          const student = sub.student;
-          const div = document.createElement('div');
-          div.className = 'recipient-item';
-          div.onclick = function() { selectRecipient(student.id, student.username, 'Individual student'); };
-          div.innerHTML = '<h3>' + student.username + '</h3><p>Individual student</p>';
-          individualSection.appendChild(div);
-        });
-
-        container.appendChild(individualSection);
-
-        if (subscriptions.length === 0) {
-          const emptyDiv = document.createElement('div');
-          emptyDiv.className = 'recipients-section';
-          emptyDiv.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><h3>No Subscribed Students</h3><p>No students are currently subscribed to your club</p></div>';
-          container.appendChild(emptyDiv);
+        if (subscriptions && subscriptions.length > 0) {
+          subscriptions.forEach(function(sub) {
+            const student = sub.student;
+            if (student) {
+              const div = document.createElement('div');
+              div.className = 'recipient-item';
+              div.onclick = function() { selectRecipient(student.id, student.username, 'Individual student', this, 'student'); };
+              div.innerHTML = '<h3>' + student.username + '</h3><p>Individual student</p>';
+              studentsSection.appendChild(div);
+            }
+          });
+        } else {
+          const noStudentsDiv = document.createElement('div');
+          noStudentsDiv.style.padding = '1rem';
+          noStudentsDiv.style.color = '#6B7280';
+          noStudentsDiv.innerText = 'No students subscribed yet';
+          studentsSection.appendChild(noStudentsDiv);
         }
+
+        container.appendChild(studentsSection);
+
+        // ===== ADMIN SECTION =====
+        const adminSection = document.createElement('div');
+        adminSection.className = 'recipients-section';
+        adminSection.innerHTML = '<h3>Admin</h3>';
+
+        // Add admin options (load from API)
+        try {
+          const adminsResponse = await fetch('/api/admins');
+          const admins = await adminsResponse.json();
+          if (admins && admins.length) {
+            admins.forEach(function(admin) {
+              const adminDiv = document.createElement('div');
+              adminDiv.className = 'recipient-item';
+              adminDiv.onclick = function() { selectRecipient(admin.id, admin.username, 'Contact system administrator', this, 'admin'); };
+              adminDiv.innerHTML = '<h3>👑 ' + admin.username + '</h3><p>System administrator</p>';
+              adminSection.appendChild(adminDiv);
+            });
+          } else {
+            const noAdminDiv = document.createElement('div');
+            noAdminDiv.style.padding = '1rem';
+            noAdminDiv.style.color = '#6B7280';
+            noAdminDiv.innerText = 'No admin available';
+            adminSection.appendChild(noAdminDiv);
+          }
+        } catch (adminErr) {
+          console.error('Error loading admins:', adminErr);
+          const errorDiv = document.createElement('div');
+          errorDiv.style.padding = '1rem';
+          errorDiv.style.color = '#DC2626';
+          errorDiv.innerText = 'Failed to load admins';
+          adminSection.appendChild(errorDiv);
+        }
+
+        container.appendChild(adminSection);
       } catch (err) {
         console.error('Error loading recipients:', err);
         showToast('Failed to load recipients', 'error');
       }
     }
 
-    // Select a recipient to chat with
-    function selectRecipient(recipientId, recipientName, description) {
-      currentRecipient = recipientId;
+    // Select a recipient to chat with. role: 'group' | 'student' | 'admin'
+    let currentRecipientId = null;
+    let currentRecipientType = null;
+    function selectRecipient(recipientId, recipientName, description, element, role) {
+      console.log('selectRecipient called:', { recipientId, recipientName, role });
+      currentRecipientId = recipientId;
+      currentRecipientType = role || 'student';
 
       // Update active state
       document.querySelectorAll('.recipient-item').forEach(item => {
         item.classList.remove('active');
       });
-      event.target.closest('.recipient-item').classList.add('active');
+      
+      // element is now the clicked item itself (passed as 'this' from onclick)
+      if (element && element.classList) {
+        element.classList.add('active');
+      }
 
       // Update chat header
-      const headerContent = '<h2>Chatting with ' + recipientName + '</h2><p>' + description + '</p>';
-      document.getElementById('chat-header').innerHTML = headerContent;
+      const headerDiv = document.getElementById('chat-header');
+      if (headerDiv) {
+        headerDiv.innerHTML = '';
+        const h2 = document.createElement('h2');
+        h2.textContent = 'Chatting with ' + recipientName;
+        const p = document.createElement('p');
+        p.textContent = description;
+        headerDiv.appendChild(h2);
+        headerDiv.appendChild(p);
+      }
 
       // Show chat input
-      document.getElementById('chat-input').style.display = 'flex';
+      const chatInput = document.getElementById('chat-input');
+      if (chatInput) {
+        chatInput.style.display = 'flex';
+      }
 
       // Load messages based on recipient type
-      if (recipientId === 'group') {
+      if (currentRecipientType === 'group') {
+        console.log('Loading group messages');
         loadGroupMessages();
-      } else if (recipientId === 'admin') {
-        loadAdminMessages();
+      } else if (currentRecipientType === 'admin') {
+        console.log('Loading admin messages for ID:', currentRecipientId);
+        loadIndividualMessages(currentRecipientId);
       } else {
-        loadIndividualMessages(recipientId);
+        console.log('Loading individual student messages for ID:', currentRecipientId);
+        loadIndividualMessages(currentRecipientId);
       }
     }
 
@@ -595,44 +662,15 @@
       }
     }
 
-    // Load admin messages
-    async function loadAdminMessages() {
-      try {
-        const response = await fetch('/messages/club/' + clubId);
-        const messages = await response.json();
-
-        // Filter direct messages with admin
-        const adminMessages = messages.filter(function(msg) {
-          return msg.messageType === 'direct' &&
-                 ((msg.senderId == clubId && msg.receiverId === null) ||
-                  (msg.receiverId == clubId && msg.senderRole === 'admin'));
-        });
-
-        const messagesContainer = document.getElementById('chat-messages');
-        messagesContainer.innerHTML = '';
-
-        if (adminMessages.length === 0) {
-          messagesContainer.innerHTML = '<div class="empty-state"><i class="fas fa-user-shield"></i><h3>No Messages with Admin</h3><p>Your conversation with the admin will appear here</p></div>';
-          return;
-        }
-
-        adminMessages.forEach(function(msg) {
-          appendMessage(msg);
-        });
-
-        // Scroll to bottom
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-      } catch (err) {
-        console.error('Error loading admin messages:', err);
-        showToast('Failed to load messages', 'error');
-      }
-    }
+    // (Admin uses same direct message loader as individual)
 
     // Load individual student messages
     async function loadIndividualMessages(studentId) {
       try {
+        console.log('Loading individual messages for studentId:', studentId, 'clubId:', clubId);
         const response = await fetch('/messages/club/' + clubId);
         const messages = await response.json();
+        console.log('All messages from API:', messages);
 
         // Filter direct messages with this student
         const individualMessages = messages.filter(function(msg) {
@@ -640,6 +678,8 @@
                  ((msg.senderId == clubId && msg.receiverId == studentId) ||
                   (msg.senderId == studentId && msg.receiverId == clubId));
         });
+
+        console.log('Filtered individual messages:', individualMessages);
 
         const messagesContainer = document.getElementById('chat-messages');
         messagesContainer.innerHTML = '';
@@ -657,7 +697,7 @@
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       } catch (err) {
         console.error('Error loading individual messages:', err);
-        showToast('Failed to load messages', 'error');
+        showToast('Failed to load messages: ' + err.message, 'error');
       }
     }
 
@@ -681,7 +721,7 @@
       const input = document.getElementById('message-input');
       const message = input.value.trim();
 
-      if (!message || !currentRecipient) {
+      if (!message || !currentRecipientId) {
         return;
       }
 
@@ -700,17 +740,13 @@
         message: message
       };
 
-      if (currentRecipient === 'group') {
+      if (currentRecipientType === 'group' || currentRecipientId === 'group') {
         // Group message to all students
         messageData.clubId = clubId;
         messageData.messageType = 'group';
-      } else if (currentRecipient === 'admin') {
-        // Direct message to admin
-        messageData.receiverId = null; // Admin doesn't have specific ID in this context
-        messageData.messageType = 'direct';
       } else {
-        // Direct message to individual student
-        messageData.receiverId = currentRecipient;
+        // currentRecipientId is an id (student or admin)
+        messageData.receiverId = currentRecipientId;
         messageData.messageType = 'direct';
       }
 
@@ -731,15 +767,24 @@
 
     // Socket.IO events
     socket.on('new-message', function(msg) {
-      // Only handle if we're chatting with the relevant recipient
-      if (currentRecipient === 'group' && msg.messageType === 'group' && msg.clubId == clubId) {
-        appendMessage(msg);
-      } else if (currentRecipient === 'admin' && msg.messageType === 'direct' &&
-                 ((msg.senderId == clubId && msg.senderRole === 'admin') ||
-                  (msg.receiverId == clubId && msg.senderRole === 'admin'))) {
-        appendMessage(msg);
-      } else if (currentRecipient == msg.senderId || currentRecipient == msg.receiverId) {
-        appendMessage(msg);
+      try {
+        // Group conversation
+        if (currentRecipientType === 'group' && msg.messageType === 'group' && msg.clubId == clubId) {
+          appendMessage(msg);
+          return;
+        }
+
+        // Direct conversation between club and another user (student or admin)
+        if (msg.messageType === 'direct' && currentRecipientId) {
+          const otherId = currentRecipientId;
+          // Only append if this message is between the club and the currently selected user
+          if ((msg.senderId == clubId && msg.receiverId == otherId) || (msg.receiverId == clubId && msg.senderId == otherId)) {
+            appendMessage(msg);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Error handling incoming message:', err);
       }
     });
 

@@ -2706,6 +2706,20 @@ app.get("/api/admin/clubs", requireLogin, async (req, res) => {
   }
 });
 
+// Get admin users
+app.get('/api/admins', requireLogin, async (req, res) => {
+  if (req.session.user.role !== 'club' && req.session.user.role !== 'admin' && req.session.user.role !== 'student')
+    return res.status(403).json({ error: 'Forbidden' });
+
+  try {
+    const admins = await User.findAll({ where: { role: 'admin' }, attributes: ['id', 'username'] });
+    res.json(admins);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // ===== Chat API Routes =====
 
 // Get messages for a specific club
@@ -3015,6 +3029,9 @@ io.on("connection", async (socket) => {
         // Students join student broadcast room for admin announcements
         socket.join("student_broadcast");
         console.log(`Student ${userId} joined student_broadcast room`);
+        // Students also join a personal room for direct messages
+        socket.join(`user_${user.id}`);
+        console.log(`Student ${userId} joined personal room user_${user.id}`);
       } else if (role === "club") {
         // Clubs join their own room
         const room = `club_${user.id}`;
@@ -3024,6 +3041,9 @@ io.on("connection", async (socket) => {
         // Clubs join club broadcast room for admin announcements
         socket.join("club_broadcast");
         console.log(`Club ${userId} joined club_broadcast room`);
+        // Clubs also join a personal room for direct messages
+        socket.join(`user_${user.id}`);
+        console.log(`Club ${userId} joined personal room user_${user.id}`);
       } else if (role === "admin") {
         // Admin joins broadcast rooms for monitoring
         socket.join("student_broadcast");
@@ -3035,6 +3055,9 @@ io.on("connection", async (socket) => {
         clubs.forEach((club) => {
           socket.join(`club_${club.id}`);
         });
+        // Admin also has a personal room
+        socket.join(`user_${user.id}`);
+        console.log(`Admin ${userId} joined personal room user_${user.id}`);
       }
     } catch (err) {
       console.error("Error joining rooms:", err);
@@ -3060,36 +3083,71 @@ io.on("connection", async (socket) => {
 
       // Validate permissions and determine message type based on sender role and rules
       if (sender.role === "student") {
-        // Students can only send group messages to clubs they are subscribed to
-        if (!clubId) {
-          socket.emit("error", { message: "Students can only message subscribed clubs" });
-          return;
-        }
-        const subscription = await Subscription.findOne({
-          where: { studentId: senderId, clubId },
-        });
-        if (!subscription) {
-          socket.emit("error", { message: "You are not subscribed to this club" });
-          return;
-        }
-        finalMessageType = 'group';
-        // Find or create group chat room for this club
-        let chatRoom = await ChatRoom.findOne({
-          where: { clubId, type: 'club_group', isActive: true }
-        });
-        if (!chatRoom) {
-          chatRoom = await ChatRoom.create({
-            name: `Club ${clubId} Group Chat`,
-            type: 'club_group',
-            clubId,
-            createdBy: clubId, // Club creates the room
-            isActive: true
+        // Students may send either a direct message to the club (representative)
+        // or a group message to the club they are subscribed to.
+        let targetClubId = null;
+
+        if (receiverId) {
+          // Direct -> receiver must be a club and student must be subscribed to that club
+          const receiver = await User.findByPk(receiverId);
+          if (!receiver) {
+            socket.emit("error", { message: "Recipient not found" });
+            return;
+          }
+          if (receiver.role === 'admin') {
+            socket.emit("error", { message: "Students cannot message admin" });
+            return;
+          }
+          if (receiver.role !== 'club') {
+            socket.emit("error", { message: "Students can only message clubs" });
+            return;
+          }
+          targetClubId = receiver.id;
+          // verify subscription
+          const subscription = await Subscription.findOne({
+            where: { studentId: senderId, clubId: targetClubId },
           });
+          if (!subscription) {
+            socket.emit("error", { message: "You are not subscribed to this club" });
+            return;
+          }
+          finalMessageType = 'direct';
+          finalReceiverId = receiverId;
+          finalClubId = targetClubId;
+
+        } else if (clubId) {
+          // Group message to a club: must be subscribed
+          targetClubId = clubId;
+          const subscription = await Subscription.findOne({
+            where: { studentId: senderId, clubId: targetClubId },
+          });
+          if (!subscription) {
+            socket.emit("error", { message: "You are not subscribed to this club" });
+            return;
+          }
+          finalMessageType = 'group';
+          // Find or create group chat room for this club
+          let chatRoom = await ChatRoom.findOne({
+            where: { clubId: targetClubId, type: 'club_group', isActive: true }
+          });
+          if (!chatRoom) {
+            chatRoom = await ChatRoom.create({
+              name: `Club ${targetClubId} Group Chat`,
+              type: 'club_group',
+              clubId: targetClubId,
+              createdBy: targetClubId,
+              isActive: true
+            });
+          }
+          chatRoomId = chatRoom.id;
+          // Update last message timestamp
+          chatRoom.lastMessageAt = new Date();
+          await chatRoom.save();
+
+        } else {
+          socket.emit("error", { message: "Students must specify a club or club recipient" });
+          return;
         }
-        chatRoomId = chatRoom.id;
-        // Update last message timestamp
-        chatRoom.lastMessageAt = new Date();
-        await chatRoom.save();
 
       } else if (sender.role === "club") {
         if (receiverId) {
@@ -3141,7 +3199,6 @@ io.on("connection", async (socket) => {
           chatRoom.lastMessageAt = new Date();
           await chatRoom.save();
         }
-
       } else if (sender.role === "admin") {
         if (receiverId) {
           // Direct message to individual club or student
@@ -3202,22 +3259,23 @@ io.on("connection", async (socket) => {
       } else if (finalMessageType === 'direct') {
         if (sender.role === "club") {
           if (finalReceiverId) {
-            // Club to individual: send to receiver's room
+            // Club to individual: send to receiver's personal room
             const receiver = await User.findByPk(finalReceiverId);
             if (receiver.role === "admin") {
-              // Send to admin broadcast room (admin joins all rooms)
+              // Send to admin personal room and broadcast room
+              socket.to(`user_${receiver.id}`).emit("new-message", messageData);
               socket.to("club_broadcast").emit("new-message", messageData);
             } else if (receiver.role === "student") {
-              // Send to student's subscribed club rooms
-              const subscriptions = await Subscription.findAll({
-                where: { studentId: finalReceiverId },
-              });
-              subscriptions.forEach((sub) => {
-                socket.to(`club_${sub.clubId}`).emit("new-message", messageData);
-              });
+              // Send to student's personal room
+              socket.to(`user_${receiver.id}`).emit("new-message", messageData);
             }
           } else {
             // Club to admin: special case where receiverId is null
+            // Send to admin broadcast and personal admin rooms
+            const adminUsers = await User.findAll({ where: { role: 'admin' } });
+            adminUsers.forEach((a) => {
+              socket.to(`user_${a.id}`).emit("new-message", messageData);
+            });
             socket.to("club_broadcast").emit("new-message", messageData);
           }
         } else if (sender.role === "admin" && finalReceiverId) {
@@ -3225,8 +3283,9 @@ io.on("connection", async (socket) => {
           const receiver = await User.findByPk(finalReceiverId);
           if (receiver.role === "club") {
             socket.to(`club_${finalReceiverId}`).emit("new-message", messageData);
+            socket.to(`user_${finalReceiverId}`).emit("new-message", messageData);
           } else if (receiver.role === "student") {
-            socket.to("student_broadcast").emit("new-message", messageData);
+            socket.to(`user_${finalReceiverId}`).emit("new-message", messageData);
           }
         }
       } else if (finalMessageType === 'broadcast') {

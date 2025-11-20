@@ -383,9 +383,11 @@
 
   <script>
     // Student Messages Page JavaScript
-    const socket = io();
-    const studentId = <%= user.id %>;
-    let currentClubChat = null;
+  const socket = io();
+  const studentId = <%= JSON.stringify(user.id) %>;
+  let currentClubChat = null;
+  // 'group' or 'rep' (representative/direct)
+  let currentRecipientMode = null;
 
     // Initialize when page loads
     window.addEventListener('DOMContentLoaded', function() {
@@ -411,7 +413,7 @@
           const club = sub.club; // Assuming subscription includes club data
           const div = document.createElement('div');
           div.className = 'club-item';
-          div.onclick = function() { selectClub(club.id, club.username); };
+          div.onclick = function(e) { selectClub(club.id, club.username, e); };
           div.innerHTML = '<h3>' + club.username + '</h3><p>Click to chat</p>';
           container.appendChild(div);
         });
@@ -419,7 +421,7 @@
         // Add Admin Messages section
         const adminDiv = document.createElement('div');
         adminDiv.className = 'club-item';
-        adminDiv.onclick = function() { selectAdminMessages(); };
+  adminDiv.onclick = function(e) { selectAdminMessages(e); };
         adminDiv.innerHTML = '<h3>📢 Admin Messages</h3><p>System announcements</p>';
         container.appendChild(adminDiv);
       } catch (err) {
@@ -429,27 +431,63 @@
     }
 
     // Select a club to chat with
-    function selectClub(clubId, clubName) {
+    function selectClub(clubId, clubName, e) {
       currentClubChat = clubId;
+      // Reset mode to group by default
+      currentRecipientMode = 'group';
 
       // Update active state
       document.querySelectorAll('.club-item').forEach(item => {
         item.classList.remove('active');
       });
-      event.target.closest('.club-item').classList.add('active');
+      if (e && e.target) e.target.closest('.club-item').classList.add('active');
 
-      // Update chat header
-      const headerContent = '<h2>Chatting with ' + clubName + '</h2><p>Send messages to this club</p>';
+      // Update chat header with mode selectors
+      const headerContent = `
+        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+          <div>
+            <h2 style="display:inline-block;margin-right:1rem;">Chatting with ${clubName}</h2>
+            <small style="color:#6B7280">(Choose recipient)</small>
+          </div>
+          <div style="display:flex;gap:0.5rem;">
+            <button id="mode-group-btn" class="send-btn" style="background:#10B981;padding:0.35rem 0.75rem;font-size:0.85rem;">Group</button>
+            <button id="mode-rep-btn" class="send-btn" style="background:#2563EB;padding:0.35rem 0.75rem;font-size:0.85rem;">Representative</button>
+          </div>
+        </div>`;
       document.getElementById('chat-header').innerHTML = headerContent;
+
+      // Wire up mode buttons
+      document.getElementById('mode-group-btn').addEventListener('click', function() {
+        setRecipientMode('group');
+      });
+      document.getElementById('mode-rep-btn').addEventListener('click', function() {
+        setRecipientMode('rep');
+      });
 
       // Show chat input
       document.getElementById('chat-input').style.display = 'flex';
 
-      loadClubMessages(clubId);
+      loadClubMessages(clubId, currentRecipientMode);
+    }
+
+    function setRecipientMode(mode) {
+      currentRecipientMode = mode;
+      // update header button styles
+      const g = document.getElementById('mode-group-btn');
+      const r = document.getElementById('mode-rep-btn');
+      if (g && r) {
+        if (mode === 'group') {
+          g.style.opacity = '1'; r.style.opacity = '0.7';
+        } else {
+          g.style.opacity = '0.7'; r.style.opacity = '1';
+        }
+      }
+      // reload messages for selected mode
+      if (currentClubChat) loadClubMessages(currentClubChat, currentRecipientMode);
     }
 
     // Select admin messages
-    function selectAdminMessages() {
+    function selectAdminMessages(e) {
       // Reset club chat selection
       currentClubChat = null;
 
@@ -457,7 +495,7 @@
       document.querySelectorAll('.club-item').forEach(item => {
         item.classList.remove('active');
       });
-      event.target.closest('.club-item').classList.add('active');
+      if (e && e.target) e.target.closest('.club-item').classList.add('active');
 
       // Update chat header
       const headerContent = '<h2>📢 Admin Messages</h2><p>System announcements and important updates</p>';
@@ -515,16 +553,27 @@
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    // Load messages for selected club
-    async function loadClubMessages(clubId) {
+    // Load messages for selected club; mode is 'group' or 'rep'
+    async function loadClubMessages(clubId, mode) {
       try {
         const response = await fetch('/messages/student/' + studentId);
         const messages = await response.json();
 
-        // Filter messages for current club
-        const clubMessages = messages.filter(function(msg) {
-          return msg.senderId === clubId || msg.receiverId === studentId || msg.clubId === clubId;
-        });
+        let clubMessages = [];
+        if (mode === 'group') {
+          // Only group messages for this club
+          clubMessages = messages.filter(function(msg) {
+            return msg.messageType === 'group' && msg.clubId == clubId;
+          });
+        } else if (mode === 'rep') {
+          // Direct messages between this student and the club (representative)
+          clubMessages = messages.filter(function(msg) {
+            return msg.messageType === 'direct' && (
+              (msg.senderId == clubId && msg.receiverId == studentId) ||
+              (msg.senderId == studentId && msg.receiverId == clubId)
+            );
+          });
+        }
 
         const messagesContainer = document.getElementById('chat-messages');
         messagesContainer.innerHTML = '';
@@ -566,7 +615,7 @@
       const input = document.getElementById('message-input');
       const message = input.value.trim();
 
-      if (!message || !currentClubChat) {
+      if (!message || !currentClubChat || !currentRecipientMode) {
         return;
       }
 
@@ -580,12 +629,23 @@
       appendMessage(tempMsg);
 
       // Send to server
-      socket.emit('send-message', {
-        senderId: studentId,
-        receiverId: null,
-        clubId: currentClubChat,
-        message: message
-      });
+      if (currentRecipientMode === 'group') {
+        socket.emit('send-message', {
+          senderId: studentId,
+          receiverId: null,
+          clubId: currentClubChat,
+          message: message,
+          messageType: 'group'
+        });
+      } else if (currentRecipientMode === 'rep') {
+        socket.emit('send-message', {
+          senderId: studentId,
+          receiverId: currentClubChat,
+          clubId: null,
+          message: message,
+          messageType: 'direct'
+        });
+      }
 
       input.value = '';
       input.focus();
@@ -602,9 +662,12 @@
 
     // Socket.IO events
     socket.on('new-message', function(msg) {
-      // Only handle if we're chatting with the sender's club or it's a broadcast
-      if (currentClubChat && (msg.clubId === currentClubChat || msg.senderId === currentClubChat || msg.clubId === studentId)) {
-        appendMessage(msg);
+      // Only handle if we're chatting with the relevant club and mode
+      if (!currentClubChat || !currentRecipientMode) return;
+      if (currentRecipientMode === 'group') {
+        if (msg.messageType === 'group' && msg.clubId == currentClubChat) appendMessage(msg);
+      } else if (currentRecipientMode === 'rep') {
+        if (msg.messageType === 'direct' && ((msg.senderId == currentClubChat && msg.receiverId == studentId) || (msg.senderId == studentId && msg.receiverId == currentClubChat))) appendMessage(msg);
       }
     });
 

@@ -700,6 +700,14 @@ app.post("/admin/club-requests/:id/approve", requireLogin, async (req, res) => {
         await creq.save({ transaction: t });
       });
       await sendApprovalEmail(creq.clubEmail, 'account', 'approved');
+        // Create audit log
+        await AuditLog.create({
+          adminId: req.session.user.id,
+          action: creq.clubKind === "Academic" ? "Pre-approved" : "Approved",
+          targetType: "Club",
+          targetId: creq.id,
+          details: `${creq.clubKind === "Academic" ? "Pre-approved" : "Approved"} club request for ${creq.clubName} (${creq.clubKind}).`,
+        });
     }
     res.redirect("/admin/club-requests");
   } catch (err) {
@@ -814,6 +822,14 @@ app.post("/admin/posts/:id/reject", requireLogin, async (req, res) => {
   const club = await User.findByPk(post.clubId);
   console.log(`Post rejected: post ID ${post.id}, club ID ${post.clubId}, club email ${club.email}, notes: "${req.body.adminNotes}"`);
   await sendApprovalEmail(club.email, 'post', 'rejected', req.body.adminNotes);
+  // Create audit log
+  await AuditLog.create({
+    adminId: req.session.user.id,
+    action: "Rejected",
+    targetType: "Post",
+    targetId: post.id,
+    details: `Rejected post #${post.id} by club "${club.username}" with notes: "${req.body.adminNotes}".`,
+  });
   res.redirect("/admin/posts");
 });
 
@@ -2130,6 +2146,14 @@ app.post("/dean/club-requests/:id/approve", requireLogin, async (req, res) => {
     });
 
     await sendApprovalEmail(creq.clubEmail, 'account', 'approved');
+        // Create audit log
+        await AuditLog.create({
+          adminId: req.session.user.id,
+          action: creq.clubKind === "Academic" ? "Pre-approved" : "Approved",
+          targetType: "Club",
+          targetId: creq.id,
+          details: `${creq.clubKind === "Academic" ? "Pre-approved" : "Approved"} club request for ${creq.clubName} (${creq.clubKind}).`,
+        });
     res.redirect("/dean/club-requests");
   } catch (err) {
     console.error("Approve club request failed:", err);

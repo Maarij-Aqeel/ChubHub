@@ -158,38 +158,6 @@
           </div>
         </div>
 
-        <!-- Recent Actions -->
-        <div class="recent-actions">
-          <div class="section-header">
-            <i class="fas fa-history"></i>
-            <h3>Recent Actions</h3>
-        </div>
-        <% if (recentLogs && recentLogs.length) { %>
-          <% recentLogs.forEach(log => { %>
-            <div class="action-card">
-              <div class="action-header">
-                <div class="action-type">
-                  <i class="fas fa-circle-check"></i>
-                  <span><%= log.action %> <%= log.targetType %> #<%= log.targetId %></span>
-                </div>
-                <div class="action-time">
-                  <i class="far fa-clock"></i>
-                  <%= new Date(log.createdAt).toLocaleString() %>
-                </div>
-              </div>
-              <% if (log.details) { %>
-                <div class="action-details"><%= log.details %></div>
-              <% } %>
-            </div>
-          <% }); %>
-        <% } else { %>
-        <div class="empty-state">
-          <i class="fas fa-inbox"></i>
-          <h3>No Recent Actions</h3>
-          <p>Your activity log will appear here.</p>
-        </div>
-        <% } %>
-        </div>
       </div>
 
       <!-- Messages Section -->

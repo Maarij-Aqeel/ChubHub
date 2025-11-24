@@ -640,21 +640,21 @@
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                   <% if (c.isSubscribed) { %>
                     <form action="/student/<%= user.id %>/clubs/<%= c.id %>/unsubscribe" method="POST" style="display:inline;" onsubmit="return confirmUnsubscribe('<%= c.username %>')">
-                      <button type="submit" class="btn" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); font-size: 0.85rem;">
+                      <button type="submit" class="btn" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); font-size: 0.85rem; width: 300px; height: 70px;">
                         <i class="fas fa-bell-slash"></i>
                         Unsubscribe
                       </button>
                     </form>
                   <% } else { %>
                     <form action="/student/<%= user.id %>/clubs/<%= c.id %>/subscribe" method="POST" style="display:inline;" onsubmit="return confirmSubscribe('<%= c.username %>')">
-                      <button type="submit" class="btn" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); font-size: 0.85rem;">
+                      <button type="submit" class="btn" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); font-size: 0.85rem; width: 300px; height: 70px;">
                         <i class="fas fa-bell"></i>
                         Subscribe
                       </button>
                     </form>
                   <% } %>
                   <form id="leaveForm-<%= c.id %>" action="/student/<%= user.id %>/leave/<%= c.id %>" method="POST" style="display:inline;">
-                    <button type="button" class="btn secondary" onclick="confirmLeave('<%= c.id %>', '<%= c.username %>')" style="font-size: 0.85rem;">
+                    <button type="button" class="btn secondary" onclick="confirmLeave('<%= c.id %>', '<%= c.username %>')" style="font-size: 0.85rem; width: 300px; height: 70px">
                       <i class="fas fa-sign-out-alt"></i>
                       Leave Club
                     </button>
@@ -664,26 +664,26 @@
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
                   <% if (c.isSubscribed) { %>
                     <form action="/student/<%= user.id %>/clubs/<%= c.id %>/unsubscribe" method="POST" style="display:inline;" onsubmit="return confirmUnsubscribe('<%= c.username %>')">
-                      <button type="submit" class="btn" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); font-size: 0.85rem;">
+                      <button type="submit" class="btn" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); font-size: 0.85rem; width: 300px; height: 70px;">
                         <i class="fas fa-bell-slash"></i>
                         Unsubscribe
                       </button>
                     </form>
                   <% } else { %>
                     <form action="/student/<%= user.id %>/clubs/<%= c.id %>/subscribe" method="POST" style="display:inline;" onsubmit="return confirmSubscribe('<%= c.username %>')">
-                      <button type="submit" class="btn" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); font-size: 0.85rem;">
+                      <button type="submit" class="btn" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); font-size: 0.85rem; width: 300px; height: 70px;">
                         <i class="fas fa-bell"></i>
                         Subscribe
                       </button>
                     </form>
                   <% } %>
                   <% if (c.hasApplied) { %>
-                    <button class="btn" style="background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%); font-size: 0.85rem;" disabled>
+                    <button class="btn" style="background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%); font-size: 0.85rem; width: 300px; height: 70px" disabled>
                       <i class="fas fa-clock"></i>
                       Application Pending
                     </button>
                   <% } else { %>
-                    <button class="btn" style="font-size: 0.85rem;" onclick="openApplicationModal('<%= c.id %>', '<%= c.username %>')">
+                    <button class="btn" style="font-size: 0.85rem; width: 300px; height: 70px;" onclick="openApplicationModal('<%= c.id %>', '<%= c.username %>')">
                       <i class="fas fa-paper-plane"></i>
                       Apply to Join
                     </button>
